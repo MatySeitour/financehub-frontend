@@ -6,17 +6,124 @@ import { FaGear, FaPeopleGroup } from "react-icons/fa6";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { IoLogoUsd } from "react-icons/io";
 import { FaMoneyCheckDollar } from "react-icons/fa6";
-import { IconType } from "react-icons";
-
-type NavItem = {
-  name: string;
-  linkTo: string;
-  icon: IconType;
-};
+import { ContextMenuState, MenuOption, NavItem } from "./types";
+import { useTheme } from "@table-library/react-table-library/theme";
+import { getTheme } from "@table-library/react-table-library/baseline";
+import { CiEdit } from "react-icons/ci";
+import { MdDelete } from "react-icons/md";
 
 export const cn = (...args: ClassValue[]) => {
   return twMerge(clsx(...args));
 };
+
+export const openContextMenuHandler = (
+  e: React.MouseEvent<HTMLDivElement>,
+  setContextMenu: (contextMenu: ContextMenuState) => void,
+) => {
+  const isRow = (e?.target as HTMLElement).closest('[role="row"]');
+
+  if (isRow) {
+    const tableContainer = e.currentTarget;
+    setContextMenu({ show: true, x: 0, y: 0, visible: false });
+    e?.preventDefault();
+
+    setTimeout(() => {
+      const menuElement = document.getElementById("menuOptions");
+      const containerElement = tableContainer.closest("#table-container");
+
+      const scrollX = window.scrollX || window.pageXOffset;
+      const scrollY = window.scrollY || window.pageYOffset;
+
+      const tableRect = tableContainer.getBoundingClientRect();
+
+      const offsetX = e.clientX + scrollX;
+      const offsetY = e.clientY + scrollY;
+
+      let menuX = offsetX - tableRect.left;
+      let menuY = offsetY - tableRect.top;
+
+      const menuWidth = menuElement?.getBoundingClientRect()?.width || 0;
+      const menuHeight = menuElement?.getBoundingClientRect()?.height || 0;
+
+      const containerScrollTop = containerElement?.scrollTop || 0;
+      const containerScrollLeft = containerElement?.scrollLeft || 0;
+
+      if (menuX + menuWidth > tableRect.width) {
+        console.log(tableRect.width, menuX + menuWidth);
+        menuX = tableRect.width + containerScrollLeft - menuWidth;
+      } else {
+        menuX = menuX;
+      }
+
+      if (menuY + menuHeight > tableRect.height) {
+        menuY = tableRect.height + containerScrollTop - menuHeight;
+      }
+
+      if (menuY < containerScrollTop) {
+        menuY = containerScrollTop;
+      }
+
+      setContextMenu({ show: true, x: menuX, y: menuY, visible: true });
+    }, 0);
+  } else {
+    setContextMenu({ show: false, x: 0, y: 0, visible: false });
+  }
+};
+
+export const closeContextMenuHandler = (
+  setContextMenu: (contextMenu: ContextMenuState) => void,
+) => {
+  setContextMenu({ show: false, x: 0, y: 0, visible: false });
+};
+
+export function dynamicSort(array: any[], key: string, order: "asc" | "desc") {
+  const [baseKey, subKey] = key.split(".");
+
+  return array.sort((a, b) => {
+    const valueA = subKey ? a[baseKey]?.[subKey] : a[baseKey];
+    const valueB = subKey ? b[baseKey]?.[subKey] : b[baseKey];
+
+    if (valueA == null || valueB == null) return 0;
+
+    const result =
+      typeof valueA === "string"
+        ? valueA.localeCompare(valueB)
+        : valueA - valueB;
+
+    return order === "asc" ? result : -result;
+  });
+}
+
+export const useTableTheme = () =>
+  useTheme([
+    getTheme(),
+    {
+      HeaderRow: `
+        color: #687387;
+        font-size: 12px;
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        border-top: 1px solid red;
+      `,
+      Table: `
+      `,
+      Header: `
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+      `,
+      Row: `
+        border-right: 1px solid #dddc;
+      `,
+      Cell: `
+        padding: 6px;
+        color: #8b94a5;
+        font-weight: 500;
+      `,
+      HeaderCell: `
+        font-weight: 500;
+      `,
+    },
+  ]);
 
 export const navItems: NavItem[] = [
   {
@@ -53,5 +160,18 @@ export const navItems: NavItem[] = [
     name: "Configuraciones",
     linkTo: "/configuracion",
     icon: FaGear,
+  },
+];
+
+export const contextMenuBasicOptions: Array<MenuOption> = [
+  {
+    name: "Editar",
+    icon: CiEdit,
+    route: undefined,
+  },
+  {
+    name: "Eliminar",
+    icon: MdDelete,
+    route: undefined,
   },
 ];
