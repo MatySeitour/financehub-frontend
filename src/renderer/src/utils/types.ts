@@ -1,4 +1,38 @@
+import { AxiosError } from "axios";
 import { IconType } from "react-icons";
+
+export type ErrorResponse =
+  | { code: "unauthorized"; data: null }
+  | { code: "unprocess_fields"; data: Record<string, string[]> }
+  | { code: "server-error"; data: null }
+  | { code: "bad_request"; data: string }
+  | { code: "connection-error"; data: null }
+  | { code: "zod_validation"; data: string };
+
+export type ServerError<T = any> = AxiosError<{
+  code: string;
+  data?: T | null;
+}>;
+
+export type User = {
+  email: string;
+  name: string;
+  id: number;
+  organization: {
+    id: number;
+    name: string;
+  };
+};
+
+export type SessionResponse = {
+  user?: User;
+  error:
+    | {
+        status: number;
+        message: string;
+      }
+    | undefined;
+};
 
 export type ContextMenuState = {
   show: boolean;

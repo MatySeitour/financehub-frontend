@@ -3,9 +3,22 @@
 @tailwind utilities;
 
 body {
-  font-family: "Rubik", sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .table {
   grid-auto-rows: 48px !important;
+}
+
+.onboarding-title::after {
+  opacity: 0.35;
+  background-image: radial-gradient(#17c964 1.35px, transparent 1.35px);
+  background-size: 27px 27px;
+}
+
+.onboarding-text {
+  background: linear-gradient(to top, #17c964 20%, #4ade80);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
