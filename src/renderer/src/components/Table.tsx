@@ -1,3 +1,4 @@
+import { ContextMenuState, MenuOption } from "@renderer/utils/types";
 import {
   closeContextMenuHandler,
   cn,
@@ -19,88 +20,58 @@ import {
 } from "@table-library/react-table-library/table";
 import {
   Dispatch,
-  forwardRef,
+  ReactNode,
   SetStateAction,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
-import {
-  ContextMenuState,
-  MenuOption,
-  ModalState,
-} from "@renderer/utils/types";
+import { ErrorResponse, ModalState } from "@renderer/utils/types";
 import { PiTableLight } from "react-icons/pi";
 import { LuPlus } from "react-icons/lu";
-import { MdError } from "react-icons/md";
+import { MdError, MdSearchOff } from "react-icons/md";
 import { TbWorldCancel } from "react-icons/tb";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
+import { Button } from "@heroui/react";
 
 type Column<T> = {
-  label: string;
+  label: string | ReactNode;
   key: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  enabledContextMenu?: (bol?: any) => void;
 };
 
-type TableWorkingProps<T extends TableNode> = {
+type TableProps<T extends TableNode> = {
   data: T[] | undefined;
-  // query: UseQueryResult<T[] | undefined, any>; // DESCOMENTAR CUANDO HAYA BACKEND
-  query: any;
+  loading: boolean;
+  error: any;
+  searchInput: string;
   columns: Column<T>[];
   optionsMenu?: MenuOption[] | null;
   openModal: ((s: ModalState) => void) | null;
-  selectRowID: Dispatch<SetStateAction<number | undefined>>;
+  selectRowID?: Dispatch<SetStateAction<number | undefined>>;
 };
 
-interface ContextMenuProps {
-  x: number;
-  y: number;
-  onCloseContextMenu: () => void;
-  parentRef: React.RefObject<HTMLElement>;
-  options: Array<MenuOption>;
-  setModalState: (state: ModalState) => void;
-  isOpen: boolean;
-}
-
-function TableWorking<T extends TableNode>({
+function TableWork<T extends TableNode>({
   columns,
   optionsMenu,
   openModal,
   selectRowID,
-  query,
+  loading,
+  error,
+  searchInput,
   data,
-}: TableWorkingProps<T>) {
-  const table = useRef<HTMLDivElement>(null);
-  const menuRef = useRef(null);
-
+}: TableProps<T>) {
+  const table = useRef(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     show: false,
     x: 0,
     y: 0,
     visible: false,
   });
-  const [selectedRow, setSelectedRow] = useState<number | null>(null);
-
-  const handleRowClick = (rowId: number) => {
-    setSelectedRow((prev) => (prev === rowId ? null : rowId));
-  };
-
-  const handleOutsideClick = (event: MouseEvent) => {
-    if (table.current && !table.current.contains(event.target as Node)) {
-      setSelectedRow(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("click", handleOutsideClick);
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
-    };
-  }, []);
-
   const columnsLength = columns.length - 1;
 
   let percentageNumber = "";
@@ -125,15 +96,18 @@ function TableWorking<T extends TableNode>({
 
         Table: `
           --data-table-library_grid-template-columns:  ${percentageNumber} minmax(150px, 1fr);
-          overflow-y: auto;
-          height: 100%;
+            overflow-y: auto;
+            height: 100%;
         `,
         Header: `
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
           `,
         Row: `
-            border-right: 1px solid #dddc;
+          border-right: 1px solid #dddc;
+          height: 40px;
+          max-height: 40px;
+          overflow: hidden;
           `,
         Cell: `
             padding: 6px;
@@ -170,201 +144,243 @@ function TableWorking<T extends TableNode>({
     },
   );
 
-  if (query.isLoading || query.isFetching) {
+  if (loading) {
     return <TableLoading />;
   }
 
-  if (query.error) {
-    return <TableError error={query.error} />;
+  if (error) {
+    return <TableError error={error} />;
   }
 
-  if (query.data?.length === 0) {
+  if (data?.length === 0 && searchInput === "") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
         <div>
           <PiTableLight className="h-24 w-24 text-slate-500" />
         </div>
         <p className="text-lg text-slate-500">No hay datos cargados aún</p>
-        <button
+        <Button
           className="flex w-64 items-center gap-1"
           onClick={() => openModal && openModal("agregar")}
         >
           <LuPlus className="h-4 w-4" />
           Agregar
-        </button>
+        </Button>
+      </div>
+    );
+  }
+
+  if (data?.length === 0 && searchInput !== "") {
+    return (
+      <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+        <MdSearchOff className="h-20 w-20 text-slate-600" />
+        <p className="text-slate-600">
+          No hay resultados para <b> {searchInput}</b>...
+        </p>
       </div>
     );
   }
 
   return (
-    <article className="h-full w-full overflow-hidden p-4">
-      <div
-        className="h-full max-h-full overflow-auto"
-        ref={table}
-        onClick={(e: any) => {
-          openContextMenuHandler(e, setContextMenu);
-        }}
-        id="table-container"
-      >
-        <Table
-          layout={
-            columnsLength > 4
-              ? { custom: true, horizontalScroll: true }
-              : undefined
-          }
-          sort={sort}
-          data={{ nodes: data }}
-          theme={theme}
-        >
-          {(tableList: T[]) => (
-            <>
-              <Header>
-                <HeaderRow>
-                  {columns.map((column, index) => (
-                    <HeaderCellSort
-                      className={cn(
-                        "h-10 border-b border-t border-slate-200 !bg-slate-100",
-                        index === 0 && "rounded-l-md border-l",
-                        index === columns.length - 1 &&
-                          "custom-header-last rounded-r-md border-r",
-                      )}
-                      resize={index === columns.length - 1 ? false : true}
-                      sortKey={column.key}
-                      key={column.label}
-                    >
-                      {column.label}
-                    </HeaderCellSort>
-                  ))}
-                </HeaderRow>
-              </Header>
-              <Body>
-                {tableList.map((item) => (
-                  <Row
-                    className={cn(
-                      "cursor-pointer text-xs transition-colors hover:bg-slate-200/50",
-                      selectedRow === item.id && "!bg-slate-200/50",
-                    )}
-                    onClick={(item) => {
-                      selectRowID(Number(item.id));
-                      handleRowClick(Number(item.id));
-                    }}
-                    key={item.id}
-                    item={item}
-                  >
-                    {columns.map((column) => (
-                      <Cell
-                        className={cn("h-12 text-xs", column.className)}
-                        key={`${item.id}-${column.key}`}
+    <article className="h-full w-full">
+      {data?.length !== 0 && (
+        <>
+          <div
+            className="h-full max-h-full overflow-auto"
+            ref={table}
+            id="table-container"
+          >
+            <Table
+              layout={
+                columnsLength > 4
+                  ? { custom: true, horizontalScroll: true }
+                  : undefined
+              }
+              sort={sort}
+              data={{ nodes: data }}
+              theme={theme}
+            >
+              {(tableList: T[]) => (
+                <>
+                  <Header>
+                    <HeaderRow>
+                      {columns.map((column, index) => (
+                        <HeaderCellSort
+                          className={cn(
+                            "h-10 border-b border-t border-slate-200 !bg-slate-100",
+                            index === 0 && "rounded-l-md border-l",
+                            index === columns.length - 1 &&
+                              "custom-header-last rounded-r-md border-r",
+                          )}
+                          resize={index === columns.length - 1 ? false : true}
+                          sortKey={column.key}
+                          key={column.key}
+                        >
+                          {column.label}
+                        </HeaderCellSort>
+                      ))}
+                    </HeaderRow>
+                  </Header>
+                  <Body>
+                    {tableList.map((item) => (
+                      <Row
+                        id={`row-${item.id}`}
+                        className={cn(
+                          "cursor-pointer text-xs transition-colors hover:bg-slate-200/50",
+                        )}
+                        onClick={(item, e) => {
+                          const hasEnableMenu = columns.some(
+                            (column) => column.enabledContextMenu,
+                          );
+
+                          const enableMenu = columns.some((column) =>
+                            column.enabledContextMenu
+                              ? column.enabledContextMenu(item)
+                              : false,
+                          );
+
+                          if (enableMenu || !hasEnableMenu) {
+                            selectRowID && selectRowID(Number(item.id));
+                            openContextMenuHandler(e, setContextMenu);
+                          }
+                        }}
+                        onDoubleClick={(item) => {
+                          const hasEnableMenu = columns.some(
+                            (column) => column.enabledContextMenu,
+                          );
+
+                          const enableMenu = columns.some((column) =>
+                            column.enabledContextMenu
+                              ? column.enabledContextMenu(item)
+                              : false,
+                          );
+
+                          if (enableMenu || !hasEnableMenu) {
+                            closeContextMenuHandler(setContextMenu);
+                            selectRowID && selectRowID(Number(item.id));
+                            openModal && openModal("editar");
+                          }
+                        }}
+                        key={item.id}
+                        item={item}
                       >
-                        {column.render ? column.render(item) : item[column.key]}
-                      </Cell>
+                        {columns.map((column) => (
+                          <Cell
+                            className={cn("h-12 text-xs", column.className)}
+                            key={`${item.id}-${column.key}`}
+                          >
+                            {column.render
+                              ? column.render(item)
+                              : item[column.key]}
+                          </Cell>
+                        ))}
+                      </Row>
                     ))}
-                  </Row>
-                ))}
-              </Body>
-            </>
+                  </Body>
+                </>
+              )}
+            </Table>
+          </div>
+          {contextMenu.show && openModal && optionsMenu && (
+            <ContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              isOpen={contextMenu.show && contextMenu.visible}
+              setModalState={openModal}
+              onCloseContextMenu={() => closeContextMenuHandler(setContextMenu)}
+              options={optionsMenu}
+              parentRef={table}
+            />
           )}
-        </Table>
-      </div>
-      {contextMenu.show && openModal && optionsMenu && (
-        <ContextMenu
-          ref={menuRef}
-          x={contextMenu.x}
-          y={contextMenu.y}
-          isOpen={contextMenu.show && contextMenu.visible}
-          setModalState={openModal}
-          onCloseContextMenu={() => closeContextMenuHandler(setContextMenu)}
-          options={optionsMenu}
-          parentRef={table}
-        />
+        </>
       )}
     </article>
   );
 }
 
-function TableLoading() {
+export function TableLoading() {
   return (
     <div className="h-80 w-full">
       <div className="h-10 rounded-md border border-slate-200 !bg-slate-200/40"></div>
       <div className="grid grid-cols-6 gap-4 bg-white pt-2">
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
         <div className="flex items-center justify-center p-1 px-2">
-          <div className="animate-skeletonTable h-8 w-full rounded-md bg-slate-200/80"></div>
+          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
         </div>
       </div>
     </div>
   );
 }
 
-function TableError({ error }: { error: any }) {
+function TableError({ error }: { error: ErrorResponse }) {
   if (error.code === "connection-error") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
@@ -376,6 +392,43 @@ function TableError({ error }: { error: any }) {
     );
   }
 
+  if (error.code === "zod_validation") {
+    return (
+      <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+        <MdError className="h-20 w-20 text-red-500" />
+        <h4 className="text-xl text-red-500">{error?.data}</h4>
+      </div>
+    );
+  }
+
+  // if (error.code === "unauthorized") {
+  //   return (
+  //     <Modal className="max-w-lg" isOpen={true}>
+  //       <div className="flex h-full min-h-72 w-full flex-col items-center justify-center gap-8">
+  //         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-200/40 p-2 shadow-sm">
+  //           <FaUserLargeSlash className="size-12 min-w-12 text-red-500" />
+  //         </div>
+  //         <div className="flex flex-col items-center justify-center gap-2">
+  //           <p className="text-2xl font-semibold text-slate-600">
+  //             Parece que tu sesión ha expirado
+  //           </p>
+  //           <p className="text-sm font-medium text-slate-500">
+  //             Por favor, vuelve a iniciar sesión
+  //           </p>
+  //         </div>
+  //         <Button
+  //           onClick={() => router.push("/login")}
+  //           className="w-full"
+  //           size={"lg"}
+  //           color="primary"
+  //         >
+  //           Iniciar sesión
+  //         </Button>
+  //       </div>
+  //     </Modal>
+  //   );
+  // }
+
   return (
     <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
       <MdError className="h-20 w-20 text-red-500" />
@@ -386,67 +439,90 @@ function TableError({ error }: { error: any }) {
   );
 }
 
-const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
-  (
-    { x, y, onCloseContextMenu, parentRef, options, setModalState, isOpen },
-    ref,
-  ) => {
-    const menuStyle = {
-      top: `${y}px`,
-      left: `${x}px`,
-    };
+export { TableWork };
 
-    useEffect(() => {
-      const clickListener = (event: any) => {
-        const menuParent = parentRef?.current;
-        const contextMenu = document.getElementById("menuOptions");
-        if (
-          !menuParent?.contains(event.target as Node) &&
-          !contextMenu?.contains(event.target as Node)
-        ) {
-          onCloseContextMenu();
-          const elementSelected =
-            document.getElementsByClassName("row-selected")[0];
-          if (elementSelected)
-            elementSelected?.classList?.remove("row-selected");
-        }
-      };
+function ContextMenu({
+  x,
+  y,
+  onCloseContextMenu,
+  options,
+  setModalState,
+  isOpen,
+}: {
+  x: number;
+  y: number;
+  onCloseContextMenu: any;
+  parentRef: any;
+  options: MenuOption[];
+  setModalState: (state: ModalState) => void;
+  isOpen: boolean;
+}) {
+  // const router = useRouter();
+  const menuStyle = {
+    top: `${y}px`,
+    left: `${x}px`,
+  };
 
-      document.addEventListener("mousedown", clickListener);
+  useEffect(() => {
+    const clickListener = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
 
-      return () => {
-        document.removeEventListener("mousedown", clickListener);
-      };
-    }, [parentRef, onCloseContextMenu]);
+      const contextMenu = document.getElementById("menuOptions");
+      const modalContainer = document.getElementById("modal-container");
 
-    const handleMenuClick = (option: MenuOption) => {
-      if (!option.route) return;
-      // router.push(`${option.route}`);
-    };
+      const isInsideTableHeadRow = target.closest('[role="gridcell"]');
+      const isInsideModal = modalContainer?.contains(target);
 
-    const closeMenuWhenSelectOption = (
-      event: React.MouseEvent<HTMLDivElement>,
-    ) => {
-      if ((event.target as HTMLDivElement).closest(".menu-option") !== null) {
+      if (
+        !contextMenu?.contains(target) &&
+        !isInsideTableHeadRow &&
+        !isInsideModal
+      ) {
         onCloseContextMenu();
+
+        const elementSelected =
+          document.getElementsByClassName("row-selected")[0];
+        if (elementSelected) {
+          elementSelected.classList.remove("row-selected");
+        }
       }
     };
 
-    return (
+    document.addEventListener("mousedown", clickListener);
+
+    return () => {
+      document.removeEventListener("mousedown", clickListener);
+    };
+  }, []);
+
+  const handleMenuClick = (option: MenuOption) => {
+    if (!option.route) return;
+    // router.push(`${option.route}`);
+  };
+
+  const closeMenuWhenSelectOption = (
+    event: React.MouseEvent<HTMLDivElement>,
+  ) => {
+    if ((event.target as HTMLDivElement).closest(".menu-option") !== null) {
+      onCloseContextMenu();
+    }
+  };
+
+  return (
+    <>
       <div
-        ref={ref}
         style={menuStyle}
         onClick={(e) => closeMenuWhenSelectOption(e)}
         id="menuOptions"
         className={cn(
-          "pointer-events-none absolute top-0 z-[999999] h-auto w-40 translate-x-2 overflow-hidden rounded-md border border-slate-200 bg-white p-1 opacity-0 shadow-xl",
+          "pointer-events-none absolute top-0 z-[999999] h-auto w-auto min-w-40 translate-x-2 overflow-hidden rounded-md border border-slate-200 bg-white p-1 opacity-0 shadow-xl",
           isOpen && "pointer-events-auto opacity-100 transition-opacity",
         )}
       >
-        <span className="select-none pl-2 text-[0.65rem] text-slate-600">
+        <span className="select-none pl-2 text-[0.65rem] font-medium text-slate-500">
           Acciones
         </span>
-        <ul className="flex h-full w-full flex-col gap-0.5 pt-2 text-slate-600">
+        <ul className="flex h-full w-full flex-col gap-0.5 px-1 pt-2 text-slate-400">
           {options.map((option: any) => (
             <li
               onClick={() => {
@@ -454,17 +530,29 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
                 setModalState(option.name.toLowerCase());
               }}
               className={cn(
-                "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs font-medium hover:bg-slate-200/40",
-                option.name.toLowerCase() === "eliminar" &&
+                "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs hover:bg-slate-200/40",
+                (option.name.toLowerCase() === "eliminar" ||
+                  option?.state === "danger") &&
                   "hover:bg-red-200/40",
+                option?.state === "success" && "hover:bg-green-200/30",
               )}
               key={option.name}
             >
-              <option.icon className="size-5 min-w-5" />
+              {option.icon && (
+                <option.icon
+                  className={cn(
+                    "size-4 min-w-4 text-slate-400",
+                    option.name.toLowerCase() === "eliminar" && "text-red-400",
+                  )}
+                />
+              )}
               <p
                 className={cn(
                   "tracking-wide",
-                  option.name.toLowerCase() === "eliminar" && "text-red-400",
+                  (option.name.toLowerCase() === "eliminar" ||
+                    option?.state === "danger") &&
+                    "text-red-400",
+                  option?.state === "success" && "text-secondary-green",
                 )}
               >
                 {option.name}
@@ -473,8 +561,6 @@ const ContextMenu = forwardRef<HTMLDivElement, ContextMenuProps>(
           ))}
         </ul>
       </div>
-    );
-  },
-);
-
-export { TableWorking };
+    </>
+  );
+}

@@ -96,7 +96,6 @@ export default function OrganizationOnboarding() {
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
   const mq = useMediaQueries();
-
   const [currentStep, setCurrentStep] = useState(1);
   const [usersOrganization, setUsersOrganization] =
     useState<UsersByOrganization[]>();

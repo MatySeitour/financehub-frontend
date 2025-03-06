@@ -33,7 +33,9 @@ export default function ProtectedLayout() {
         if (data?.user === undefined) return navigate("/login");
         setUser(data?.user);
         return data;
-      } catch (error) {}
+      } catch (error) {
+        errorsResponse(error);
+      }
     };
     session();
   }, []);
@@ -112,9 +114,7 @@ export default function ProtectedLayout() {
       </nav>
       <div className="flex w-2/3 flex-grow flex-col px-6 py-2">
         <div className="flex flex-grow flex-col overflow-hidden rounded-md bg-white">
-          <div className="flex-grow">
-            <Outlet />
-          </div>
+          <Outlet />
         </div>
       </div>
       <Modal

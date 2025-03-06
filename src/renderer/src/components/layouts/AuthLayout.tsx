@@ -3,16 +3,16 @@ import { getSession } from "@renderer/utils";
 import { useCookies } from "react-cookie";
 import { useEffect } from "react";
 
+const errorAuth = [
+  "not_organization",
+  "org_step_1",
+  "org_step_2",
+  "org_step_3",
+];
+
 export function AuthLayout() {
   const [cookies] = useCookies(["token"]);
   let navigate = useNavigate();
-
-  const errorAuth = [
-    "not_organization",
-    "org_step_1",
-    "org_step_2",
-    "org_step_3",
-  ];
 
   useEffect(() => {
     const session = async () => {

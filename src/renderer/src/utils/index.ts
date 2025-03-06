@@ -15,8 +15,7 @@ import {
 } from "./types";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
-import { CiEdit } from "react-icons/ci";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdModeEdit } from "react-icons/md";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 
@@ -90,53 +89,51 @@ export async function getSession(cookie): Promise<SessionResponse> {
 }
 
 export const openContextMenuHandler = (
-  e: React.MouseEvent<HTMLDivElement>,
+  e: any,
   setContextMenu: (contextMenu: ContextMenuState) => void,
 ) => {
-  const isRow = (e?.target as HTMLElement).closest('[role="row"]');
+  const isInsideTableHeadRow = (e?.target as HTMLElement).closest(
+    '[role="gridcell"]',
+  );
+  if (isInsideTableHeadRow) {
+    const element = document.querySelectorAll("#table-container");
 
-  if (isRow) {
-    const tableContainer = e.currentTarget;
+    const elementLength = element.length - 1;
+
     setContextMenu({ show: true, x: 0, y: 0, visible: false });
     e?.preventDefault();
 
     setTimeout(() => {
       const menuElement = document.getElementById("menuOptions");
-      const containerElement = tableContainer.closest("#table-container");
-
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
 
-      const tableRect = tableContainer.getBoundingClientRect();
+      const tableRect = element[elementLength]?.getBoundingClientRect();
 
       const offsetX = e.clientX + scrollX;
       const offsetY = e.clientY + scrollY;
+      if (tableRect) {
+        let menuX = offsetX - tableRect?.left;
+        let menuY = offsetY - tableRect?.top;
 
-      let menuX = offsetX - tableRect.left;
-      let menuY = offsetY - tableRect.top;
+        const menuWidth = menuElement?.getBoundingClientRect()?.width;
+        const menuHeight = menuElement?.getBoundingClientRect()?.height;
 
-      const menuWidth = menuElement?.getBoundingClientRect()?.width || 0;
-      const menuHeight = menuElement?.getBoundingClientRect()?.height || 0;
+        const containerRect = element[elementLength]
+          ?.closest("#table-container")
+          ?.getBoundingClientRect();
 
-      const containerScrollTop = containerElement?.scrollTop || 0;
-      const containerScrollLeft = containerElement?.scrollLeft || 0;
+        if (containerRect && menuWidth && menuHeight) {
+          menuX + menuWidth > containerRect.width
+            ? (menuX = containerRect.width - menuWidth)
+            : (menuX = menuX + 40);
 
-      if (menuX + menuWidth > tableRect.width) {
-        console.log(tableRect.width, menuX + menuWidth);
-        menuX = tableRect.width + containerScrollLeft - menuWidth;
-      } else {
-        menuX = menuX;
+          menuY + menuHeight > containerRect?.height
+            ? (menuY = containerRect.height - menuHeight)
+            : (menuY = menuY - 50);
+        }
+        setContextMenu({ show: true, x: menuX, y: menuY, visible: true });
       }
-
-      if (menuY + menuHeight > tableRect.height) {
-        menuY = tableRect.height + containerScrollTop - menuHeight;
-      }
-
-      if (menuY < containerScrollTop) {
-        menuY = containerScrollTop;
-      }
-
-      setContextMenu({ show: true, x: menuX, y: menuY, visible: true });
     }, 0);
   } else {
     setContextMenu({ show: false, x: 0, y: 0, visible: false });
@@ -239,7 +236,7 @@ export const navItems: NavItem[] = [
 export const contextMenuBasicOptions: Array<MenuOption> = [
   {
     name: "Editar",
-    icon: CiEdit,
+    icon: MdModeEdit,
     route: undefined,
   },
   {

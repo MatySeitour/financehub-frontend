@@ -22,3 +22,56 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Scroll styles */
+
+.css-1n9z7y8-Table::-webkit-scrollbar {
+  width: 8px;
+  margin-right: 4px;
+  padding-right: 40px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.css-1n9z7y8-Table::-webkit-scrollbar-thumb {
+  background-color: #aaa;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-button {
+  height: 5px;
+  display: block;
+  background-color: white;
+}
+
+::-webkit-scrollbar-button:single-button:decrement {
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="grey"><path d="M7 14l5-5 5 5z"/></svg>');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+::-webkit-scrollbar-button:single-button:increment {
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="grey"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:decrement {
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23808080"><path d="M14 7l-5 5 5 5z"/></svg>');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:increment {
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23808080"><path d="M10 7l5 5-5 5z"/></svg>');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
