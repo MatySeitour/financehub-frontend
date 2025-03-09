@@ -19,6 +19,13 @@ import { MdDelete, MdModeEdit } from "react-icons/md";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 
+export const errorAuth = [
+  "not_organization",
+  "org_step_1",
+  "org_step_2",
+  "org_step_3",
+];
+
 export const cn = (...args: ClassValue[]) => {
   return twMerge(clsx(...args));
 };
@@ -53,38 +60,21 @@ export function errorsResponse(error: any) {
   }
 }
 
-export async function getSession(cookie): Promise<SessionResponse> {
+export async function getSession(
+  cookie: string | undefined,
+): Promise<SessionResponse> {
   if (!cookie) {
-    return {
-      user: undefined,
-      error: { status: 401, message: "invalid_token" },
-    };
+    throw { status: 401, message: "invalid_token" };
   }
   try {
     const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
     const rawSession = await AxiosFetch.get("/api/user");
     return { ...rawSession.data, error: undefined };
   } catch (e: any) {
-    console.log("Error de intento de session: \n", e);
-    if (e?.code === "ECONNREFUSED") {
-      return { user: undefined, error: { status: 500, message: e?.code } };
-    } else if (e?.response?.data?.error !== undefined) {
-      if (e?.response?.data?.error === "not_organization")
-        return {
-          user: undefined,
-          error: { status: e?.status, message: e?.response?.data?.error },
-        };
-      console.log(e?.response?.data?.error);
-      return {
-        user: undefined,
-        error: { status: e?.status, message: e?.response?.data?.error },
-      };
-    } else {
-      return {
-        user: undefined,
-        error: { status: e?.status, message: e?.response?.data?.message },
-      };
-    }
+    console.log("Error de intento de sesión: \n", e);
+    const errorMessage =
+      e?.response?.data?.error ?? e?.response?.data?.message ?? "unknown_error";
+    throw { status: e?.response?.status || 500, message: errorMessage };
   }
 }
 

@@ -1,9 +1,13 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { FaUserCircle } from "react-icons/fa";
-import { errorsResponse, getSession, navItems } from "@renderer/utils";
+import {
+  errorAuth,
+  errorsResponse,
+  getSession,
+  navItems,
+} from "@renderer/utils";
 import { useCookies } from "react-cookie";
-import { useEffect, useState } from "react";
-import { User } from "@renderer/utils/types";
+import { SessionResponse } from "@renderer/utils/types";
 import { IoLogOutOutline } from "react-icons/io5";
 import {
   Modal,
@@ -13,7 +17,7 @@ import {
   useDisclosure,
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 
 export default function ProtectedLayout() {
@@ -23,22 +27,25 @@ export default function ProtectedLayout() {
   const [cookies] = useCookies(["token"]);
   let navigate = useNavigate();
 
-  const [user, setUser] = useState<User>();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  useEffect(() => {
-    const session = async () => {
-      try {
-        const data = await getSession(cookies?.token);
-        if (data?.user === undefined) return navigate("/login");
-        setUser(data?.user);
-        return data;
-      } catch (error) {
-        errorsResponse(error);
+  const sessionQuery = useQuery<
+    Awaited<ReturnType<typeof getSession>>,
+    SessionResponse
+  >({
+    queryKey: ["session"],
+    queryFn: () => getSession(cookies?.token),
+    onError: (error: any) => {
+      console.log("Error en sesión:", error);
+      if (errorAuth.includes(error?.message ?? "")) {
+        navigate("/create-organization");
+      } else {
+        navigate("/login");
       }
-    };
-    session();
-  }, []);
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   const mutationLogout = useMutation<void, any>({
     mutationFn: async () => {
@@ -56,6 +63,18 @@ export default function ProtectedLayout() {
     },
   });
 
+  if (
+    sessionQuery?.isLoading ||
+    sessionQuery?.isFetching ||
+    errorAuth.includes(sessionQuery?.error?.error?.message ?? "")
+  ) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <span className="relative inline-block h-12 w-12 animate-rotateFull rounded-[50%] border-4 border-primary border-b-primary/20 after:absolute after:left-1/2 after:top-1/2 after:h-14 after:w-14 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-4 after:border-transparent"></span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-screen bg-slate-400/20">
       <nav className="relative flex h-full min-w-72 flex-col gap-4 p-4">
@@ -65,7 +84,7 @@ export default function ProtectedLayout() {
               <div className="h-6 w-6 rounded-full bg-red-200"></div>
               <div className="text-center">
                 <p className="text-sm font-semibold text-slate-800">
-                  {user?.organization?.name}
+                  {sessionQuery?.data?.user?.organization?.name}
                 </p>
               </div>
             </div>
@@ -99,10 +118,10 @@ export default function ProtectedLayout() {
             <div className="flex w-full flex-col gap-1">
               <div className="group relative h-4 w-full overflow-hidden">
                 <p className="absolute top-0 w-full cursor-default text-sm font-semibold text-slate-600 transition-transform group-hover:translate-y-full">
-                  {user?.name}
+                  {sessionQuery?.data?.user?.name}
                 </p>
                 <p className="absolute top-0 w-full -translate-y-full cursor-default text-sm font-semibold text-slate-600 transition-transform group-hover:-translate-y-[0.100rem]">
-                  {user?.email}
+                  {sessionQuery?.data?.user?.email}
                 </p>
               </div>
               <p className="text-[0.65rem] font-medium text-slate-400">

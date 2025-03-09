@@ -14,6 +14,11 @@ export type ServerError<T = any> = AxiosError<{
   data?: T | null;
 }>;
 
+export type ErrorResponseSession = {
+  status: number;
+  message: string;
+};
+
 export type User = {
   email: string;
   name: string;
@@ -26,12 +31,7 @@ export type User = {
 
 export type SessionResponse = {
   user?: User;
-  error:
-    | {
-        status: number;
-        message: string;
-      }
-    | undefined;
+  error?: ErrorResponseSession;
 };
 
 export type ContextMenuState = {
