@@ -95,7 +95,24 @@ export default function OrganizationOnboarding() {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<OrganizationName>({
+    resolver: zodResolver(organizationNameSchema),
+  });
+
   const mq = useMediaQueries();
+
+  const stepTwo = useForm<RegisterUser>({
+    resolver: zodResolver(registerUserSchema),
+  });
+  const stepThreeForm = useForm<User>({
+    resolver: zodResolver(userSchema),
+    defaultValues: userDefaultValue,
+  });
+
   const [currentStep, setCurrentStep] = useState(1);
   const [usersOrganization, setUsersOrganization] =
     useState<UsersByOrganization[]>();
@@ -108,33 +125,6 @@ export default function OrganizationOnboarding() {
   const [memberData, setMemberData] = useState<
     UsersByOrganization | undefined
   >();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<OrganizationName>({
-    resolver: zodResolver(organizationNameSchema),
-  });
-
-  const stepTwo = useForm<RegisterUser>({
-    resolver: zodResolver(registerUserSchema),
-  });
-  const stepThreeForm = useForm<User>({
-    resolver: zodResolver(userSchema),
-    defaultValues: userDefaultValue,
-  });
-
-  const password =
-    currentStep === 2
-      ? stepTwo.watch("password", "")
-      : stepThreeForm.watch("password", "");
-
-  const validations = [
-    { test: password.length >= 8, text: "Al menos 8 carácteres" },
-    { test: /[0-9]/.test(password), text: "Al menos un número" },
-    { test: /[A-Z]/.test(password), text: "Al menos una mayúscula" },
-  ];
 
   const currentStepQuery = useQuery<
     Awaited<ReturnType<typeof getCurrentStep>>,
@@ -272,6 +262,17 @@ export default function OrganizationOnboarding() {
       setCurrentStep(4);
     },
   });
+
+  const password =
+    currentStep === 2
+      ? stepTwo.watch("password", "")
+      : stepThreeForm.watch("password", "");
+
+  const validations = [
+    { test: password.length >= 8, text: "Al menos 8 carácteres" },
+    { test: /[0-9]/.test(password), text: "Al menos un número" },
+    { test: /[A-Z]/.test(password), text: "Al menos una mayúscula" },
+  ];
 
   const firstStep = (data: OrganizationName) => {
     mutationFirstStep.mutate(data);
@@ -856,6 +857,9 @@ export default function OrganizationOnboarding() {
                                           </p>
                                         </div>
                                         <Button
+                                          isDisabled={
+                                            usersOrganizationQuery?.isError
+                                          }
                                           onPress={addUserOptions.onOpen}
                                           className="h-8 w-fit min-w-fit rounded-md bg-green-700 px-2 !text-xs text-white"
                                         >
@@ -884,7 +888,7 @@ export default function OrganizationOnboarding() {
                                           <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80"></span>
                                         </div>
                                       </div>
-                                    ) : (
+                                    ) : !usersOrganizationQuery?.isError ? (
                                       <ul className="h-full w-full overflow-y-auto">
                                         {usersOrganization?.map((user) => (
                                           <li
@@ -967,15 +971,35 @@ export default function OrganizationOnboarding() {
                                           </li>
                                         ))}
                                       </ul>
+                                    ) : (
+                                      <div className="flex h-64 w-full max-w-2xl flex-col items-center justify-center gap-2 px-4">
+                                        <MdError className="size-16 min-w-16 text-red-500" />
+                                        <p className="text-lg font-medium text-red-500">
+                                          Ha ocurrido un error intentando cargar
+                                          los miembros
+                                        </p>
+                                      </div>
                                     )}
                                   </div>
+                                  {mutationCompleteSteps?.isError && (
+                                    <div className="flex h-20 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
+                                      <MdError className="size-8 min-w-8 text-red-500" />
+                                      <p className="text-sm font-medium text-red-500">
+                                        {mutationCompleteSteps?.error?.code ===
+                                        "connection-error"
+                                          ? "Ha ocurrido un error de conexión"
+                                          : "Ha ocurrido un error en el servidor"}
+                                      </p>
+                                    </div>
+                                  )}
                                   <div className="flex items-center justify-end">
                                     <Button
                                       onPress={() =>
                                         mutationCompleteSteps.mutate()
                                       }
                                       isDisabled={
-                                        mutationCompleteSteps?.isLoading
+                                        mutationCompleteSteps?.isLoading ||
+                                        usersOrganizationQuery?.isError
                                       }
                                       isLoading={
                                         mutationCompleteSteps.isLoading
@@ -1495,6 +1519,17 @@ export default function OrganizationOnboarding() {
                                         radius="sm"
                                         variant={"bordered"}
                                       />
+                                      {mutationUpdateUser?.isError && (
+                                        <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
+                                          <MdError className="size-8 min-w-8 text-red-500" />
+                                          <p className="text-sm font-medium text-red-500">
+                                            {mutationUpdateUser?.error?.code ===
+                                            "connection-error"
+                                              ? "Ha ocurrido un error de conexión"
+                                              : "Ha ocurrido un error en el servidor"}
+                                          </p>
+                                        </div>
+                                      )}
                                     </ModalBody>
                                     <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
                                       <Button
