@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 
 export type SMQ = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
@@ -28,4 +28,31 @@ export function useMediaQueries(): number {
   }, []);
 
   return mq ?? 0;
+}
+
+export function useMediaQueryElement(
+  elementRef: RefObject<HTMLElement>,
+): number {
+  const [mq, setMq] = useState<number>(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (elementRef.current) {
+        setMq(elementRef.current.clientWidth);
+      }
+    };
+
+    const observer = new ResizeObserver(updateWidth);
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+      updateWidth();
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [elementRef]);
+
+  return mq;
 }

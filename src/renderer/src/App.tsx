@@ -3,7 +3,9 @@ import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
 import { AuthLayout } from "./components/layouts/AuthLayout";
 import { Home } from "./components/pages/Home";
+import { CashBoxSection } from "./components/pages/CashboxSection";
 import OrganizationOnboarding from "./components/pages/OrganizationOnboarding";
+import { CashboxDetail } from "./components/pages/CashboxDetail";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -54,14 +56,7 @@ function App() {
                 </main>
               }
             />
-            <Route
-              path="/cajas"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en cajas
-                </main>
-              }
-            />
+            <Route path="/cajas" element={<CashBoxSection />} />
             <Route
               path="/operaciones"
               element={
@@ -78,8 +73,8 @@ function App() {
                 </main>
               }
             />
+            <Route path="/detail" element={<CashboxDetail />} />
           </Route>
-          <Route path="/login" element={<Login />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
