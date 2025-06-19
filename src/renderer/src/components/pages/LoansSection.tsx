@@ -84,9 +84,7 @@ export function LoansSection() {
   /* USE EFFECT */
   useEffect(() => {
     if (modalState === "detalles") {
-      if (dialogLoanDetail.current) {
-        dialogLoanDetail.current.showModal(); // Open the dialog
-      }
+      openDialog(dialogLoanDetail);
     }
   }, [modalState]);
 
@@ -103,17 +101,17 @@ export function LoansSection() {
     setEndDate(e.target.value);
   };
 
-  const openDialogOpen = () => {
-    if (dialogAddLoan.current) {
-      dialogAddLoan.current.showModal(); // Open the dialog
+  function openDialog(dialog){
+    if (dialog.current) {
+      dialog.current.showModal(); // Open the dialog
     }
-  };
+  }
 
-  const closeDialogOpen = () => {
-    if (dialogAddLoan.current) {
-      dialogAddLoan.current.close(); // Close the dialog
+  function closeDialog(dialog){
+    if (dialog.current) {
+      dialog.current.close(); // Close the dialog
     }
-  };
+  }
 
   /* UTILS */
   function formatDateToInput(date: Date): string {
@@ -259,7 +257,7 @@ export function LoansSection() {
       <div className="flex w-full items-center justify-between border-b px-4 py-2">
         <h2 className="text-2xl font-bold text-slate-500">Prestamos</h2>
         <Button
-          onPress={openDialogOpen}
+          onPress={() => openDialog(dialogAddLoan)}
           color="success"
           className="rounded-md text-white"
         >
@@ -426,7 +424,7 @@ export function LoansSection() {
           <div className="flex w-full justify-evenly pt-4 text-center">
             <Button
               type="submit"
-              onPress={closeDialogOpen}
+              onPress={()=>closeDialog(dialogAddLoan)}
               color="success"
               className="rounded-md text-white"
             >
@@ -434,7 +432,7 @@ export function LoansSection() {
             </Button>
             <Button
               type="reset"
-              onPress={closeDialogOpen}
+              onPress={()=>closeDialog(dialogAddLoan)}
               color="danger"
               className="rounded-md text-white"
             >
@@ -446,7 +444,8 @@ export function LoansSection() {
       {/* LOAN DETAIL MODAL */}
 
       <dialog ref={dialogLoanDetail} className="h-fit w-1/2 rounded-lg">
-        <div className="h-1/2 w-1/2 bg-blue-500">hola</div>
+        <div className="bg-blue-500">hola</div>
+        <button onClick={()=>closeDialog(dialogLoanDetail)}>Cerrar</button>
       </dialog>
 
       {/* DATALIST FOR SEARCH CLIENTS INPUT */}
