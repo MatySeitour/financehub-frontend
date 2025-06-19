@@ -9,12 +9,14 @@ export type ErrorResponse =
   | { code: "connection-error"; data: null }
   | { code: "zod_validation"; data: string };
 
+export type Roles = "admin" | "empleado";
+
 export type ServerError<T = any> = AxiosError<{
   code: string;
   data?: T | null;
 }>;
 
-export type ErrorResponseSession = {
+export type BaseResponseServer = {
   status: number;
   message: string;
 };
@@ -27,11 +29,15 @@ export type User = {
     id: number;
     name: string;
   };
+  role: {
+    id: number;
+    name: Roles;
+  };
 };
 
 export type SessionResponse = {
   user?: User;
-  error?: ErrorResponseSession;
+  error?: BaseResponseServer;
 };
 
 export type ContextMenuState = {

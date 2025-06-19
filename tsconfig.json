@@ -3,8 +3,12 @@
   "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
    "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
+     "paths": {
+      "@renderer/*": ["src/renderer/src/*"],
+      "@components/*": ["src/renderer/src/components/*"],
+      "@hooks/*": ["src/renderer/src/hooks/*"],
+      "@utils/*": ["src/renderer/src/utils/*"],
+      "@/*": ["src/renderer/src/*"] 
     }
   }
 }

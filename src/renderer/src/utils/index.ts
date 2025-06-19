@@ -18,6 +18,8 @@ import { getTheme } from "@table-library/react-table-library/baseline";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export const errorAuth = [
   "not_organization",
@@ -31,7 +33,9 @@ export const cn = (...args: ClassValue[]) => {
 };
 
 export function errorsResponse(error: any) {
+  console.error(error);
   if (error instanceof ZodError) {
+    console.error(error?.errors);
     throw {
       code: "zod_validation",
       data: "Error: Solicitud mal formada",
@@ -42,17 +46,30 @@ export function errorsResponse(error: any) {
     if (status === 401)
       throw { code: "unauthorized", data: null } as ErrorResponse;
 
-    if (status === 400)
+    if (status === 400) {
       throw {
         code: "bad_request",
         data: error?.response?.data?.message,
       } as ErrorResponse;
+    }
 
-    if (status === 422)
+    if (status === 422) {
+      const errorsChecked = Object.fromEntries(
+        Object.entries(
+          error?.response?.data?.errors as Record<string, string[]>,
+        ).map(([key, val]) => {
+          if (val[0].includes("has already been taken")) {
+            return [key, ["Esté valor ya está en uso."]];
+          } else {
+            return [key, val];
+          }
+        }),
+      );
       throw {
         code: "unprocess_fields",
-        data: error?.response?.data?.errors,
+        data: errorsChecked,
       } as ErrorResponse;
+    }
 
     throw { code: "server-error", data: null } as ErrorResponse;
   } else {
@@ -235,3 +252,9 @@ export const contextMenuBasicOptions: Array<MenuOption> = [
     route: undefined,
   },
 ];
+
+// parse date on badges
+export const formatFullDateEs = (date: string) =>
+  format(date, "dd 'de' MMMM 'a las' hh:mm:ss", {
+    locale: es,
+  });

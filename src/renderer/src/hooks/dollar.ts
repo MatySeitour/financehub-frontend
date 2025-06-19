@@ -1,21 +1,23 @@
-import axios from "axios";
 import { z } from "zod";
+import axios from "./axios";
+import { errorsResponse } from "@renderer/utils";
 
-const currentDollarSchema = z.object({
-  compra: z.number(),
-  venta: z.number(),
-  casa: z.string(),
-  nombre: z.string(),
-  moneda: z.string(),
-  fechaActualizacion: z.string().pipe(z.coerce.date()),
+const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+
+const currenciesSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  update_date: z.string(),
+  sale_value: z.coerce.number(),
+  buy_value: z.coerce.number(),
+  variation: z.coerce.number(),
 });
 
-export const getCurrentDollar = async () => {
+export const getCurrencies = async () => {
   try {
-    const { data } = await axios.get("https://dolarapi.com/v1/dolares/blue");
-    return currentDollarSchema.parse(data);
+    const { data } = await AxiosFetch("/api/currencies");
+    return currenciesSchema.array().parse(data.data);
   } catch (error) {
-    console.error(error);
-    return error;
+    return errorsResponse(error);
   }
 };

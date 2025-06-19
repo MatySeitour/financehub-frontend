@@ -1,11 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
-import { AuthLayout } from "./components/layouts/AuthLayout";
-import { Home } from "./components/pages/Home";
+
+import { CashboxDetail } from "@components/pages/CashboxDetail";
+import { AuthLayout } from "@components/layouts/AuthLayout";
+import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/CashboxSection";
-import OrganizationOnboarding from "./components/pages/OrganizationOnboarding";
-import { CashboxDetail } from "./components/pages/CashboxDetail";
+import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),

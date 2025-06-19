@@ -41,9 +41,9 @@ export default function ProtectedLayout() {
       if (errorAuth.includes(error?.message ?? "")) {
         navigate("/create-organization");
       } else if (
-        error?.status === 401 ||
-        error?.status === 403 ||
-        error?.status === 404
+        error.status === 401 ||
+        error.status === 403 ||
+        error.status === 404
       ) {
         navigate("/login");
       }
@@ -82,7 +82,7 @@ export default function ProtectedLayout() {
 
   return (
     <div className="flex h-screen w-screen bg-white">
-      {sessionQuery?.isError ? (
+      {sessionQuery.isError ? (
         <div className="flex h-full w-full items-center justify-center">
           <div className="flex h-96 w-full max-w-2xl flex-col items-center justify-center gap-2 rounded-md bg-gradient-to-t from-red-200/50 via-white to-white">
             <MdError className="size-24 min-w-24 text-red-500" />
@@ -94,23 +94,21 @@ export default function ProtectedLayout() {
       ) : (
         <>
           <nav className="relative flex h-full min-w-72 flex-col gap-4 border-r">
-            <div className="flex w-full flex-col">
-              <div className="flex items-center justify-between p-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded-full bg-red-200"></div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-slate-800">
-                      {sessionQuery?.data?.user?.organization?.name}
-                    </p>
-                  </div>
+            <div className="flex items-center justify-between p-5">
+              <div className="flex items-center gap-3">
+                <div className="h-6 w-6 rounded-full bg-red-200" />
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-slate-800">
+                    {sessionQuery?.data?.user?.organization?.name}
+                  </p>
                 </div>
-                <IoLogOutOutline
-                  onClick={() => onOpen()}
-                  className="size-6 min-w-6 cursor-pointer text-slate-300 transition-colors hover:text-red-500"
-                />
               </div>
-              <div className="h-[1px] w-full bg-slate-200"></div>
+              <IoLogOutOutline
+                onClick={() => onOpen()}
+                className="size-6 min-w-6 cursor-pointer text-slate-300 transition-colors hover:text-red-500"
+              />
             </div>
+            <div className="h-[1px] w-full bg-slate-200" />
             <div className="flex h-full w-full flex-col justify-between p-4">
               <ul className="flex flex-col gap-2">
                 {navItems.map((navItem) => (
@@ -149,9 +147,9 @@ export default function ProtectedLayout() {
               </div>
             </div>
           </nav>
-          <div className="flex w-2/3 flex-grow flex-col py-2">
-            <div className="flex flex-grow flex-col overflow-hidden rounded-md bg-white">
-              <Outlet />
+          <div className="flex w-2/3 flex-grow flex-col">
+            <div className="flex flex-grow flex-col overflow-hidden bg-white">
+              <Outlet context={sessionQuery?.data} />
             </div>
           </div>
           <Modal
@@ -164,9 +162,7 @@ export default function ProtectedLayout() {
               {(onClose) => (
                 <div className="flex flex-col gap-2 px-2 py-4">
                   <div className="flex justify-center">
-                    <div className="flex items-center justify-center rounded-full bg-red-300/30 p-3">
-                      <IoLogOutOutline className="size-12 min-w-12 pl-1 text-red-500" />
-                    </div>
+                    <IoLogOutOutline className="size-12 min-w-12 pl-1 text-red-500" />
                   </div>
                   <ModalBody className="flex items-center justify-center gap-3">
                     <p className="text-2xl font-semibold text-slate-600">

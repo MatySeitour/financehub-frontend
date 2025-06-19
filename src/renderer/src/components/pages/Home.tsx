@@ -1,234 +1,192 @@
-import { TableWork } from "../Table";
-import { contextMenuBasicOptions } from "@renderer/utils";
-import { useState } from "react";
-
-type OperationsExample = {
-  id: number;
-  amount: number;
-  price: number;
-  seller: string;
-  client: string;
-  profit: number;
-  currency: string;
-  state: string;
-};
-
-const COLUMNS = [
-  {
-    label: "Comprador",
-    key: "client",
-    render: (item: OperationsExample) => item.client,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Vendedor",
-    key: "seller",
-    render: (item: OperationsExample) => item.seller,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Cantidad",
-    key: "amount",
-    render: (item: OperationsExample) => item.amount,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Precio",
-    key: "price",
-    render: (item: OperationsExample) => <>${item.price}</>,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Diferencia ganada",
-    key: "profit",
-    render: (item: OperationsExample) => item.profit,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Divisa",
-    key: "currency",
-    render: (item: OperationsExample) => item.currency,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Estado",
-    key: "state",
-    render: (item: OperationsExample) => item.state,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-];
+import { Button, Chip, Skeleton, Tooltip } from "@heroui/react";
+import { getCurrencies } from "@renderer/hooks/dollar";
+import { cn, formatFullDateEs } from "@renderer/utils";
+import { BaseResponseServer, ServerError, User } from "@renderer/utils/types";
+import { FaCaretUp } from "react-icons/fa6";
+import {
+  IoCalendarOutline,
+  IoInformationCircle,
+  IoReload,
+} from "react-icons/io5";
+import { MdErrorOutline } from "react-icons/md";
+import { useQuery } from "react-query";
+import { useOutletContext } from "react-router";
+import { motion } from "framer-motion";
 
 export function Home() {
-  const [rowID, setRowID] = useState<number>();
+  const user: BaseResponseServer & { data: User } = useOutletContext();
 
-  const data: OperationsExample[] = [
-    {
-      id: 1,
-      amount: 10,
-      price: 50.5,
-      seller: "Juan Pérez",
-      client: "María López",
-      profit: 120.75,
-      currency: "USD",
-      state: "completed",
-    },
-    {
-      id: 2,
-      amount: 5,
-      price: 30.0,
-      seller: "Carlos Gómez",
-      client: "Ana Torres",
-      profit: 45.0,
-      currency: "EUR",
-      state: "pending",
-    },
-    {
-      id: 3,
-      amount: 20,
-      price: 15.25,
-      seller: "Laura Fernández",
-      client: "Pedro Sánchez",
-      profit: 85.5,
-      currency: "USD",
-      state: "canceled",
-    },
-    {
-      id: 4,
-      amount: 8,
-      price: 75.0,
-      seller: "Ricardo Díaz",
-      client: "Elena Ríos",
-      profit: 200.0,
-      currency: "GBP",
-      state: "completed",
-    },
-    {
-      id: 5,
-      amount: 12,
-      price: 40.0,
-      seller: "Sofía Méndez",
-      client: "David Castillo",
-      profit: 95.0,
-      currency: "USD",
-      state: "pending",
-    },
-    {
-      id: 6,
-      amount: 30,
-      price: 20.5,
-      seller: "Miguel Herrera",
-      client: "Lucía Gómez",
-      profit: 150.25,
-      currency: "EUR",
-      state: "completed",
-    },
-    {
-      id: 7,
-      amount: 25,
-      price: 10.0,
-      seller: "Verónica Ruiz",
-      client: "Andrés Benítez",
-      profit: 70.0,
-      currency: "USD",
-      state: "canceled",
-    },
-    {
-      id: 8,
-      amount: 18,
-      price: 32.5,
-      seller: "Fernando Castro",
-      client: "Gabriela Morales",
-      profit: 110.8,
-      currency: "GBP",
-      state: "pending",
-    },
-    {
-      id: 9,
-      amount: 9,
-      price: 55.0,
-      seller: "Patricia Rojas",
-      client: "Carlos Núñez",
-      profit: 180.0,
-      currency: "USD",
-      state: "completed",
-    },
-    {
-      id: 10,
-      amount: 15,
-      price: 60.75,
-      seller: "Javier Ortega",
-      client: "Rocío Vega",
-      profit: 210.5,
-      currency: "EUR",
-      state: "pending",
-    },
-    {
-      id: 11,
-      amount: 22,
-      price: 25.5,
-      seller: "Camila Fernández",
-      client: "Roberto Fuentes",
-      profit: 95.75,
-      currency: "USD",
-      state: "completed",
-    },
-    {
-      id: 12,
-      amount: 6,
-      price: 90.0,
-      seller: "Gustavo Mendoza",
-      client: "Clara Suárez",
-      profit: 250.0,
-      currency: "GBP",
-      state: "canceled",
-    },
-    {
-      id: 13,
-      amount: 14,
-      price: 42.0,
-      seller: "Daniela Pineda",
-      client: "Esteban Vargas",
-      profit: 130.0,
-      currency: "USD",
-      state: "pending",
-    },
-    {
-      id: 14,
-      amount: 17,
-      price: 37.5,
-      seller: "Héctor López",
-      client: "Julieta Navarro",
-      profit: 145.5,
-      currency: "EUR",
-      state: "completed",
-    },
-    {
-      id: 15,
-      amount: 11,
-      price: 47.25,
-      seller: "Alejandro Silva",
-      client: "Mónica Álvarez",
-      profit: 175.0,
-      currency: "USD",
-      state: "pending",
-    },
-  ];
+  const currenciesQuery = useQuery<
+    Awaited<ReturnType<typeof getCurrencies>>,
+    ServerError
+  >({
+    queryFn: () => getCurrencies(),
+    queryKey: ["currencies"],
+    staleTime: 3 * 60 * 1000,
+    refetchInterval: 3 * 60 * 1000,
+  });
 
   return (
-    <section className="relative flex h-full w-full flex-col bg-white pb-4">
-      <div className="h-1/3 w-full bg-red-200"></div>
-      <div className="relative flex-grow overflow-hidden px-6 py-4">
-        <TableWork
-          columns={COLUMNS}
-          loading={false}
-          error={false}
-          searchInput={""}
-          data={data}
-          openModal={() => console.log()}
-          optionsMenu={contextMenuBasicOptions}
-          selectRowID={setRowID}
-        />
+    <section className="h-screen w-full bg-white">
+      {/* Slider prices */}
+      <div className="relative h-auto w-full">
+        <div className="relative z-10 flex overflow-hidden border-b border-t-2 bg-gray-50">
+          {/* Loadings */}
+          {currenciesQuery?.isLoading ? (
+            <ul className="flex h-12 w-full items-center justify-center gap-2 px-4 py-2">
+              {Array.from(
+                [1, 2, 3, 4].map((_, index) => (
+                  <li
+                    className="flex h-full w-64 items-center justify-center gap-2.5"
+                    key={index}
+                  >
+                    <Skeleton className="flex h-8 w-full rounded-md" />
+                  </li>
+                )),
+              )}
+            </ul>
+          ) : !currenciesQuery?.isError ? (
+            // Loadings
+            <ul
+              className={cn(
+                "hover:pause flex h-12 animate-scroll items-center",
+                currenciesQuery?.isFetching && "opacity-50",
+              )}
+            >
+              {[
+                ...(currenciesQuery?.data ?? []),
+                ...(currenciesQuery?.data ?? []),
+              ].map((currency, index) => (
+                <li
+                  key={`${currency?.id}-${index}`}
+                  className="relative flex h-full w-72 items-center justify-center gap-2.5 after:absolute after:left-0 after:h-6 after:w-[0.5px] after:bg-slate-300 2xl:w-96"
+                >
+                  <p className="text-sm font-medium text-slate-500">
+                    {currency?.name}
+                  </p>
+                  <p className="text-sm font-light text-slate-400">
+                    ${currency?.buy_value.toFixed(2)}
+                  </p>
+                  <FaCaretUp className="size-3 min-w-3 text-green-500" />
+                  <p className="text-sm font-light text-slate-400">
+                    ${currency?.sale_value.toFixed(2)}
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm font-medium",
+                      currency?.variation > 0
+                        ? "text-green-500"
+                        : currency?.variation === 0
+                          ? "text-slate-500/70"
+                          : "text-red-500",
+                    )}
+                  >
+                    {currency?.variation}%
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex h-12 w-full items-center justify-center gap-2 text-red-500">
+              <MdErrorOutline className="size-4 min-w-4" />
+              <p className="text-sm font-medium">
+                Ha ocurrido un error intentando cargar los datos
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Prices last update date */}
+        {currenciesQuery?.isSuccess && (
+          <motion.div
+            initial={{ y: 0, opacity: 0 }}
+            animate={{ y: 52, opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute left-0 top-0 flex h-auto w-full items-center justify-center gap-6 rounded-b-md bg-slate-100/70 p-2 text-slate-400"
+          >
+            <div className="flex h-auto items-center justify-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <IoCalendarOutline className="size-4 min-w-4 2xl:size-5 2xl:min-w-5" />
+                <p className="text-xs font-medium 2xl:text-sm">
+                  Ultima fecha de actualización:{" "}
+                </p>
+              </div>
+              <p className="text-xs font-bold 2xl:text-sm">
+                {" "}
+                {formatFullDateEs(currenciesQuery?.data?.[0].update_date ?? "")}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                aria-label="Reload currencies"
+                className="h-8 rounded-md 2xl:h-9 2xl:text-xs"
+                color="primary"
+                isLoading={currenciesQuery?.isFetching}
+              >
+                <IoReload className="size-4 min-w-4" />
+              </Button>
+              <Tooltip
+                placement="bottom"
+                closeDelay={0}
+                className="rounded-md text-slate-400"
+                content="Los valores se actualizan automaticamente cada 3 minutos"
+                showArrow={true}
+              >
+                <div className="flex h-8 items-center rounded-md border border-slate-300 bg-white p-2 2xl:h-9">
+                  <IoInformationCircle className="size-5 min-w-5 text-slate-400 2xl:size-6 2xl:min-w-6" />
+                </div>
+              </Tooltip>
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {/* Main */}
+      <article className="flex h-full w-full flex-col gap-4 px-8 pb-20 pt-16">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-medium text-slate-500">
+            Bienvenido {user?.data?.name}
+          </h1>
+          <Chip
+            color="primary"
+            variant="flat"
+            className="capitalize text-primary"
+          >
+            {user.data.role.name}
+          </Chip>
+        </div>
+        {/* Cashboxes list */}
+        <div className="flex-1">
+          <ul className="flex w-full gap-4 overflow-hidden">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <li
+                key={index}
+                className="h-32 w-80 flex-shrink-0 snap-start rounded-md border border-slate-200/70 bg-slate-100/50"
+              ></li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex h-full w-full items-center gap-8">
+          {/* Graphic cashbox history */}
+          <article className="h-full w-full rounded-md border border-slate-200/70 p-2"></article>
+
+          {/* Operations by cashbox */}
+          <article className="h-full w-full rounded-md border border-slate-200/70 bg-slate-100/50 px-4 py-2">
+            <div className="flex flex-col gap-1">
+              <div className="flex w-full items-center gap-2">
+                <p className="font-medium text-slate-400 xl:text-xl">
+                  Operaciones
+                </p>
+              </div>
+              <p className="text-slate-400/70 xl:text-xs">
+                Cajas que perteneces a tu organización.
+              </p>
+            </div>
+          </article>
+        </div>
+      </article>
     </section>
   );
 }

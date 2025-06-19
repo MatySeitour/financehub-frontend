@@ -91,7 +91,7 @@ const userDefaultValue = {
   role_id: undefined,
 };
 
-export default function OrganizationOnboarding() {
+export function OrganizationOnboarding() {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 

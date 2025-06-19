@@ -19,10 +19,15 @@ module.exports = {
           "50%": { background: "rgb(226 232 240 / 0.4)" },
           "100%": { background: "rgb(226 232 240 / 0.8)" },
         },
+        slider: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(calc(-50%))" },
+        },
       },
       animation: {
         rotateFull: "rotateFull 1s linear infinite",
         skeletonTable: "skeletonTable 1s linear infinite",
+        scroll: "slider 20s linear infinite",
       },
       colors: {
         primary: {
