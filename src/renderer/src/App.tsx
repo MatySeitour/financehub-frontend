@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
+import { LoansSection } from "./components/pages/LoansSection";
 import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
@@ -68,16 +69,9 @@ function App() {
             />
             {/* -------------------------------- */}
 
-            {/* ------------ Loans ------------ */}
-            <Route
-              path="/loans"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en prestamos
-                </main>
-              }
-            />
-            {/* -------------------------------- */}
+            {/* Loans */}
+
+            <Route path="/loans" element={<LoansSection />} />
 
             {/* ------------ Cashboxes ------------ */}
             {/* Cashboxes */}
