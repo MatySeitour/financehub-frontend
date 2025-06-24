@@ -19,6 +19,7 @@ type LoanExample = {
   numberOfInstallments: number;
   paymentFrecuency: string;
   firstDueDate: Date;
+  totalPaid: number | null;
 };
 type Installment = {
   id: number;
@@ -26,6 +27,7 @@ type Installment = {
   value: number;
   dueDate: string;
   pay: number | null;
+  paymentDate?: string;
 };
 
 /* UTILS*/
@@ -71,7 +73,16 @@ const LOAN_DETAIL_COLUMNS = [
   { label: "Cuota", key: "number", render: (item) => item.number },
   { label: "Valor", key: "value", render: (item) => `$${item.value}` },
   { label: "Vencimiento", key: "dueDate", render: (item) => item.dueDate },
-  { label: "Pago", key: "pay", render: (item) => item.pay },
+  {
+    label: "Pago",
+    key: "pay",
+    render: (item) => (item.pay === null ? "-" : `$${item.pay}`),
+  },
+  {
+  label: "Fecha de pago",
+  key: "paymentDate",
+  render: (item) => item.paymentDate ?? "-",
+}
 ];
 const contextMenuOption: MenuOption[] = [
   {
@@ -89,6 +100,8 @@ export function LoansSection() {
   const [modalState, setModalState] = useState<ModalStateLoan>("");
   const [rowID, setRowID] = useState<number>();
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const [paymentInput, setPaymentInput] = useState<number>(0);
+  const [paymentDate, setPaymentDate] = useState("");
 
   /* REFs */
   const loansSection = useRef(null); //loans section container ref
@@ -116,6 +129,53 @@ export function LoansSection() {
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndDate(e.target.value);
   };
+
+  const handlePaymentDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  setPaymentDate(e.target.value);
+};
+
+ function handleRegisterPayment() {
+  let remaining = paymentInput;
+
+  const updatedInstallments = installments.map((installment) => {
+    if (remaining === 0) return installment;
+
+    const installmentValue = installment.value;
+    let paymentForThis = 0;
+
+    if (installment.pay != null) {
+      const remainingInstallment = installmentValue - installment.pay;
+      if (remaining >= remainingInstallment) {
+        paymentForThis = installment.pay + remainingInstallment;
+        remaining -= remainingInstallment;
+      } else {
+        paymentForThis = installment.pay + remaining;
+        remaining = 0;
+      }
+    } else {
+      if (remaining >= installmentValue) {
+        paymentForThis = installmentValue;
+        remaining -= installmentValue;
+      } else {
+        paymentForThis = remaining;
+        remaining = 0;
+      }
+    }
+
+    const wasCompleted = paymentForThis === installmentValue;
+
+    return {
+      ...installment,
+      pay: paymentForThis,
+      paymentDate:
+        wasCompleted && !installment.paymentDate ? paymentDate : installment.paymentDate,
+    };
+  });
+
+  setInstallments(updatedInstallments);
+  setPaymentInput(0);
+  setPaymentDate("");
+}
 
   function openDialog(dialog) {
     if (dialog.current) {
@@ -149,6 +209,7 @@ export function LoansSection() {
       numberOfInstallments: 8,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-06-05"),
+      totalPaid: null,
     },
     {
       id: 2,
@@ -160,6 +221,7 @@ export function LoansSection() {
       numberOfInstallments: 9,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-07-06"),
+      totalPaid: null,
     },
     {
       id: 3,
@@ -171,6 +233,7 @@ export function LoansSection() {
       numberOfInstallments: 8,
       paymentFrecuency: "quincenal",
       firstDueDate: new Date("2025-07-15"),
+      totalPaid: null,
     },
     {
       id: 4,
@@ -182,6 +245,7 @@ export function LoansSection() {
       numberOfInstallments: 6,
       paymentFrecuency: "quincenal",
       firstDueDate: new Date("2025-08-01"),
+      totalPaid: null,
     },
     {
       id: 5,
@@ -193,6 +257,7 @@ export function LoansSection() {
       numberOfInstallments: 30,
       paymentFrecuency: "diario",
       firstDueDate: new Date("2025-08-10"),
+      totalPaid: null,
     },
     {
       id: 6,
@@ -204,6 +269,7 @@ export function LoansSection() {
       numberOfInstallments: 8,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-08-22"),
+      totalPaid: null,
     },
     {
       id: 7,
@@ -215,6 +281,7 @@ export function LoansSection() {
       numberOfInstallments: 8,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-08-02"),
+      totalPaid: null,
     },
     {
       id: 8,
@@ -226,6 +293,7 @@ export function LoansSection() {
       numberOfInstallments: 6,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-09-14"),
+      totalPaid: null,
     },
     {
       id: 9,
@@ -237,6 +305,7 @@ export function LoansSection() {
       numberOfInstallments: 6,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-09-30"),
+      totalPaid: null,
     },
     {
       id: 10,
@@ -248,6 +317,7 @@ export function LoansSection() {
       numberOfInstallments: 8,
       paymentFrecuency: "mensual",
       firstDueDate: new Date("2025-10-10"),
+      totalPaid: null,
     },
   ];
 
@@ -274,6 +344,9 @@ export function LoansSection() {
 
     if (!loan) return;
 
+    const totalPaid = loan.totalPaid ?? 0;
+    let remainingPayment = totalPaid;
+
     const newInstallments: Installment[] = [];
 
     for (let i = 0; i < loan?.numberOfInstallments; i++) {
@@ -291,12 +364,26 @@ export function LoansSection() {
         dueDate = loan.firstDueDate;
       }
 
+      const cuotaValue = loan.installment;
+      let pay: number | null = null;
+      let paymentDateValue: string | undefined = undefined;
+
+      if (remainingPayment >= cuotaValue) {
+        pay = cuotaValue;
+        paymentDateValue = paymentDate; // solo si se paga completa, guardamos la fecha
+        remainingPayment -= cuotaValue;
+      } else if (remainingPayment > 0) {
+        pay = remainingPayment;
+        remainingPayment = 0;
+      }
+
       newInstallments.push({
         id: i + 1,
         number: i + 1,
-        value: loan.installment,
+        value: cuotaValue,
         dueDate: format(dueDate, "dd/MM/yyyy"),
-        pay: 2500,
+        pay: pay,
+        paymentDate: paymentDateValue,
       });
     }
     setInstallments(newInstallments);
@@ -374,7 +461,10 @@ export function LoansSection() {
       {/* ADD LOAN MODAL */}
       <dialog ref={dialogAddLoan} className="h-fit w-1/2 rounded-lg">
         {/* FORM'S CONTAINER */}
-        <form className="flex h-full w-full flex-col items-center justify-evenly px-8 py-4 text-slate-500">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="flex h-full w-full flex-col items-center justify-evenly px-8 py-4 text-slate-500"
+        >
           {/* TITLE'S CONTAINER */}
           <h3 className="w-full border-b pb-4 text-center text-xl font-semibold">
             Crear una nuevo prestamo
@@ -498,8 +588,8 @@ export function LoansSection() {
         className="h-fit w-1/2 rounded-lg px-8 py-4 text-slate-600"
       >
         {/* TITLE'S CONTAINER */}
-        <div className="flex h-full w-full flex-col items-center justify-evenly">
-          <p className="w-full border-b pb-4 text-center text-xl font-semibold">
+        <div className="flex h-full w-full justify-center">
+          <p className="w-full items-center border-b pb-4 text-center text-xl font-semibold">
             Detalles del prestamo
           </p>
         </div>
@@ -552,11 +642,69 @@ export function LoansSection() {
       </dialog>
 
       {/* DIALOG ADD PAY TO LOAN */}
-      <dialog ref={dialogPayLoan}
-        className="h-fit w-1/3 rounded-lg px-8 py-4 text-slate-600">
-        <div className="flex h-full w-full flex-col items-center justify-evenly">
-          a
+      <dialog
+        ref={dialogPayLoan}
+        className="h-fit w-1/3 rounded-lg px-8 py-4 text-slate-600"
+      >
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="w-full border-b pb-4 text-center text-xl font-semibold">
+            Cargar pago
+          </p>
         </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+          className="flex w-full flex-col items-center justify-center gap-8 pt-8"
+        >
+          <label className="flex w-2/3 flex-col gap-1 text-sm focus-within:text-green-600">
+            Ingrese el monto del pago
+            <input
+              required
+              type="number"
+              placeholder="Ej: 15000"
+              className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+              value={paymentInput}
+              onChange={(e) => {
+                setPaymentInput(Number(e.target.value));
+              }}
+            />
+          </label>
+          <label className="flex w-2/3 flex-col gap-1 text-sm focus-within:text-green-600">
+            Fecha de pago
+            <input
+              required
+              value={paymentDate}
+              onChange={handlePaymentDateChange}
+              type="date"
+              placeholder="Nombre del cliente.."
+              className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+            />
+          </label>
+          <div className="flex w-full justify-evenly text-center">
+            <Button
+              type="submit"
+              onPress={() => {
+                handleRegisterPayment();
+                closeDialog(dialogPayLoan);
+              }}
+              color="success"
+              className="rounded-md text-white"
+            >
+              Aceptar
+            </Button>
+            <Button
+              type="reset"
+              onPress={() => {
+                closeDialog(dialogPayLoan)
+              }}
+              color="danger"
+              className="rounded-md text-white"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </form>
       </dialog>
 
       {/* DATALIST FOR SEARCH CLIENTS INPUT */}
