@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
+
+import { ClientSection } from "@components/pages/ClientSection";
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
@@ -43,14 +45,7 @@ function App() {
             <Route path="/home" element={<Home />} />
 
             {/* Clients */}
-            <Route
-              path="/clientes"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en clientes
-                </main>
-              }
-            />
+            <Route path="/clientes" element={<ClientSection />} />
 
             {/* Sellers */}
             <Route
