@@ -5,6 +5,8 @@ import { TableWork } from "../Table";
 import { contextMenuBasicOptions } from "@renderer/utils";
 import { MenuOption, ModalState } from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
+import { IoPeople } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 
 /* DATA TYPES */
 //Modals to open
@@ -17,15 +19,18 @@ type ClientExample = {
   phoneNumber: number;
   referredBy: string;
   description: string;
+  operations: OperationsExample[];
 };
 type OperationsExample = {
   id: number;
   date: Date;
-  operationType: string;
-  currency: string;
+  operationType: "Compra" | "Venta";
+  currency: "dolares" | "reales" | "euros";
   amount: number;
   price: number;
   total: number;
+  marketPrice: number; // nuevo campo obligatorio
+  netProfit: number; // se calcula automáticamente
 };
 
 /* UTILS*/
@@ -62,43 +67,48 @@ const COLUMNS = [
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
 ];
-//Clients detail table's columns
-const COLUMNS_OPERATIONS_DETAIL = [
+// Operations table's columns
+const OPERATIONS_COLUMNS = [
   {
     label: "Fecha",
     key: "date",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    render: (item: OperationsExample) => item.date.toLocaleDateString("es-AR"),
   },
   {
-    label: "Tipo de operacion",
+    label: "Tipo de operación",
     key: "operationType",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    render: (item: OperationsExample) => item.operationType,
   },
   {
-    label: "Divisa",
-    key: "date",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    label: "Moneda",
+    key: "currency",
+    render: (item: OperationsExample) => item.currency,
   },
   {
-    label: "Monto",
+    label: "Cantidad",
     key: "amount",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    render: (item: OperationsExample) => item.amount.toLocaleString(),
   },
   {
     label: "Precio",
     key: "price",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    render: (item: OperationsExample) => `$${item.price.toLocaleString()}`,
   },
   {
     label: "Total",
     key: "total",
-    render: "",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    render: (item: OperationsExample) => `$${item.total.toLocaleString()}`,
+  },
+  {
+    label: "Precio mercado",
+    key: "marketPrice",
+    render: (item: OperationsExample) =>
+      `$${item.marketPrice.toLocaleString()}`,
+  },
+  {
+    label: "Ganancia neta",
+    key: "netProfit",
+    render: (item: OperationsExample) => `$${item.netProfit.toLocaleString()}`,
   },
 ];
 //Custom menu options
@@ -118,6 +128,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1145259875,
     referredBy: "Alejandro",
     description: "Locales en libertad, Av. Eva Peron en frente de el pinito.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-06-22"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 2500,
+        price: 1220,
+        total: 2500 * 1220,
+        marketPrice: 1240,
+      },
+      {
+        id: 2,
+        date: new Date("2024-07-15"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 1800,
+        price: 1280,
+        total: 1800 * 1280,
+        marketPrice: 1260,
+      },
+      {
+        id: 3,
+        date: new Date("2024-08-03"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 1200,
+        price: 1340,
+        total: 1200 * 1340,
+        marketPrice: 1355,
+      },
+      {
+        id: 4,
+        date: new Date("2024-08-20"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 800,
+        price: 1390,
+        total: 800 * 1390,
+        marketPrice: 1375,
+      },
+      {
+        id: 5,
+        date: new Date("2024-09-12"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 5000,
+        price: 230,
+        total: 5000 * 230,
+        marketPrice: 235,
+      },
+      {
+        id: 6,
+        date: new Date("2024-09-28"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 3200,
+        price: 245,
+        total: 3200 * 245,
+        marketPrice: 240,
+      },
+      {
+        id: 7,
+        date: new Date("2024-10-10"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 3500,
+        price: 1180,
+        total: 3500 * 1180,
+        marketPrice: 1195,
+      },
+      {
+        id: 8,
+        date: new Date("2024-11-05"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 2200,
+        price: 1250,
+        total: 2200 * 1250,
+        marketPrice: 1230,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-22"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 1500,
+        price: 1420,
+        total: 1500 * 1420,
+        marketPrice: 1435,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-08"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 900,
+        price: 1480,
+        total: 900 * 1480,
+        marketPrice: 1465,
+      },
+    ]),
   },
   {
     id: 2,
@@ -126,6 +238,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1134567890,
     referredBy: "Karina",
     description: "Dueño de local de ropa deportiva, a media cuadra del Coto.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-05-10"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 5000,
+        price: 1150,
+        total: 5000 * 1150,
+        marketPrice: 1165,
+      },
+      {
+        id: 2,
+        date: new Date("2024-05-25"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 3000,
+        price: 1200,
+        total: 3000 * 1200,
+        marketPrice: 1185,
+      },
+      {
+        id: 3,
+        date: new Date("2024-06-18"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 2500,
+        price: 1290,
+        total: 2500 * 1290,
+        marketPrice: 1305,
+      },
+      {
+        id: 4,
+        date: new Date("2024-07-02"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 1800,
+        price: 1350,
+        total: 1800 * 1350,
+        marketPrice: 1335,
+      },
+      {
+        id: 5,
+        date: new Date("2024-07-20"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 8000,
+        price: 210,
+        total: 8000 * 210,
+        marketPrice: 218,
+      },
+      {
+        id: 6,
+        date: new Date("2024-08-15"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 6000,
+        price: 225,
+        total: 6000 * 225,
+        marketPrice: 220,
+      },
+      {
+        id: 7,
+        date: new Date("2024-09-08"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 4200,
+        price: 1170,
+        total: 4200 * 1170,
+        marketPrice: 1185,
+      },
+      {
+        id: 8,
+        date: new Date("2024-10-12"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 2800,
+        price: 1220,
+        total: 2800 * 1220,
+        marketPrice: 1205,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-01"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 1200,
+        price: 1380,
+        total: 1200 * 1380,
+        marketPrice: 1395,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-15"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 800,
+        price: 1450,
+        total: 800 * 1450,
+        marketPrice: 1435,
+      },
+    ]),
   },
   {
     id: 3,
@@ -134,6 +348,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1167894321,
     referredBy: "Facundo",
     description: "Local de regalería y bazar, frente a la farmacia.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-04-15"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 1500,
+        price: 1120,
+        total: 1500 * 1120,
+        marketPrice: 1135,
+      },
+      {
+        id: 2,
+        date: new Date("2024-05-08"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 1200,
+        price: 1180,
+        total: 1200 * 1180,
+        marketPrice: 1165,
+      },
+      {
+        id: 3,
+        date: new Date("2024-06-12"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 3500,
+        price: 205,
+        total: 3500 * 205,
+        marketPrice: 212,
+      },
+      {
+        id: 4,
+        date: new Date("2024-07-05"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 2800,
+        price: 220,
+        total: 2800 * 220,
+        marketPrice: 215,
+      },
+      {
+        id: 5,
+        date: new Date("2024-08-18"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 800,
+        price: 1310,
+        total: 800 * 1310,
+        marketPrice: 1325,
+      },
+      {
+        id: 6,
+        date: new Date("2024-09-22"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 600,
+        price: 1370,
+        total: 600 * 1370,
+        marketPrice: 1355,
+      },
+      {
+        id: 7,
+        date: new Date("2024-10-15"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 2200,
+        price: 1195,
+        total: 2200 * 1195,
+        marketPrice: 1210,
+      },
+      {
+        id: 8,
+        date: new Date("2024-11-08"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 1800,
+        price: 1255,
+        total: 1800 * 1255,
+        marketPrice: 1240,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-28"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 4000,
+        price: 238,
+        total: 4000 * 238,
+        marketPrice: 245,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-20"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 3200,
+        price: 248,
+        total: 3200 * 248,
+        marketPrice: 243,
+      },
+    ]),
   },
   {
     id: 4,
@@ -142,6 +458,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1154321987,
     referredBy: "Patricio",
     description: "Repartidor que también presta a conocidos del barrio.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-03-20"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 800,
+        price: 1090,
+        total: 800 * 1090,
+        marketPrice: 1105,
+      },
+      {
+        id: 2,
+        date: new Date("2024-04-10"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 600,
+        price: 1140,
+        total: 600 * 1140,
+        marketPrice: 1125,
+      },
+      {
+        id: 3,
+        date: new Date("2024-05-15"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 2000,
+        price: 198,
+        total: 2000 * 198,
+        marketPrice: 205,
+      },
+      {
+        id: 4,
+        date: new Date("2024-06-08"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 1500,
+        price: 215,
+        total: 1500 * 215,
+        marketPrice: 210,
+      },
+      {
+        id: 5,
+        date: new Date("2024-07-12"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 500,
+        price: 1280,
+        total: 500 * 1280,
+        marketPrice: 1295,
+      },
+      {
+        id: 6,
+        date: new Date("2024-08-25"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 400,
+        price: 1340,
+        total: 400 * 1340,
+        marketPrice: 1325,
+      },
+      {
+        id: 7,
+        date: new Date("2024-09-18"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 1200,
+        price: 1175,
+        total: 1200 * 1175,
+        marketPrice: 1190,
+      },
+      {
+        id: 8,
+        date: new Date("2024-10-22"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 900,
+        price: 1235,
+        total: 900 * 1235,
+        marketPrice: 1220,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-15"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 2500,
+        price: 240,
+        total: 2500 * 240,
+        marketPrice: 247,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-05"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 2000,
+        price: 252,
+        total: 2000 * 252,
+        marketPrice: 247,
+      },
+    ]),
   },
   {
     id: 5,
@@ -150,6 +568,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1144982211,
     referredBy: "Nacho",
     description: "Vive en PH, trabaja vendiendo productos de limpieza.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-02-28"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 1000,
+        price: 1050,
+        total: 1000 * 1050,
+        marketPrice: 1065,
+      },
+      {
+        id: 2,
+        date: new Date("2024-03-15"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 800,
+        price: 1110,
+        total: 800 * 1110,
+        marketPrice: 1095,
+      },
+      {
+        id: 3,
+        date: new Date("2024-04-22"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 600,
+        price: 1220,
+        total: 600 * 1220,
+        marketPrice: 1235,
+      },
+      {
+        id: 4,
+        date: new Date("2024-05-30"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 450,
+        price: 1285,
+        total: 450 * 1285,
+        marketPrice: 1270,
+      },
+      {
+        id: 5,
+        date: new Date("2024-06-25"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 1800,
+        price: 208,
+        total: 1800 * 208,
+        marketPrice: 215,
+      },
+      {
+        id: 6,
+        date: new Date("2024-08-02"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 1400,
+        price: 228,
+        total: 1400 * 228,
+        marketPrice: 223,
+      },
+      {
+        id: 7,
+        date: new Date("2024-09-10"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 1500,
+        price: 1185,
+        total: 1500 * 1185,
+        marketPrice: 1200,
+      },
+      {
+        id: 8,
+        date: new Date("2024-10-18"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 1200,
+        price: 1245,
+        total: 1200 * 1245,
+        marketPrice: 1230,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-25"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 700,
+        price: 1395,
+        total: 700 * 1395,
+        marketPrice: 1410,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-18"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 550,
+        price: 1465,
+        total: 550 * 1465,
+        marketPrice: 1450,
+      },
+    ]),
   },
   {
     id: 6,
@@ -158,6 +678,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1178945632,
     referredBy: "Tiago",
     description: "Tiene un maxikiosco frente al club San Martín.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-01-18"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 3000,
+        price: 1020,
+        total: 3000 * 1020,
+        marketPrice: 1035,
+      },
+      {
+        id: 2,
+        date: new Date("2024-02-12"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 2500,
+        price: 1080,
+        total: 2500 * 1080,
+        marketPrice: 1065,
+      },
+      {
+        id: 3,
+        date: new Date("2024-03-28"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 5500,
+        price: 185,
+        total: 5500 * 185,
+        marketPrice: 192,
+      },
+      {
+        id: 4,
+        date: new Date("2024-04-18"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 4200,
+        price: 202,
+        total: 4200 * 202,
+        marketPrice: 197,
+      },
+      {
+        id: 5,
+        date: new Date("2024-05-25"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 1800,
+        price: 1250,
+        total: 1800 * 1250,
+        marketPrice: 1265,
+      },
+      {
+        id: 6,
+        date: new Date("2024-07-08"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 1400,
+        price: 1320,
+        total: 1400 * 1320,
+        marketPrice: 1305,
+      },
+      {
+        id: 7,
+        date: new Date("2024-08-22"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 3500,
+        price: 1160,
+        total: 3500 * 1160,
+        marketPrice: 1175,
+      },
+      {
+        id: 8,
+        date: new Date("2024-09-30"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 2800,
+        price: 1210,
+        total: 2800 * 1210,
+        marketPrice: 1195,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-12"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 4800,
+        price: 242,
+        total: 4800 * 242,
+        marketPrice: 249,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-22"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 3800,
+        price: 255,
+        total: 3800 * 255,
+        marketPrice: 250,
+      },
+    ]),
   },
   {
     id: 7,
@@ -166,6 +788,108 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1141123344,
     referredBy: "Fernando",
     description: "Hace venta ambulante en la feria los fines de semana.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-01-05"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 600,
+        price: 1000,
+        total: 600 * 1000,
+        marketPrice: 1015,
+      },
+      {
+        id: 2,
+        date: new Date("2024-02-20"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 500,
+        price: 1055,
+        total: 500 * 1055,
+        marketPrice: 1040,
+      },
+      {
+        id: 3,
+        date: new Date("2024-03-18"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 1200,
+        price: 180,
+        total: 1200 * 180,
+        marketPrice: 187,
+      },
+      {
+        id: 4,
+        date: new Date("2024-04-25"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 900,
+        price: 195,
+        total: 900 * 195,
+        marketPrice: 190,
+      },
+      {
+        id: 5,
+        date: new Date("2024-06-10"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 400,
+        price: 1270,
+        total: 400 * 1270,
+        marketPrice: 1285,
+      },
+      {
+        id: 6,
+        date: new Date("2024-07-28"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 300,
+        price: 1335,
+        total: 300 * 1335,
+        marketPrice: 1320,
+      },
+      {
+        id: 7,
+        date: new Date("2024-08-15"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 800,
+        price: 1155,
+        total: 800 * 1155,
+        marketPrice: 1170,
+      },
+      {
+        id: 8,
+        date: new Date("2024-10-05"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 650,
+        price: 1215,
+        total: 650 * 1215,
+        marketPrice: 1200,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-18"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 1500,
+        price: 235,
+        total: 1500 * 235,
+        marketPrice: 242,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-10"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 1200,
+        price: 250,
+        total: 1200 * 250,
+        marketPrice: 245,
+      },
+    ]),
   },
   {
     id: 8,
@@ -174,36 +898,155 @@ const originalClients: ClientExample[] = [
     phoneNumber: 1165437890,
     referredBy: "Karina",
     description: "Mecánico en taller familiar, cliente constante.",
-  },
-  {
-    id: 9,
-    name: "Verónica",
-    address: "Fray Cayetano 450",
-    phoneNumber: 1132145687,
-    referredBy: "Cesar",
-    description: "Tiene almacén en barrio El Progreso.",
-  },
-  {
-    id: 10,
-    name: "Diego",
-    address: "Pedro Goyena 1345",
-    phoneNumber: 1122233445,
-    referredBy: "Alejandro",
-    description: "Trabaja con fletes y hace changas en la zona.",
+    operations: enrichOperations([
+      {
+        id: 1,
+        date: new Date("2024-01-12"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 4500,
+        price: 1010,
+        total: 4500 * 1010,
+        marketPrice: 1025,
+      },
+      {
+        id: 2,
+        date: new Date("2024-02-08"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 3200,
+        price: 1070,
+        total: 3200 * 1070,
+        marketPrice: 1055,
+      },
+      {
+        id: 3,
+        date: new Date("2024-03-22"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 2000,
+        price: 1200,
+        total: 2000 * 1200,
+        marketPrice: 1215,
+      },
+      {
+        id: 4,
+        date: new Date("2024-04-30"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 1600,
+        price: 1265,
+        total: 1600 * 1265,
+        marketPrice: 1250,
+      },
+      {
+        id: 5,
+        date: new Date("2024-06-15"),
+        operationType: "Compra",
+        currency: "reales",
+        amount: 7000,
+        price: 200,
+        total: 7000 * 200,
+        marketPrice: 207,
+      },
+      {
+        id: 6,
+        date: new Date("2024-07-18"),
+        operationType: "Venta",
+        currency: "reales",
+        amount: 5500,
+        price: 218,
+        total: 5500 * 218,
+        marketPrice: 213,
+      },
+      {
+        id: 7,
+        date: new Date("2024-08-28"),
+        operationType: "Compra",
+        currency: "dolares",
+        amount: 3800,
+        price: 1165,
+        total: 3800 * 1165,
+        marketPrice: 1180,
+      },
+      {
+        id: 8,
+        date: new Date("2024-10-08"),
+        operationType: "Venta",
+        currency: "dolares",
+        amount: 3000,
+        price: 1225,
+        total: 3000 * 1225,
+        marketPrice: 1210,
+      },
+      {
+        id: 9,
+        date: new Date("2024-11-20"),
+        operationType: "Compra",
+        currency: "euros",
+        amount: 1300,
+        price: 1405,
+        total: 1300 * 1405,
+        marketPrice: 1420,
+      },
+      {
+        id: 10,
+        date: new Date("2024-12-12"),
+        operationType: "Venta",
+        currency: "euros",
+        amount: 1000,
+        price: 1475,
+        total: 1000 * 1475,
+        marketPrice: 1460,
+      },
+    ]),
   },
 ];
 
 /* FUNCTIONS */
+function enrichOperations(
+  operations: Omit<OperationsExample, "netProfit">[],
+): OperationsExample[] {
+  return operations.map((op) => {
+    const marketTotal = op.marketPrice * op.amount;
+    const grossProfit =
+      op.operationType === "Venta"
+        ? op.total - marketTotal
+        : marketTotal - op.total;
+
+    const commission = grossProfit / 2;
+    const netProfit = grossProfit - commission;
+
+    return {
+      ...op,
+      netProfit,
+    };
+  });
+}
 
 //Component starts here
 export function ClientSection() {
   /* STATES */
+  const [startDate, setStartDate] = useState<string>(""); // Fecha desde (inicio)
+  const [endDate, setEndDate] = useState<string>(""); // Fecha hasta (fin)
   //Manipulate the filter that search for client or seller
   const [searchText, setSearchText] = useState("");
   //Save the id of the selected row
   const [rowID, setRowID] = useState<number>();
+  //Filters the total amount of each currency to the clients detail modal
+  const [selectedCurrency, setSelectedCurrency] = useState("");
+  //Shows the total amount of each currency to the clients detail modal
+  const [totalOperations, setTotalOperations] = useState<number | null>(null);
   //Open or close the details client modal
   const [modalState, setModalState] = useState<ModalStateClients>("");
+  //Control what type of data to show in details modal (operations/loans)
+  const [detailsTableType, setDetailsTableType] = useState<
+    "operations" | "loans"
+  >("operations");
+  //Store operations data for selected client
+  const [clientOperations, setClientOperations] = useState<OperationsExample[]>(
+    [],
+  );
 
   /* REFs */
   //add loans container ref
@@ -215,9 +1058,20 @@ export function ClientSection() {
   //Opens the client details modal
   useEffect(() => {
     if (modalState === "detalles") {
+      const selectedClient = originalClients.find((c) => c.id === rowID);
+      if (selectedClient) {
+        setClientOperations(selectedClient.operations || []);
+      }
       openDialog(dialogClientDetail);
     }
   }, [modalState]);
+
+  useEffect(() => {
+  setSelectedCurrency("");
+  setTotalOperations(0);
+  setStartDate("");
+  setEndDate("");
+}, [rowID]);
 
   /* EVENT HANDLERS */
   //Handle how every dialog is opened
@@ -240,6 +1094,34 @@ export function ClientSection() {
   /* UTILS */
 
   /* FUNCTIONS */
+  const calculateTotalByCurrency = (currency: string): number => {
+    if (!selectedRow?.operations) return 0;
+
+    return selectedRow.operations
+      .filter((op) => op.currency.toLowerCase() === currency.toLowerCase())
+      .reduce((acc, op) => acc + op.total, 0);
+  };
+
+  const filteredOperationsByCurrency = clientOperations.filter((op) => {
+  const currencyMatch =
+    selectedCurrency === "" ||
+    op.currency.toLowerCase() === selectedCurrency.toLowerCase();
+
+  const startMatch =
+    startDate === "" || op.date >= new Date(startDate);
+
+  const endMatch =
+    endDate === "" || op.date <= new Date(endDate);
+
+  return currencyMatch && startMatch && endMatch;
+});
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSelectedCurrency(selected);
+    const total = calculateTotalByCurrency(selected);
+    setTotalOperations(total);
+  };
   //Recieves all filters and returns the filtered data
   const filteredData = originalClients.filter((item) => {
     // Si no hay texto de búsqueda, mostrar todos los clientes
@@ -253,11 +1135,19 @@ export function ClientSection() {
 
   const selectedRow = filteredData.find((row) => row.id === rowID);
 
+  const availableCurrencies = Array.from(
+    new Set(selectedRow?.operations.map((op) => op.currency.toLowerCase())),
+  );
+
   return (
     <>
       {/* TOP OPTION'S CONTAINER */}
       <div className="flex w-full items-center justify-between border-b px-4 py-2">
-        <h2 className="text-2xl font-bold text-slate-500">CLIENTES</h2>
+        <div className="flex gap-4 text-slate-500">
+          <IoPeople className="size-7" />
+
+          <h2 className="text-2xl font-bold">CLIENTES</h2>
+        </div>
         <Button
           onPress={() => openDialog(dialogAddClient)}
           color="success"
@@ -306,12 +1196,15 @@ export function ClientSection() {
         {/* FORM'S CONTAINER */}
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="flex h-full w-full flex-col items-center justify-evenly px-8 py-4 text-slate-500"
+          className="flex h-full w-full flex-col px-8 py-4 text-slate-500"
         >
           {/* TITLE'S CONTAINER */}
-          <h3 className="w-full border-b pb-4 text-center text-xl font-semibold">
-            Crear un nuevo cliente
-          </h3>
+          <div className="flex gap-4 border-b pb-4">
+            <IoPeople className="size-7" />
+            <h3 className="w-full text-xl font-semibold">
+              Crear un nuevo cliente
+            </h3>
+          </div>
           <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Nombre
@@ -378,82 +1271,107 @@ export function ClientSection() {
       {/* CLIENTS DETAIL MODAL */}
       <dialog
         ref={dialogClientDetail}
-        className="h-fit w-1/2 rounded-lg px-8 py-4 text-slate-600"
+        className="h-full w-2/3 rounded-lg px-8 py-4 text-slate-600"
       >
         {/* TITLE'S CONTAINER */}
-        <p className="w-full place-content-center items-center border-b pb-4 text-center text-xl font-semibold">
-          {selectedRow?.name}
-        </p>
-        {/* INFO CONTAINER */}
-        <div className="flex flex-row gap-4 border-b px-4 pb-6 pt-4">
-          <label className="flex w-full flex-col gap-1 text-slate-500 focus-within:text-green-600">
-            <div className="flex items-center gap-2">
-              <span>Total de operaciones:</span>
-            </div>
-            <select className="rounded-lg text-slate-400 border p-3 shadow-sm outline-none focus:border-green-400">
-              <option value="">Seleccionar divisa</option>
-              <option value="pesos">Seleccionar pesos</option>
-              <option value="dolares">Seleccionar dolares</option>
-              <option value="reales">Seleccionar reales</option>
-              <option value="euros">Seleccionar euros</option>
-            </select>
-          </label>
-          <label className="flex w-full flex-col gap-1 text-slate-500 focus-within:text-green-600">
-            <div className="flex items-center gap-2">
-              <span>Total de prestamos:</span>
-            </div>
-            <select className="rounded-lg border text-slate-400 p-3 shadow-sm outline-none focus:border-green-400">
-              <option value="">Seleccionar divisa</option>
-              <option value="pesos">Seleccionar pesos</option>
-              <option value="dolares">Seleccionar dolares</option>
-              <option value="reales">Seleccionar reales</option>
-              <option value="euros">Seleccionar euros</option>
-            </select>
-          </label>
+        <div className="flex gap-4 border-b pb-3">
+          <IoPeople className="size-7" />
+          <p className="w-full text-xl font-semibold">
+            Detalles de {selectedRow?.name}
+          </p>
+          <button
+            onClick={() => {
+              setModalState("");
+              closeDialog(dialogClientDetail);
+            }}
+            className="text-slate-500 transition-colors hover:text-red-500"
+            aria-label="Cerrar"
+          >
+            <IoClose className="size-6" />
+          </button>
         </div>
+        {/* INFO CONTAINER */}
+        <div className="flex pt-4 w-full text-sm">
+          <div className="basis-2/3 rounded-md border px-4 py-2 shadow-sm">
+            <p>Direccion: {selectedRow?.address}</p>
+            <p>Telefono: {selectedRow?.phoneNumber}</p>
+            <p>Referido por: {selectedRow?.referredBy}</p>
+            <p>Informacion adicional: {selectedRow?.description}</p>
+          </div>
+          <div className="basis-1/3 place-content-center">
+            <p className="">Ganancia neta: </p>
+          </div>
+        </div>
+
         {/* DETAIL TABLE CONTAINER */}
-        <div className="flex flex-row gap-4 p-4">
-          <label className="flex w-1/2 flex-col gap-1 text-slate-500 focus-within:text-green-600">
+        <div className="flex flex-row gap-4 pt-4 text-sm">
+          <label className="flex w-1/4 flex-col gap-1 text-slate-500 focus-within:text-green-600">
             <div className="flex items-center gap-2">
-              <span>Filtrar por tipo de movimiento:</span>
+              <span>Filtrar por movimiento:</span>
             </div>
-            <select className="rounded-lg border text-slate-400 p-3 shadow-sm outline-none focus:border-green-400">
+            <select
+              value={detailsTableType}
+              onChange={(e) =>
+                setDetailsTableType(e.target.value as "operations" | "loans")
+              }
+              className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
+            >
               <option value="operations">Operaciones</option>
               <option value="loans">Prestamos</option>
             </select>
           </label>
-          <label className="flex w-1/2 flex-col gap-1 text-slate-500 focus-within:text-green-600">
+          <label className="flex w-1/4 flex-col gap-1 text-slate-500 focus-within:text-green-600">
             <div className="flex items-center gap-2">
-              <span>Ganancia total:</span>
+              <span>Filtrar por divisa:</span>
             </div>
-            <select className="rounded-lg border p-3 shadow-sm text-slate-400 outline-none focus:border-green-400">
-              <option value="">Seleccionar divisa</option>
-              <option value="pesos">Seleccionar pesos</option>
-              <option value="dolares">Seleccionar dolares</option>
-              <option value="reales">Seleccionar reales</option>
-              <option value="euros">Seleccionar euros</option>
+            <select
+              value={selectedCurrency}
+              onChange={(e) => setSelectedCurrency(e.target.value)}
+              className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
+            >
+              <option value="">Todas las divisas</option>
+              {availableCurrencies.map((currency) => (
+                <option key={currency} value={currency}>
+                  {currency.charAt(0).toUpperCase() + currency.slice(1)}
+                </option>
+              ))}
             </select>
           </label>
+          <div className="flex w-1/2 flex-col text-sm text-slate-500">
+            <p>Filtrar por fechas:</p>
+            <div className="flex gap-2">
+              <label className="flex items-center gap-1">
+                Desde:
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                />
+              </label>
+              <label className="flex items-center gap-1">
+                Hasta:
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                />
+              </label>
+            </div>
+          </div>
         </div>
-        <div className="relative flex-grow overflow-hidden p-4 px-6">
+        <div className="relative flex-grow overflow-hidden py-8">
           <TableWork
-            columns={COLUMNS_OPERATIONS_DETAIL}
+            columns={OPERATIONS_COLUMNS}
             loading={false}
             error={false}
             searchInput={""}
-            data={[]}
+            data={filteredOperationsByCurrency}
             openModal={null}
             optionsMenu={[]}
           />
         </div>
-        <button
-          onClick={() => {
-            setModalState("");
-            closeDialog(dialogClientDetail);
-          }}
-        >
-          cerrar
-        </button>
       </dialog>
       {/* DATALIST FOR SEARCH SELLERS INPUT */}
       <datalist id="sellersList">
