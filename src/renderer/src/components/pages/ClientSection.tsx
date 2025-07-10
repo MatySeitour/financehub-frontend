@@ -7,6 +7,7 @@ import { MenuOption, ModalState } from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
 import { IoPeople } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
+import { addDays, addMonths, addWeeks, format } from "date-fns";
 
 /* DATA TYPES */
 //Modals to open
@@ -20,6 +21,7 @@ type ClientExample = {
   referredBy: string;
   description: string;
   operations: OperationsExample[];
+  loans: LoanExample[];
 };
 type OperationsExample = {
   id: number;
@@ -31,6 +33,29 @@ type OperationsExample = {
   total: number;
   marketPrice: number; // nuevo campo obligatorio
   netProfit: number; // se calcula automáticamente
+};
+//Loan example of what i will recieve from the API
+type LoanExample = {
+  id: number;
+  seller: string;
+  principal: number;
+  currency: string;
+  installment: number;
+  numberOfInstallments: number;
+  paymentFrecuency: string;
+  firstDueDate: Date;
+  totalPaid: number | null;
+  commission: number;
+  installments: Installment[];
+};
+//Installment example of what i will recieve from the API
+type Installment = {
+  id: number;
+  number: number;
+  value: number;
+  dueDate: string;
+  pay: number | null;
+  paymentDate?: string;
 };
 
 /* UTILS*/
@@ -111,6 +136,57 @@ const OPERATIONS_COLUMNS = [
     render: (item: OperationsExample) => `$${item.netProfit.toLocaleString()}`,
   },
 ];
+//Loans table's columns
+const LOANS_COLUMNS = [
+  {
+    label: "Vendedor",
+    key: "seller",
+    render: (item: LoanExample) => item.seller,
+    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  },
+  {
+    label: "Capital",
+    key: "principal",
+    render: (item: LoanExample) => `$${item.principal.toLocaleString("es-ES")}`,
+    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  },
+  {
+    label: "Divisa",
+    key: "currency",
+    render: (item: LoanExample) => item.currency,
+    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  },
+  {
+    label: "Valor de la cuota",
+    key: "installment",
+    render: (item: LoanExample) =>
+      `$${item.installment.toLocaleString("es-ES")}`,
+    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  },
+  {
+    label: "Número de cuota",
+    key: "installmentProgress",
+    render: (item: LoanExample) => {
+      const paid = item.installments.filter(
+        (inst) => inst.pay === inst.value,
+      ).length;
+      const total = item.numberOfInstallments;
+
+      if (paid >= total) return "Completado";
+      return `${paid + 1}/${total}`;
+    },
+  },
+  {
+    label: "Proximo vencimiento",
+    key: "nextDueDate",
+    render: (item: LoanExample) => {
+      const { dateString } = getNextDueDate(item);
+      return dateString;
+    },
+    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  },
+];
+
 //Custom menu options
 const contextMenuOption: MenuOption[] = [
   {
@@ -119,8 +195,8 @@ const contextMenuOption: MenuOption[] = [
     route: undefined,
   },
 ] as const;
-//Original simulation of what y will recieve from the API
-const originalClients: ClientExample[] = [
+//Array de clientes con préstamos asociados
+const originalClients = [
   {
     id: 1,
     name: "Gisela",
@@ -230,6 +306,47 @@ const originalClients: ClientExample[] = [
         marketPrice: 1465,
       },
     ]),
+    loans: [
+      {
+        id: 1,
+        seller: "Alejandro",
+        principal: 1000000,
+        currency: "pesos",
+        installment: 160000,
+        numberOfInstallments: 8,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-06-05"),
+        totalPaid: null,
+        installments: [],
+        commission: 92400,
+      },
+      {
+        id: 11,
+        seller: "Alejandro",
+        principal: 100000,
+        currency: "dolares",
+        installment: 20000,
+        numberOfInstallments: 6,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-06-25"),
+        totalPaid: null,
+        installments: [],
+        commission: 50000,
+      },
+      {
+        id: 12,
+        seller: "Alejandro",
+        principal: 750000,
+        currency: "pesos",
+        installment: 200000,
+        numberOfInstallments: 5,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-06-05"),
+        totalPaid: null,
+        installments: [],
+        commission: 100000,
+      },
+    ],
   },
   {
     id: 2,
@@ -340,6 +457,34 @@ const originalClients: ClientExample[] = [
         marketPrice: 1435,
       },
     ]),
+    loans: [
+      {
+        id: 2,
+        seller: "Alejandro",
+        principal: 2000000,
+        currency: "pesos",
+        installment: 300000,
+        numberOfInstallments: 9,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-07-06"),
+        totalPaid: null,
+        installments: [],
+        commission: 200000,
+      },
+      {
+        id: 4,
+        seller: "Martín",
+        principal: 12000,
+        currency: "dolares",
+        installment: 2300,
+        numberOfInstallments: 6,
+        paymentFrecuency: "quincenal",
+        firstDueDate: new Date("2025-08-01"),
+        totalPaid: null,
+        installments: [],
+        commission: 500,
+      },
+    ],
   },
   {
     id: 3,
@@ -450,6 +595,34 @@ const originalClients: ClientExample[] = [
         marketPrice: 243,
       },
     ]),
+    loans: [
+      {
+        id: 3,
+        seller: "Lucía",
+        principal: 1500,
+        currency: "euros",
+        installment: 250,
+        numberOfInstallments: 8,
+        paymentFrecuency: "quincenal",
+        firstDueDate: new Date("2025-07-15"),
+        totalPaid: null,
+        installments: [],
+        commission: 150,
+      },
+      {
+        id: 5,
+        seller: "Alejandro",
+        principal: 180000,
+        currency: "pesos",
+        installment: 7000,
+        numberOfInstallments: 30,
+        paymentFrecuency: "diario",
+        firstDueDate: new Date("2025-08-10"),
+        totalPaid: null,
+        installments: [],
+        commission: 10000,
+      },
+    ],
   },
   {
     id: 4,
@@ -560,6 +733,7 @@ const originalClients: ClientExample[] = [
         marketPrice: 247,
       },
     ]),
+    loans: [],
   },
   {
     id: 5,
@@ -670,6 +844,21 @@ const originalClients: ClientExample[] = [
         marketPrice: 1450,
       },
     ]),
+    loans: [
+      {
+        id: 9,
+        seller: "Lucía",
+        principal: 1800000,
+        currency: "pesos",
+        installment: 350000,
+        numberOfInstallments: 6,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-09-30"),
+        totalPaid: null,
+        installments: [],
+        commission: 100000,
+      },
+    ],
   },
   {
     id: 6,
@@ -780,6 +969,34 @@ const originalClients: ClientExample[] = [
         marketPrice: 250,
       },
     ]),
+    loans: [
+      {
+        id: 6,
+        seller: "Lucía",
+        principal: 2000000,
+        currency: "pesos",
+        installment: 300000,
+        numberOfInstallments: 8,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-08-22"),
+        totalPaid: null,
+        installments: [],
+        commission: 100000,
+      },
+      {
+        id: 7,
+        seller: "Martín",
+        principal: 800000,
+        currency: "pesos",
+        installment: 125000,
+        numberOfInstallments: 8,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-08-02"),
+        totalPaid: null,
+        installments: [],
+        commission: 50000,
+      },
+    ],
   },
   {
     id: 7,
@@ -890,118 +1107,23 @@ const originalClients: ClientExample[] = [
         marketPrice: 245,
       },
     ]),
-  },
-  {
-    id: 8,
-    name: "Matías",
-    address: "Av. San Martín 1200",
-    phoneNumber: 1165437890,
-    referredBy: "Karina",
-    description: "Mecánico en taller familiar, cliente constante.",
-    operations: enrichOperations([
-      {
-        id: 1,
-        date: new Date("2024-01-12"),
-        operationType: "Compra",
-        currency: "dolares",
-        amount: 4500,
-        price: 1010,
-        total: 4500 * 1010,
-        marketPrice: 1025,
-      },
-      {
-        id: 2,
-        date: new Date("2024-02-08"),
-        operationType: "Venta",
-        currency: "dolares",
-        amount: 3200,
-        price: 1070,
-        total: 3200 * 1070,
-        marketPrice: 1055,
-      },
-      {
-        id: 3,
-        date: new Date("2024-03-22"),
-        operationType: "Compra",
-        currency: "euros",
-        amount: 2000,
-        price: 1200,
-        total: 2000 * 1200,
-        marketPrice: 1215,
-      },
-      {
-        id: 4,
-        date: new Date("2024-04-30"),
-        operationType: "Venta",
-        currency: "euros",
-        amount: 1600,
-        price: 1265,
-        total: 1600 * 1265,
-        marketPrice: 1250,
-      },
-      {
-        id: 5,
-        date: new Date("2024-06-15"),
-        operationType: "Compra",
-        currency: "reales",
-        amount: 7000,
-        price: 200,
-        total: 7000 * 200,
-        marketPrice: 207,
-      },
-      {
-        id: 6,
-        date: new Date("2024-07-18"),
-        operationType: "Venta",
-        currency: "reales",
-        amount: 5500,
-        price: 218,
-        total: 5500 * 218,
-        marketPrice: 213,
-      },
-      {
-        id: 7,
-        date: new Date("2024-08-28"),
-        operationType: "Compra",
-        currency: "dolares",
-        amount: 3800,
-        price: 1165,
-        total: 3800 * 1165,
-        marketPrice: 1180,
-      },
+    loans: [
       {
         id: 8,
-        date: new Date("2024-10-08"),
-        operationType: "Venta",
-        currency: "dolares",
-        amount: 3000,
-        price: 1225,
-        total: 3000 * 1225,
-        marketPrice: 1210,
+        seller: "Alejandro",
+        principal: 900000,
+        currency: "pesos",
+        installment: 100000,
+        numberOfInstallments: 12,
+        paymentFrecuency: "mensual",
+        firstDueDate: new Date("2025-09-14"),
+        totalPaid: null,
+        installments: [],
+        commission: 200000,
       },
-      {
-        id: 9,
-        date: new Date("2024-11-20"),
-        operationType: "Compra",
-        currency: "euros",
-        amount: 1300,
-        price: 1405,
-        total: 1300 * 1405,
-        marketPrice: 1420,
-      },
-      {
-        id: 10,
-        date: new Date("2024-12-12"),
-        operationType: "Venta",
-        currency: "euros",
-        amount: 1000,
-        price: 1475,
-        total: 1000 * 1475,
-        marketPrice: 1460,
-      },
-    ]),
+    ],
   },
-];
+].map(addInstallmentsToLoans);
 
 /* FUNCTIONS */
 function enrichOperations(
@@ -1023,20 +1145,99 @@ function enrichOperations(
     };
   });
 }
+//
+const calculateNetProfitForLoans = (loans: LoanExample[]): number => {
+  return loans.reduce((total, loan) => {
+    const fullPayments = loan.installments.filter(
+      (inst) => inst.pay === inst.value
+    ).length;
+
+    const grossProfit = (loan.installment * loan.numberOfInstallments) - loan.principal;
+    const commission = loan.commission ?? 0;
+    const adjustedProfit = grossProfit - commission;
+
+    const profitPerInstallment = adjustedProfit / loan.numberOfInstallments;
+    const netProfit = profitPerInstallment * fullPayments;
+
+    return total + netProfit;
+  }, 0);
+};
+//Simulate installments for loans
+function generateInstallments(loan: LoanExample): Installment[] {
+  const installments: Installment[] = [];
+  for (let i = 0; i < loan.numberOfInstallments; i++) {
+    let dueDate: Date;
+
+    if (loan.paymentFrecuency === "mensual") {
+      dueDate = addMonths(loan.firstDueDate, i);
+    } else if (loan.paymentFrecuency === "semanal") {
+      dueDate = addWeeks(loan.firstDueDate, i);
+    } else if (loan.paymentFrecuency === "quincenal") {
+      dueDate = addWeeks(loan.firstDueDate, i * 2);
+    } else if (loan.paymentFrecuency === "diario") {
+      dueDate = addDays(loan.firstDueDate, i);
+    } else {
+      dueDate = loan.firstDueDate;
+    }
+
+    installments.push({
+      id: i + 1,
+      number: i + 1,
+      value: loan.installment,
+      dueDate: format(dueDate, "dd/MM/yyyy"),
+      pay: null,
+    });
+  }
+  return installments;
+}
+//
+function addInstallmentsToLoans(client: ClientExample): ClientExample {
+  return {
+    ...client,
+    loans: client.loans.map((loan) => ({
+      ...loan,
+      installments: generateInstallments(loan),
+    })),
+  };
+}
+//Get the next due date for loans table
+function getNextDueDate(loan: LoanExample): {
+  date: Date | null;
+  dateString: string;
+} {
+  const nextInstallment = loan.installments.find(
+    (installment) => !installment.pay || installment.pay < installment.value,
+  );
+
+  if (!nextInstallment) {
+    return { date: null, dateString: "Totalmente pagado" };
+  }
+
+  // Convertir string "dd/MM/yyyy" a Date
+  const [day, month, year] = nextInstallment.dueDate.split("/");
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+  return { date, dateString: nextInstallment.dueDate };
+}
 
 //Component starts here
 export function ClientSection() {
   /* STATES */
+  // Para préstamos (loans)
+  const [loanCurrencyFilter, setLoanCurrencyFilter] = useState<string>("");
+  const [loanStartDate, setLoanStartDate] = useState<string>("");
+  const [loanEndDate, setLoanEndDate] = useState<string>("");
+
   const [startDate, setStartDate] = useState<string>(""); // Fecha desde (inicio)
   const [endDate, setEndDate] = useState<string>(""); // Fecha hasta (fin)
   //Manipulate the filter that search for client or seller
   const [searchText, setSearchText] = useState("");
   //Save the id of the selected row
   const [rowID, setRowID] = useState<number>();
+  //Save the total of the operation's profits
+  const [netProfitTotal, setNetProfitTotal] = useState<number>(0);
   //Filters the total amount of each currency to the clients detail modal
   const [selectedCurrency, setSelectedCurrency] = useState("");
-  //Shows the total amount of each currency to the clients detail modal
-  const [totalOperations, setTotalOperations] = useState<number | null>(null);
   //Open or close the details client modal
   const [modalState, setModalState] = useState<ModalStateClients>("");
   //Control what type of data to show in details modal (operations/loans)
@@ -1047,12 +1248,80 @@ export function ClientSection() {
   const [clientOperations, setClientOperations] = useState<OperationsExample[]>(
     [],
   );
+  //
+  const [clientLoans, setClientLoans] = useState<LoanExample[]>([]);
 
   /* REFs */
   //add loans container ref
   const dialogAddClient = useRef<HTMLDialogElement>(null);
   //clients details container ref
   const dialogClientDetail = useRef<HTMLDialogElement>(null);
+
+  /* FUNCTIONS */
+  const calculateTotalByCurrency = (currency: string): number => {
+    if (!selectedRow?.operations) return 0;
+
+    return selectedRow.operations
+      .filter((op) => op.currency.toLowerCase() === currency.toLowerCase())
+      .reduce((acc, op) => acc + op.total, 0);
+  };
+  const calculateNetProfitTotal = (operations: OperationsExample[]) => {
+    const total = operations.reduce((acc, op) => acc + (op.netProfit ?? 0), 0);
+    return total;
+  };
+
+  const filteredOperationsByCurrency = clientOperations.filter((op) => {
+    const currencyMatch =
+      selectedCurrency === "" ||
+      op.currency.toLowerCase() === selectedCurrency.toLowerCase();
+
+    const startMatch = startDate === "" || op.date >= new Date(startDate);
+
+    const endMatch = endDate === "" || op.date <= new Date(endDate);
+
+    return currencyMatch && startMatch && endMatch;
+  });
+
+  //Recieves all filters and returns the filtered data
+  const filteredData = originalClients.filter((item) => {
+    // Si no hay texto de búsqueda, mostrar todos los clientes
+    if (!searchText.trim()) {
+      return true;
+    }
+
+    // Filtrar por nombre (case insensitive)
+    return item.name.toLowerCase().includes(searchText.toLowerCase().trim());
+  });
+
+  const selectedRow = filteredData.find((row) => row.id === rowID);
+
+  const availableCurrencies = Array.from(
+    new Set(selectedRow?.operations.map((op) => op.currency.toLowerCase())),
+  );
+  //
+  const filteredLoans = (selectedRow?.loans ?? []).filter((loan) => {
+    // Filtro por divisa
+    const matchesCurrency =
+      loanCurrencyFilter === "" ||
+      loan.currency.toLowerCase() === loanCurrencyFilter.toLowerCase();
+
+    // Filtro por próximo vencimiento
+    const { date: nextDueDate } = getNextDueDate(loan);
+    const dueDateStr = nextDueDate
+      ? nextDueDate.toISOString().split("T")[0] // "yyyy-mm-dd"
+      : null;
+
+    const matchesStart =
+      loanStartDate === "" || (dueDateStr && dueDateStr >= loanStartDate);
+    const matchesEnd =
+      loanEndDate === "" || (dueDateStr && dueDateStr <= loanEndDate);
+
+    return matchesCurrency && matchesStart && matchesEnd;
+  });
+  //
+  const availableLoanCurrencies = Array.from(
+    new Set(selectedRow?.loans?.map((loan) => loan.currency.toLowerCase())),
+  );
 
   /* USE EFFECT */
   //Opens the client details modal
@@ -1061,17 +1330,21 @@ export function ClientSection() {
       const selectedClient = originalClients.find((c) => c.id === rowID);
       if (selectedClient) {
         setClientOperations(selectedClient.operations || []);
+        setClientLoans(selectedRow?.loans ?? []); // <-- si lo guardás como "loans"
       }
       openDialog(dialogClientDetail);
     }
   }, [modalState]);
 
   useEffect(() => {
-  setSelectedCurrency("");
-  setTotalOperations(0);
-  setStartDate("");
-  setEndDate("");
-}, [rowID]);
+    setSelectedCurrency("");
+    setStartDate("");
+    setEndDate("");
+  }, [rowID]);
+
+  useEffect(() => {
+    setNetProfitTotal(calculateNetProfitTotal(filteredOperationsByCurrency));
+  }, [filteredOperationsByCurrency]);
 
   /* EVENT HANDLERS */
   //Handle how every dialog is opened
@@ -1092,52 +1365,6 @@ export function ClientSection() {
   };
 
   /* UTILS */
-
-  /* FUNCTIONS */
-  const calculateTotalByCurrency = (currency: string): number => {
-    if (!selectedRow?.operations) return 0;
-
-    return selectedRow.operations
-      .filter((op) => op.currency.toLowerCase() === currency.toLowerCase())
-      .reduce((acc, op) => acc + op.total, 0);
-  };
-
-  const filteredOperationsByCurrency = clientOperations.filter((op) => {
-  const currencyMatch =
-    selectedCurrency === "" ||
-    op.currency.toLowerCase() === selectedCurrency.toLowerCase();
-
-  const startMatch =
-    startDate === "" || op.date >= new Date(startDate);
-
-  const endMatch =
-    endDate === "" || op.date <= new Date(endDate);
-
-  return currencyMatch && startMatch && endMatch;
-});
-
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setSelectedCurrency(selected);
-    const total = calculateTotalByCurrency(selected);
-    setTotalOperations(total);
-  };
-  //Recieves all filters and returns the filtered data
-  const filteredData = originalClients.filter((item) => {
-    // Si no hay texto de búsqueda, mostrar todos los clientes
-    if (!searchText.trim()) {
-      return true;
-    }
-
-    // Filtrar por nombre (case insensitive)
-    return item.name.toLowerCase().includes(searchText.toLowerCase().trim());
-  });
-
-  const selectedRow = filteredData.find((row) => row.id === rowID);
-
-  const availableCurrencies = Array.from(
-    new Set(selectedRow?.operations.map((op) => op.currency.toLowerCase())),
-  );
 
   return (
     <>
@@ -1291,24 +1518,32 @@ export function ClientSection() {
           </button>
         </div>
         {/* INFO CONTAINER */}
-        <div className="flex pt-4 w-full text-sm">
-          <div className="basis-2/3 rounded-md border px-4 py-2 shadow-sm">
+        <div className="flex w-full items-center gap-8 pt-4 text-sm">
+          <div className="w-full rounded-md border px-4 py-2 shadow-sm">
             <p>Direccion: {selectedRow?.address}</p>
             <p>Telefono: {selectedRow?.phoneNumber}</p>
             <p>Referido por: {selectedRow?.referredBy}</p>
             <p>Informacion adicional: {selectedRow?.description}</p>
-          </div>
-          <div className="basis-1/3 place-content-center">
-            <p className="">Ganancia neta: </p>
+            <div className="mt-1 border-t pt-1">
+              <span className="text-lg font-semibold text-slate-500">
+                Ganancia neta: $
+                {detailsTableType === "operations"
+                  ? netProfitTotal.toLocaleString("es-AR")
+                  : calculateNetProfitForLoans(filteredLoans).toLocaleString(
+                      "es-AR",
+                    )}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* DETAIL TABLE CONTAINER */}
-        <div className="flex flex-row gap-4 pt-4 text-sm">
-          <label className="flex w-1/4 flex-col gap-1 text-slate-500 focus-within:text-green-600">
-            <div className="flex items-center gap-2">
-              <span>Filtrar por movimiento:</span>
-            </div>
+        <div className="flex flex-row gap-4 pt-4 text-sm text-slate-500">
+          {/* Select de tipo de movimiento (siempre visible) */}
+          <label className="flex w-1/4 flex-col gap-1 focus-within:text-green-600">
+            <span className="flex items-center gap-2">
+              Filtrar por movimiento:
+            </span>
             <select
               value={detailsTableType}
               onChange={(e) =>
@@ -1317,60 +1552,128 @@ export function ClientSection() {
               className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
             >
               <option value="operations">Operaciones</option>
-              <option value="loans">Prestamos</option>
+              <option value="loans">Préstamos</option>
             </select>
           </label>
-          <label className="flex w-1/4 flex-col gap-1 text-slate-500 focus-within:text-green-600">
-            <div className="flex items-center gap-2">
-              <span>Filtrar por divisa:</span>
-            </div>
-            <select
-              value={selectedCurrency}
-              onChange={(e) => setSelectedCurrency(e.target.value)}
-              className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
-            >
-              <option value="">Todas las divisas</option>
-              {availableCurrencies.map((currency) => (
-                <option key={currency} value={currency}>
-                  {currency.charAt(0).toUpperCase() + currency.slice(1)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="flex w-1/2 flex-col text-sm text-slate-500">
-            <p>Filtrar por fechas:</p>
-            <div className="flex gap-2">
-              <label className="flex items-center gap-1">
-                Desde:
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-                />
+
+          {/* Filtros de operaciones */}
+          {detailsTableType === "operations" && (
+            <>
+              <label className="flex w-1/4 flex-col gap-1 focus-within:text-green-600">
+                <span className="flex items-center gap-2">
+                  Filtrar por divisa:
+                </span>
+                <select
+                  value={selectedCurrency}
+                  onChange={(e) => setSelectedCurrency(e.target.value)}
+                  className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
+                >
+                  <option value="">Todas las divisas</option>
+                  {availableCurrencies.map((currency) => (
+                    <option key={currency} value={currency}>
+                      {currency.charAt(0).toUpperCase() + currency.slice(1)}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <label className="flex items-center gap-1">
-                Hasta:
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-                />
+
+              <div className="flex w-1/2 flex-col gap-1">
+                <p>Filtrar por fechas:</p>
+                <div className="flex gap-2">
+                  <label className="flex items-center gap-1">
+                    Desde:
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                    />
+                  </label>
+                  <label className="flex items-center gap-1">
+                    Hasta:
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Filtros de préstamos */}
+          {detailsTableType === "loans" && (
+            <>
+              <label className="flex w-1/4 flex-col gap-1 focus-within:text-green-600">
+                <span className="flex items-center gap-2">
+                  Filtrar por divisa:
+                </span>
+                <select
+                  value={loanCurrencyFilter}
+                  onChange={(e) => setLoanCurrencyFilter(e.target.value)}
+                  className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
+                >
+                  <option value="">Todas las divisas</option>
+                  {availableLoanCurrencies.map((currency) => (
+                    <option key={currency} value={currency}>
+                      {currency.charAt(0).toUpperCase() + currency.slice(1)}
+                    </option>
+                  ))}
+                </select>
               </label>
-            </div>
-          </div>
+
+              <div className="flex w-1/2 flex-col gap-1">
+                <p>Filtrar por fechas de próximo vencimiento:</p>
+                <div className="flex gap-2">
+                  <label className="flex items-center gap-1">
+                    Desde:
+                    <input
+                      type="date"
+                      value={loanStartDate}
+                      onChange={(e) => setLoanStartDate(e.target.value)}
+                      className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                    />
+                  </label>
+                  <label className="flex items-center gap-1">
+                    Hasta:
+                    <input
+                      type="date"
+                      value={loanEndDate}
+                      onChange={(e) => setLoanEndDate(e.target.value)}
+                      className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <div className="relative flex-grow overflow-hidden py-8">
-          <TableWork
-            columns={OPERATIONS_COLUMNS}
-            loading={false}
-            error={false}
-            searchInput={""}
-            data={filteredOperationsByCurrency}
-            openModal={null}
-            optionsMenu={[]}
-          />
+          {detailsTableType === "operations" && (
+            <TableWork
+              columns={OPERATIONS_COLUMNS}
+              loading={false}
+              error={false}
+              searchInput={""}
+              data={filteredOperationsByCurrency}
+              openModal={null}
+              optionsMenu={[]}
+            />
+          )}
+
+          {detailsTableType === "loans" && (
+            <TableWork
+              columns={LOANS_COLUMNS}
+              data={filteredLoans}
+              loading={false}
+              error={false}
+              searchInput={""}
+              openModal={null}
+              optionsMenu={[]}
+            />
+          )}
         </div>
       </dialog>
       {/* DATALIST FOR SEARCH SELLERS INPUT */}
