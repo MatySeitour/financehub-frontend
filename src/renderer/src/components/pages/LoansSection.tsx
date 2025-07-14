@@ -6,9 +6,10 @@ import { contextMenuBasicOptions } from "@renderer/utils";
 import { MenuOption, ModalState, ServerError } from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
-import { useQuery, useQueryClient } from "react-query";
-import { getLoans, Loan } from "@renderer/hooks/loan";
-import { all } from "axios";
+import { useQuery } from "react-query";
+import { getLoans } from "@renderer/hooks/loan";
+import { useMutation } from "react-query";
+import { createLoan } from "@renderer/hooks/loan";
 
 /* DATA TYPES */
 //Modals to open
@@ -423,6 +424,19 @@ export function LoansSection() {
 
     return loansWithInstallments;
   });
+  // States del formulario de creación de préstamo
+  const [newLoanData, setNewLoanData] = useState({
+    principal: 0,
+    currency: "",
+    installmentValue: 0,
+    numberOfInstallments: 0,
+    paymentFrequency: "monthly", // valor inicial por defecto
+    firstDueDate: "",
+    commission: 0,
+    clientId: 0,
+    sellerId: 0,
+    total_paid: 0,
+  });
 
   /* QUERYS */
   //
@@ -432,6 +446,17 @@ export function LoansSection() {
   >({
     queryFn: () => getLoans(),
     queryKey: ["loans", "all"],
+  });
+
+  const createLoanMutation = useMutation({
+    mutationFn: createLoan,
+    onSuccess: () => {
+      console.log("Préstamo creado correctamente");
+      // Acá podrías cerrar el modal, mostrar un toast o hacer refetch
+    },
+    onError: (error) => {
+      console.error("Error al crear préstamo:", error);
+    },
   });
 
   /* REFs */
@@ -453,6 +478,16 @@ export function LoansSection() {
   }, [modalState]);
 
   /* EVENT HANDLERS */
+  //
+  function handleInputChange(
+    field: keyof typeof newLoanData,
+    value: string | number,
+  ) {
+    setNewLoanData((prev) => ({
+      ...prev,
+      [field]: typeof prev[field] === "number" ? Number(value) : value,
+    }));
+  }
   //Handle the filter of search for client or seller
   const handleSearchTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -621,7 +656,6 @@ export function LoansSection() {
                     value={startDate}
                     onChange={handleStartDateChange}
                     type="date"
-                    placeholder="Nombre del cliente.."
                     className="w-full rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
                   />
                 </label>
@@ -631,7 +665,6 @@ export function LoansSection() {
                     value={endDate}
                     onChange={handleEndDateChange}
                     type="date"
-                    placeholder="Nombre del cliente.."
                     className="w-full rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
                   />
                 </label>
@@ -711,9 +744,41 @@ export function LoansSection() {
       {/* ADD LOAN MODAL */}
       <dialog ref={dialogAddLoan} className="h-fit w-1/2 rounded-lg">
         {/* FORM'S CONTAINER */}
+
         <form
-          onSubmit={(e) => e.preventDefault()}
           className="flex h-full w-full flex-col items-center justify-evenly px-8 py-4 text-slate-500"
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+
+            const newLoan = {
+              principal: Number(formData.get("principal")),
+              currency: formData.get("currency") as any,
+              installment_value: Number(formData.get("installmentValue")),
+              number_of_installments: Number(
+                formData.get("numberOfInstallments"),
+              ),
+              payment_frequency: formData.get("paymentFrequency") as any,
+              first_due_date: formData.get("firstDueDate") as string,
+              commission: Number(formData.get("commission")),
+              client_id: Number(formData.get("clientId")),
+              seller_id: Number(formData.get("sellerId")),
+              total_paid: 0,
+            };
+
+            console.log("newLoan:", newLoan);
+
+            createLoanMutation.mutate(newLoan, {
+              onSuccess: () => {
+                closeDialog(dialogAddLoan);
+              },
+              onError: (error) => {
+                console.error("Error al crear préstamo", error);
+              },
+            });
+          }}
         >
           {/* TITLE'S CONTAINER */}
           <h3 className="w-full border-b pb-4 text-center text-xl font-semibold">
@@ -723,6 +788,8 @@ export function LoansSection() {
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Cliente
               <input
+                required
+                name="clientId"
                 list="clientsList"
                 placeholder="Nombre del cliente.."
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
@@ -731,6 +798,8 @@ export function LoansSection() {
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Vendedor
               <input
+                required
+                name="sellerId"
                 list="sellersList"
                 placeholder="Nombre del vendedor.."
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
@@ -741,6 +810,8 @@ export function LoansSection() {
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Capital
               <input
+                required
+                name="principal"
                 type="number"
                 placeholder="Ej: 150000"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
@@ -748,20 +819,24 @@ export function LoansSection() {
             </label>
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Divisa
-              <select className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400">
-                <option className="text-slate-500" value="peso">
+              <select
+                required
+                name="currency"
+                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+              >
+                <option className="text-slate-500" value="ars">
                   Pesos
                 </option>
-                <option className="text-slate-500" value="dolar">
+                <option className="text-slate-500" value="usd">
                   Dolares
                 </option>
                 <option className="text-slate-500" value="real">
                   Real
                 </option>
-                <option className="text-slate-500" value="euro">
+                <option className="text-slate-500" value="eur">
                   Euro
                 </option>
-                <option className="text-slate-500" value="libra">
+                <option className="text-slate-500" value="lib">
                   Libra
                 </option>
               </select>
@@ -769,18 +844,22 @@ export function LoansSection() {
           </div>
           <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Cantidad de cuotas
+              Valor de las cuotas
               <input
+                required
+                name="installmentValue"
                 type="number"
-                placeholder="Ej: 12"
+                placeholder="Ej: 20000"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
               />
             </label>
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Cuota
+              Cantidad de cuotas
               <input
+                required
+                name="numberOfInstallments"
                 type="number"
-                placeholder="Ej: 20000"
+                placeholder="Ej: 12"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
               />
             </label>
@@ -788,7 +867,11 @@ export function LoansSection() {
           <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Frecuencia de cobro
-              <select className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400">
+              <select
+                required
+                name="paymentFrequency"
+                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+              >
                 <option className="text-slate-500" value="daily">
                   Diario
                 </option>
@@ -806,6 +889,8 @@ export function LoansSection() {
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Primer vencimiento
               <input
+                required
+                name="firstDueDate"
                 type="date"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
               />
@@ -814,6 +899,8 @@ export function LoansSection() {
           <label className="flex flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
             Comision
             <input
+              required
+              name="commission"
               type="number"
               placeholder="Ej: 150000"
               className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
@@ -823,7 +910,6 @@ export function LoansSection() {
           <div className="flex w-full justify-evenly pt-4 text-center">
             <Button
               type="submit"
-              onPress={() => closeDialog(dialogAddLoan)}
               color="success"
               className="rounded-md text-white"
             >
@@ -982,23 +1068,25 @@ export function LoansSection() {
       </dialog>
       {/* DATALIST FOR SEARCH CLIENTS INPUT */}
       <datalist id="clientsList">
-        <option value="Poncha"></option>
-        <option value="Gisela"></option>
-        <option value="Texido"></option>
-        <option value="Victor"></option>
-        <option value="Andres futbol"></option>
-        <option value="Tiago"></option>
+        <option value="1" label="Gisela">
+          Gisela
+        </option>
+        <option value="2" label="Poncha"></option>
+        <option value="3" label="Ale berardi"></option>
+        <option value="4" label="Marcelo parlante"></option>
+        <option value="5" label="Gerardo ausa"></option>
+        <option value="6" label="Lucas"></option>
       </datalist>
       {/* DATALIST FOR SEARCH SELLERS INPUT */}
       <datalist id="sellersList">
-        <option value="Alejandro"></option>
-        <option value="Karina"></option>
-        <option value="Patricio"></option>
-        <option value="Fernando"></option>
-        <option value="Facundo"></option>
-        <option value="Nacho"></option>
-        <option value="Tiago"></option>
-        <option value="Cesar"></option>
+        <option value="1" label="Alejandro"></option>
+        <option value="2" label="Karina"></option>
+        <option value="3" label="Patricio"></option>
+        <option value="4" label="Fernando"></option>
+        <option value="5" label="Facundo"></option>
+        <option value="6" label="Nacho"></option>
+        <option value="7" label="Thiago"></option>
+        <option value="8" label="Cesar"></option>
       </datalist>
     </>
   );
