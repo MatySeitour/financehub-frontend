@@ -3,9 +3,12 @@ import { Button } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { TableWork } from "../Table";
 import { contextMenuBasicOptions } from "@renderer/utils";
-import { MenuOption, ModalState } from "@renderer/utils/types";
+import { MenuOption, ModalState, ServerError } from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
+import { useQuery, useQueryClient } from "react-query";
+import { getLoans, Loan } from "@renderer/hooks/loan";
+import { all } from "axios";
 
 /* DATA TYPES */
 //Modals to open
@@ -402,7 +405,8 @@ export function LoansSection() {
   //Manipulate the select that shows the total capital of each currency
   const [selectedCurrency, setSelectedCurrency] = useState<string>("");
   //Manipulate the select that shows the total receivable capital of each currency
-  const [selectedCurrencyReceivable, setSelectedCurrencyReceivable] = useState<string>("");
+  const [selectedCurrencyReceivable, setSelectedCurrencyReceivable] =
+    useState<string>("");
   //Save every change of the loan's data
   const [loanData, setLoanData] = useState<LoanExample[]>(() => {
     const loansWithInstallments: LoanExample[] = [];
@@ -418,6 +422,16 @@ export function LoansSection() {
     }
 
     return loansWithInstallments;
+  });
+
+  /* QUERYS */
+  //
+  const loansQuery = useQuery<
+    Awaited<ReturnType<typeof getLoans>>,
+    ServerError
+  >({
+    queryFn: () => getLoans(),
+    queryKey: ["loans", "all"],
   });
 
   /* REFs */
@@ -845,7 +859,8 @@ export function LoansSection() {
               Ganancia: $
               {selectedRow?.installment && selectedRow?.numberOfInstallments
                 ? (
-                    selectedRow.installment * selectedRow.numberOfInstallments - selectedRow.principal
+                    selectedRow.installment * selectedRow.numberOfInstallments -
+                    selectedRow.principal
                   ).toLocaleString("es-ES")
                 : 0}
             </p>
