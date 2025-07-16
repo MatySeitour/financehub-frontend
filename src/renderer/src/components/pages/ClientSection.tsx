@@ -3,17 +3,30 @@ import { Button } from "@heroui/react";
 import { useRef, useState, useEffect } from "react";
 import { TableWork } from "../Table";
 import { contextMenuBasicOptions } from "@renderer/utils";
-import { BaseResponseServer, MenuOption, ModalState, ServerError, User } from "@renderer/utils/types";
+import {
+  BaseResponseServer,
+  MenuOption,
+  ModalState,
+  ServerError,
+  User,
+} from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
 import { IoPeople } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import { useOutletContext } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { Client, createClient, createClientSchema, deleteClient, editClient, editClientSchema, getClients } from "@renderer/hooks/client";
-import z from "zod";
 import {
-  FaRegTrashAlt,
-} from "react-icons/fa";
+  Client,
+  createClient,
+  createClientSchema,
+  deleteClient,
+  editClient,
+  editClientSchema,
+  getClients,
+} from "@renderer/hooks/client";
+import z from "zod";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { CreateClientModal, ModalRef } from "../modals/clients";
 
 /* DATA TYPES */
 //Modals to open
@@ -328,66 +341,51 @@ export function ClientSection() {
     queryKey: ["clients", "all"],
     onSuccess: (data) => {
       if (data && Array.isArray(data)) {
-      setClients(data);
-    }
-    }
+        setClients(data);
+      }
+    },
   });
-//
-const createClientMutation = useMutation({
-  mutationFn: ({ orgID, clientData }: { orgID: number; clientData: z.infer<typeof createClientSchema> }) => 
-    createClient(orgID, clientData),
-  onSuccess: (newClient) => {
-    console.log("Cliente creado correctamente:", newClient);
-    
-    //
-    queryClient.refetchQueries({ queryKey: ["clients", "all"] });
-  
-   // Cerrar el modal
-  closeDialog(dialogAddClient);
-
-  // Resetear formulario
-    formRef.current?.reset();
-  },
-  onError: (error) => {
-    console.error("Error al crear cliente:", error);
-  },
-});
-//
-const deleteClientMutation = useMutation({
-  mutationFn: ({ orgID, clientID }: { orgID: number; clientID: number }) =>
-    deleteClient(orgID, clientID),
-  onSuccess: () => {
-    // Refetch de la lista de clientes
-    clientsQuery.refetch();
-    closeDialog(dialogDeleteClient);
-    setModalState("")
-  },
-});
-//
-const editClientMutation = useMutation({
-  mutationFn: ({ orgID, clientID, clientData }: { orgID: number; clientID: number; clientData: z.infer<typeof editClientSchema> }) =>
-    editClient(orgID, clientID, clientData),
-  onSuccess: (updatedClient) => {
-    console.log("Cliente creado correctamente:", updatedClient);
-    closeDialog(dialogEditClient);
-    setModalState("");
-    clientsQuery.refetch();
-  },
-  onError: (error) => {
-    console.error("Error al editar un cliente:", error);
-
-  },
-})
+  //
+  //
+  const deleteClientMutation = useMutation({
+    mutationFn: ({ orgID, clientID }: { orgID: number; clientID: number }) =>
+      deleteClient(orgID, clientID),
+    onSuccess: () => {
+      // Refetch de la lista de clientes
+      clientsQuery.refetch();
+      closeDialog(dialogDeleteClient);
+      setModalState("");
+    },
+  });
+  //
+  const editClientMutation = useMutation({
+    mutationFn: ({
+      orgID,
+      clientID,
+      clientData,
+    }: {
+      orgID: number;
+      clientID: number;
+      clientData: z.infer<typeof editClientSchema>;
+    }) => editClient(orgID, clientID, clientData),
+    onSuccess: (updatedClient) => {
+      console.log("Cliente creado correctamente:", updatedClient);
+      closeDialog(dialogEditClient);
+      setModalState("");
+      clientsQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Error al editar un cliente:", error);
+    },
+  });
 
   /* REFs */
   //add loans container ref
-  const dialogAddClient = useRef<HTMLDialogElement>(null);
+  const modalRef = useRef<ModalRef>(null);
   //clients details container ref
   const dialogClientDetail = useRef<HTMLDialogElement>(null);
   //
   const dialogDeleteClient = useRef<HTMLDialogElement>(null);
-  //
-  const formRef = useRef<HTMLFormElement>(null);
   //
   const editClientformRef = useRef<HTMLFormElement>(null);
   //
@@ -399,7 +397,7 @@ const editClientMutation = useMutation({
     const total = operations.reduce((acc, op) => acc + (op.netProfit ?? 0), 0);
     return total;
   };
-//
+  //
   const filteredOperationsByCurrency = clientOperations.filter((op) => {
     const currencyMatch =
       selectedCurrency === "" ||
@@ -413,14 +411,14 @@ const editClientMutation = useMutation({
   });
   //Recieves all filters and returns the filtered data
   const filteredClients = clients.filter((client) => {
-  if (!searchText.trim()) return true;
+    if (!searchText.trim()) return true;
 
-  return client.name.toLowerCase().includes(searchText.toLowerCase().trim());
-});
+    return client.name.toLowerCase().includes(searchText.toLowerCase().trim());
+  });
 
-//
+  //
   const selectedRow = filteredClients.find((row) => row.id === rowID);
-/*
+  /*
   //
   const availableCurrencies = Array.from(
     new Set(selectedRow?.operations.map((op) => op.currency.toLowerCase())),
@@ -462,8 +460,8 @@ const editClientMutation = useMutation({
       openDialog(dialogClientDetail);
     } else if (modalState === "eliminar") {
       openDialog(dialogDeleteClient);
-    } else if(modalState === "editar"){
-      openDialog(dialogEditClient)
+    } else if (modalState === "editar") {
+      openDialog(dialogEditClient);
     }
   }, [modalState]);
 
@@ -494,51 +492,37 @@ const editClientMutation = useMutation({
   const handleSearchTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
   };
-  // Función para manejar el submit del formulario
-const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  
-  const formData = new FormData(e.currentTarget);
-  const clientData = {
-    name: formData.get('name') as string,
-    phone: formData.get('phone') as string,
-    address: formData.get('address') as string,
-    info: formData.get('info') as string || null,
+
+  const handleSubmitEdit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!selectedRow) return;
+
+    const formData = new FormData(e.currentTarget);
+    const clientData = {
+      name: formData.get("name") as string,
+      phone: formData.get("phone") as string,
+      address: (formData.get("address") as string) || "",
+      info: (formData.get("info") as string) || "",
+    };
+
+    editClientMutation.mutate({
+      orgID,
+      clientID: selectedRow.id,
+      clientData,
+    });
   };
-  
-  createClientMutation.mutate({ 
-    orgID: orgID, // Reemplaza con tu orgID
-    clientData 
-  });
-};
-
-const handleSubmitEdit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  if (!selectedRow) return;
-
-  const formData = new FormData(e.currentTarget);
-  const clientData = {
-    name: formData.get("name") as string,
-    phone: formData.get("phone") as string,
-    address: formData.get("address") as string || "",
-    info: formData.get("info") as string || "",
+  //
+  const openModal = () => {
+    modalRef.current?.open();
   };
-
-  editClientMutation.mutate({
-    orgID,
-    clientID: selectedRow.id,
-    clientData,
-  });
-};
-
 
   /* UTILS */
   //
-  const queryClient = useQueryClient(); 
-const user: BaseResponseServer & {data: User} = useOutletContext();
-//
-const orgID: number = user.data.organization.id;
+  const queryClient = useQueryClient();
+  const user: BaseResponseServer & { data: User } = useOutletContext();
+  //
+  const orgID: number = user.data.organization.id;
 
   return (
     <>
@@ -550,7 +534,7 @@ const orgID: number = user.data.organization.id;
           <h2 className="text-2xl font-bold">CLIENTES</h2>
         </div>
         <Button
-          onPress={() => openDialog(dialogAddClient)}
+          onPress={openModal}
           color="success"
           className="rounded-md text-white"
         >
@@ -590,90 +574,7 @@ const orgID: number = user.data.organization.id;
         </div>
       </section>
       {/* ADD CLIENT MODAL */}
-      <dialog
-        ref={dialogAddClient}
-        className="h-fit w-1/2 rounded-lg shadow-lg"
-      >
-        {/* FORM'S CONTAINER */}
-        <form
-        ref={formRef}
-          onSubmit={handleSubmit}
-          className="flex h-full w-full flex-col px-8 py-4 text-slate-500"
-        >
-          {/* TITLE'S CONTAINER */}
-          <div className="flex gap-4 border-b pb-4">
-            <IoPeople className="size-7" />
-            <h3 className="w-full text-xl font-semibold">
-              Crear un nuevo cliente
-            </h3>
-          </div>
-          <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Nombre
-              <input
-              name="name"
-                required
-                placeholder="Ej: Eduardo Perez"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Direccion
-              <input
-                name="address"
-                placeholder="Ej: Juncal 262"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Telefono
-              <input
-              name="phone"
-              type="tel"
-                placeholder="Ej: +5491134865214"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Referido
-              <input
-                list="sellersList"
-                placeholder="Nombre del vendedor.."
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          <label className="flex w-full flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
-            Informacion adicional
-            <textarea
-            name="info"
-              placeholder="Por ejemplo: Casa de rejas verdes"
-              className="max-h-40 min-h-14 rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-            />
-          </label>
-          {/* END MODAL CONTAINER */}
-          <div className="flex w-full justify-evenly gap-2 pt-4 text-center">
-            <Button
-              isLoading = {createClientMutation.isLoading}
-              type="submit"
-              color="success"
-              className="w-full rounded-md text-white"
-            >
-              Aceptar
-            </Button>
-            <Button
-              type="reset"
-              onPress={() => closeDialog(dialogAddClient)}
-              color="danger"
-              className="w-full rounded-md text-white"
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
-      </dialog>
+      <CreateClientModal orgID={orgID} ref={modalRef} />
       {/* DELETE CLIENT MODAL */}
       <dialog
         ref={dialogDeleteClient}
@@ -682,9 +583,7 @@ const orgID: number = user.data.organization.id;
         {/* TITLE'S CONTAINER */}
         <div className="flex gap-4 border-b pb-3">
           <FaRegTrashAlt className="size-7" />
-          <p className="w-full text-xl font-semibold">
-            Eliminar cliente
-          </p>
+          <p className="w-full text-xl font-semibold">Eliminar cliente</p>
           <button
             onClick={() => {
               setModalState("");
@@ -697,19 +596,24 @@ const orgID: number = user.data.organization.id;
           </button>
         </div>
         <div className="flex flex-col justify-center pt-4">
-        <p className="font-semibold">¿Estas seguro de eliminar al cliente {selectedRow?.name}?</p>
-        <p className="pb-4">Una vez eliminado, no podras volver a recuperarlo.</p>
-        <Button
-        type="button"
-        color="danger"
-          isLoading={deleteClientMutation.isLoading}
-          onPress={()=>{
-            if (rowID) {
-              deleteClientMutation.mutate({ orgID, clientID: rowID })}}
-            }
-        >
-          Eliminar
-        </Button>
+          <p className="font-semibold">
+            ¿Estas seguro de eliminar al cliente {selectedRow?.name}?
+          </p>
+          <p className="pb-4">
+            Una vez eliminado, no podras volver a recuperarlo.
+          </p>
+          <Button
+            type="button"
+            color="danger"
+            isLoading={deleteClientMutation.isLoading}
+            onPress={() => {
+              if (rowID) {
+                deleteClientMutation.mutate({ orgID, clientID: rowID });
+              }
+            }}
+          >
+            Eliminar
+          </Button>
         </div>
       </dialog>
       {/* DETAIL CLIENT MODAL */}
@@ -744,11 +648,13 @@ const orgID: number = user.data.organization.id;
             <div className="mt-1 border-t pt-1">
               <span className="text-lg font-semibold text-slate-500">
                 Ganancia neta: $
-                {detailsTableType/* === "operations"
+                {
+                  detailsTableType /* === "operations"
                   ? netProfitTotal.toLocaleString("es-AR")
                   : calculateNetProfitForLoans(filteredLoans).toLocaleString(
                       "es-AR",
-                    )*/}
+                    )*/
+                }
               </span>
             </div>
           </div>
@@ -900,23 +806,21 @@ const orgID: number = user.data.organization.id;
       >
         {/* FORM'S CONTAINER */}
         <form
-        ref={editClientformRef}
+          ref={editClientformRef}
           onSubmit={handleSubmitEdit}
           className="flex h-full w-full flex-col px-8 py-4 text-slate-500"
         >
           {/* TITLE'S CONTAINER */}
           <div className="flex gap-4 border-b pb-4">
             <IoPeople className="size-7" />
-            <h3 className="w-full text-xl font-semibold">
-              Editar cliente
-            </h3>
+            <h3 className="w-full text-xl font-semibold">Editar cliente</h3>
           </div>
           <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Nombre
               <input
-              defaultValue={selectedRow?.name}
-              name="name"
+                defaultValue={selectedRow?.name}
+                name="name"
                 required
                 placeholder="Ej: Eduardo Perez"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
@@ -936,9 +840,9 @@ const orgID: number = user.data.organization.id;
             <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
               Telefono
               <input
-              defaultValue={selectedRow?.phone}
-              name="phone"
-              type="tel"
+                defaultValue={selectedRow?.phone}
+                name="phone"
+                type="tel"
                 placeholder="Ej: +5491134865214"
                 className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
               />
@@ -955,8 +859,8 @@ const orgID: number = user.data.organization.id;
           <label className="flex w-full flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
             Informacion adicional
             <textarea
-            defaultValue={selectedRow?.info ?? ""}
-            name="info"
+              defaultValue={selectedRow?.info ?? ""}
+              name="info"
               placeholder="Por ejemplo: Casa de rejas verdes"
               className="max-h-40 min-h-14 rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
             />
@@ -964,7 +868,7 @@ const orgID: number = user.data.organization.id;
           {/* END MODAL CONTAINER */}
           <div className="flex w-full justify-evenly gap-2 pt-4 text-center">
             <Button
-              isLoading = {editClientMutation.isLoading}
+              isLoading={editClientMutation.isLoading}
               type="submit"
               color="success"
               className="w-full rounded-md text-white"
