@@ -14,13 +14,13 @@ export type CreateClient = z.infer<typeof createClientSchema>;
 //Client's base structure
 export const clientSchema = z.object({
   id: z.number(),
-	//org_id: z.number(),
+  //org_id: z.number(),
   name: z.string().max(50),
-	phone: z.string().max(20),
+  phone: z.string().max(20),
   address: z.string().max(200),
-	info: z.string().nullable(),
-	/* LA API NO DEVUELVE ESTO TODAVIA, TIENE QUE DEVOLVERLO */
-	// referredBy: z.object({
+  info: z.string().nullable(),
+  /* LA API NO DEVUELVE ESTO TODAVIA, TIENE QUE DEVOLVERLO */
+  // referredBy: z.object({
   //   id: z.number(),
   //   name: z.string(),
   // }),
@@ -28,13 +28,15 @@ export const clientSchema = z.object({
 //Create client structure
 export const createClientSchema = z.object({
   /* EN DUDA */
-	//org_id: z.number(),
-	name: z.string().max(50, "El nombre no puede contener mas de 50 caracteres."),
-	phone: z.string().max(20, "El telefono no puede contener mas de 20 numeros."),
-	address: z.string().max(200, "La direccion no puede contener mas de 200 caracteres."),
-	info: z.string().nullable(),
-	/* NO ESTA LISTO EN EL BACKEND TODAVIA */
-	//referredBy: z.number()
+  //org_id: z.number(),
+  name: z.string().max(50, "El nombre no puede contener mas de 50 caracteres."),
+  phone: z.string().max(20, "El telefono no puede contener mas de 20 numeros."),
+  address: z
+    .string()
+    .max(200, "La direccion no puede contener mas de 200 caracteres."),
+  info: z.string().nullable(),
+  /* NO ESTA LISTO EN EL BACKEND TODAVIA */
+  //referredBy: z.number()
 });
 //Edit client structure
 export const editClientSchema = clientSchema.partial().extend({
@@ -46,32 +48,36 @@ export const editClientSchema = clientSchema.partial().extend({
 
 /* GETS */
 //return all clients
-export async function getClients(orgID: number) {
-  try {
-    const { data } = await AxiosFetch(`/api/v1/${orgID}/clients`);
+export async function getClients() {
+  const { data } = await AxiosFetch(`/api/v1/clients`);
+  return clientSchema.array().parse(data?.data);
+}
 
-    return clientSchema.array().parse(data?.data);
-  } catch (error) {
-    console.error(error);
-
-    return errorsResponse(error);
-  }
+export async function getClient(clientID: number) {
+  const { data } = await AxiosFetch(`/api/v1/clients/${clientID}`);
+  return clientSchema.parse(data?.data);
 }
 
 /* POST */
 //create a new client
-export async function createClient(orgID: number, clientData: z.infer<typeof createClientSchema>) {
-	try {
-		// Validar datos antes de enviar
+export async function createClient(
+  orgID: number,
+  clientData: z.infer<typeof createClientSchema>,
+) {
+  try {
+    // Validar datos antes de enviar
     const validatedData = createClientSchema.parse(clientData);
-    
-    const { data } = await AxiosFetch.post(`/api/v1/${orgID}/clients`, validatedData);
-		
+
+    const { data } = await AxiosFetch.post(
+      `/api/v1/${orgID}/clients`,
+      validatedData,
+    );
+
     // Validar la respuesta usando el schema del cliente
     return clientSchema.parse(data?.data);
   } catch (error) {
-		console.error(error);
-		
+    console.error(error);
+
     return errorsResponse(error);
   }
 }
@@ -80,7 +86,9 @@ export async function createClient(orgID: number, clientData: z.infer<typeof cre
 //delete a client
 export async function deleteClient(orgID: number, clientID: number) {
   try {
-    const { data } = await AxiosFetch.delete(`/api/v1/${orgID}/clients/${clientID}`);
+    const { data } = await AxiosFetch.delete(
+      `/api/v1/${orgID}/clients/${clientID}`,
+    );
 
     // Validar la respuesta si querés asegurarte que el backend responde correctamente
     const responseSchema = z.object({
@@ -100,7 +108,7 @@ export async function deleteClient(orgID: number, clientID: number) {
 export async function editClient(
   orgID: number,
   clientID: number,
-  clientData: z.infer<typeof editClientSchema>
+  clientData: z.infer<typeof editClientSchema>,
 ) {
   try {
     // Validar los datos antes de enviar
@@ -108,7 +116,7 @@ export async function editClient(
 
     const { data } = await AxiosFetch.put(
       `/api/v1/${orgID}/clients/${clientID}`,
-      validatedData
+      validatedData,
     );
 
     // Validar la respuesta del backend

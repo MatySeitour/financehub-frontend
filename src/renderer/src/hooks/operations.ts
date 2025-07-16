@@ -74,3 +74,12 @@ export async function getOperationsCount(from: Date, to: Date) {
   const { data } = await AxiosFetch("/api/v1/operations-count", { params });
   return operationCountSchema.array().parse(data.data);
 }
+
+export async function getClientOperations(from: Date, to: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch("/api/v1/operations-client", { params });
+  return operationCountSchema.array().parse(data.data);
+}
