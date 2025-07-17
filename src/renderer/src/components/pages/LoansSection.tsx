@@ -3,13 +3,16 @@ import { Button } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { TableWork } from "../Table";
 import { contextMenuBasicOptions } from "@renderer/utils";
-import { MenuOption, ModalState, ServerError } from "@renderer/utils/types";
+import { BaseResponseServer, MenuOption, ModalState, ServerError, User } from "@renderer/utils/types";
 import { GoPaperclip } from "react-icons/go";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { useQuery } from "react-query";
 import { getLoans } from "@renderer/hooks/loan";
 import { useMutation } from "react-query";
 import { createLoan } from "@renderer/hooks/loan";
+import { useDialog } from "@renderer/hooks/useDialog";
+import { CreateLoanModal } from "../modals/loans";
+import { useOutletContext } from "react-router";
 
 /* DATA TYPES */
 //Modals to open
@@ -438,7 +441,11 @@ export function LoansSection() {
     total_paid: 0,
   });
 
-  /* QUERYS */
+  /* HOOKS */
+  //
+  const createLoanDialog = useDialog();
+
+  /* QUERIES */
   //
   const loansQuery = useQuery<
     Awaited<ReturnType<typeof getLoans>>,
@@ -616,13 +623,19 @@ export function LoansSection() {
   //Saves the data of the selected row
   const selectedRow = filteredData.find((row) => row.id === rowID);
 
+  /* UTILS */
+  //
+  const user: BaseResponseServer & { data: User } = useOutletContext();
+  //
+  const orgID: number = user.data.organization.id;
+
   return (
     <>
       {/* TOP OPTION'S CONTAINER */}
       <div className="flex w-full items-center justify-between border-b px-4 py-2">
         <h2 className="text-2xl font-bold text-slate-500">Prestamos</h2>
         <Button
-          onPress={() => openDialog(dialogAddLoan)}
+          onPress={createLoanDialog.open}
           color="success"
           className="rounded-md text-white"
         >
@@ -742,6 +755,7 @@ export function LoansSection() {
         </div>
       </section>
       {/* ADD LOAN MODAL */}
+      <CreateLoanModal orgID={orgID} dialogRef={createLoanDialog.dialogRef} closeModal={createLoanDialog.close}/>
       <dialog ref={dialogAddLoan} className="h-fit w-1/2 rounded-lg">
         {/* FORM'S CONTAINER */}
 
