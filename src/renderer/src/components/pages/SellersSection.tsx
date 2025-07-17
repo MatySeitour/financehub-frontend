@@ -3,28 +3,35 @@ import { Button } from "@heroui/react";
 import { useRef, useState, useEffect } from "react";
 import { TableWork } from "../Table";
 import { contextMenuBasicOptions } from "@renderer/utils";
-import { MenuOption } from "@renderer/utils/types";
+import {
+  BaseResponseServer,
+  MenuOption,
+  ServerError,
+  User,
+} from "@renderer/utils/types";
 import {
   ModalStateSeller,
   OperationsExample,
 } from "@renderer/utils/types/seller.types";
-import { originalSellers } from "@renderer/utils/data/mockSellers";
-import {
-  calculateNetProfitForLoans,
-  calculateTotalCommissionFromLoans,
-  filterLoansByCurrencyAndDueDate,
-} from "@renderer/utils/functions/loanUtils";
+
 import {
   COLUMNS,
-  LOANS_COLUMNS,
   OPERATIONS_COLUMNS,
 } from "@renderer/utils/data/sellerColumns";
 import {
   calculateNetProfitTotal,
-  calculateTotalCommissionFromOperations,
   filterOperationsByCurrencyAndDate,
 } from "@renderer/utils/functions/operationUtils";
 import { LinkIcon, UsersRoundIcon, XIcon } from "lucide-react";
+import { useDialog } from "@renderer/hooks/useDialog";
+import { useOutletContext } from "react-router";
+import {
+  CreateSellerModal,
+  DeleteSellerModal,
+  EditSellerModal,
+} from "../modals/sellers";
+import { getSellers, Seller } from "@renderer/hooks/seller";
+import { useQuery } from "react-query";
 
 /* UTILS */
 //Custom menu options
@@ -67,10 +74,32 @@ export function SellersSection() {
   const [sellerOperations, setSellerOperations] = useState<OperationsExample[]>(
     [],
   );
+  const [sellers, setSellers] = useState<Seller[]>([]);
+
+  /* HOOKS */
+  //
+  const createSellerDialog = useDialog();
+  //
+  const deleteSellerDialog = useDialog();
+  //
+  const editSellerDialog = useDialog();
+
+  /* QUERIES */
+  //
+  const sellersQuery = useQuery<
+    Awaited<ReturnType<typeof getSellers>>,
+    ServerError
+  >({
+    queryFn: () => getSellers(orgID),
+    queryKey: ["sellers", "all"],
+    onSuccess: (data) => {
+      if (data && Array.isArray(data)) {
+        setSellers(data);
+      }
+    },
+  });
 
   /* REFs */
-  //add seller container ref
-  const dialogAddSeller = useRef<HTMLDialogElement>(null);
   //sellers details container ref
   const dialogSellerDetail = useRef<HTMLDialogElement>(null);
 
@@ -84,7 +113,7 @@ export function SellersSection() {
   );
 
   //Filter sellers based on their name
-  const filteredData = originalSellers.filter((item) => {
+  const filteredSellers = sellers.filter((item) => {
     if (!searchText.trim()) {
       return true;
     }
@@ -92,7 +121,8 @@ export function SellersSection() {
     return item.name.toLowerCase().includes(searchText.toLowerCase().trim());
   });
   //Save the info of the selected seller
-  const selectedRow = filteredData.find((row) => row.id === rowID);
+  const selectedRow = filteredSellers.find((row) => row.id === rowID);
+  /*
   //Put only the available currencies into a select element (operations)
   const availableCurrencies = Array.from(
     new Set(selectedRow?.operations.map((op) => op.currency.toLowerCase())),
@@ -104,21 +134,30 @@ export function SellersSection() {
     loanStartDate,
     loanEndDate,
   );
+<<<<<<< HEAD
+=======
+  
+>>>>>>> b5b3e22 (refactor(sellers): edit, delete and add sellers are now components. Those components are consuming the API successfully. Have to do details modal.)
 
   //Put only the available currencies into a select element (loans)
   const availableLoanCurrencies = Array.from(
     new Set(selectedRow?.loans?.map((loan) => loan.currency.toLowerCase())),
   );
+  */
 
   /* USE EFFECT */
   //Open the seller details modal and set the info of the selected seller on it
   useEffect(() => {
     if (modalState === "detalles") {
-      const selectedSeller = originalSellers.find((c) => c.id === rowID);
+      const selectedSeller = filteredSellers.find((c) => c.id === rowID);
       if (selectedSeller) {
-        setSellerOperations(selectedSeller.operations || []);
+        //setSellerOperations(selectedSeller.operations || []);
       }
       openDialog(dialogSellerDetail);
+    } else if (modalState === "eliminar") {
+      deleteSellerDialog.open();
+    } else if (modalState === "editar") {
+      editSellerDialog.open();
     }
   }, [modalState]);
   //Refresh the filters when a new seller is selected
@@ -149,6 +188,17 @@ export function SellersSection() {
   const handleSearchTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
   };
+  //
+  function handleCloseDeleteModal() {
+    setModalState("");
+    deleteSellerDialog.close();
+  }
+
+  /* UTILS */
+  //
+  const user: BaseResponseServer & { data: User } = useOutletContext();
+  //
+  const orgID: number = user.data.organization.id;
 
   return (
     <>
@@ -162,7 +212,7 @@ export function SellersSection() {
         </div>
         {/* BUTTON THAT OPEN THE MODAL TO CREATE A NEW SELLER */}
         <Button
-          onPress={() => openDialog(dialogAddSeller)}
+          onPress={createSellerDialog.open}
           color="success"
           className="rounded-md text-white"
         >
@@ -191,10 +241,10 @@ export function SellersSection() {
         <div className="relative flex-grow overflow-hidden px-6 pb-4">
           <TableWork
             columns={COLUMNS}
-            loading={false}
-            error={false}
+            loading={sellersQuery.isLoading || sellersQuery.isFetching}
+            error={sellersQuery.isError}
             searchInput={""}
-            data={filteredData}
+            data={filteredSellers}
             openModal={setModalState}
             optionsMenu={[...contextMenuOption, ...contextMenuBasicOptions]}
             selectRowID={setRowID}
@@ -202,74 +252,31 @@ export function SellersSection() {
         </div>
       </section>
       {/* ADD SELLER MODAL */}
-      <dialog
-        ref={dialogAddSeller}
-        className="h-fit w-1/2 rounded-lg shadow-lg"
-      >
-        {/* FORM'S CONTAINER */}
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="flex h-full w-full flex-col px-8 py-4 text-slate-500"
-        >
-          {/* TITLE'S CONTAINER */}
-          <div className="flex gap-4 border-b pb-4">
-            <UsersRoundIcon className="size-7" />
-            <h3 className="w-full text-xl font-semibold">
-              Crear un nuevo vendedor
-            </h3>
-          </div>
-          {/* INPUTS CONTAINER */}
-          <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-            {/* NEW SELLER'S NAME */}
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Nombre
-              <input
-                required
-                placeholder="Ej: Eduardo Perez"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            {/* NEW SELLER'S PHONE NUMBER */}
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Telefono
-              <input
-                type="number"
-                placeholder="Ej: 1134865214"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          {/* NEW SELLER'S INFO */}
-          <label className="flex w-full flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
-            Informacion adicional
-            <textarea
-              placeholder="Por ejemplo: Casa de rejas verdes"
-              className="max-h-40 min-h-14 rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-            />
-          </label>
-          {/* END MODAL CONTAINER */}
-          <div className="flex w-full justify-evenly gap-2 pt-4 text-center">
-            {/* SAVE BUTTON */}
-            <Button
-              type="submit"
-              onPress={() => closeDialog(dialogAddSeller)}
-              color="success"
-              className="w-full rounded-md text-white"
-            >
-              Aceptar
-            </Button>
-            {/* CANCEL BUTTON */}
-            <Button
-              type="reset"
-              onPress={() => closeDialog(dialogAddSeller)}
-              color="danger"
-              className="w-full rounded-md text-white"
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
-      </dialog>
+      <CreateSellerModal
+        orgID={orgID}
+        dialogRef={createSellerDialog.dialogRef}
+        closeModal={createSellerDialog.close}
+      />
+      {/* DELETE SELLER MODAL */}
+      <DeleteSellerModal
+        orgID={orgID}
+        dialogRef={deleteSellerDialog.dialogRef}
+        closeModal={handleCloseDeleteModal}
+        sellerID={selectedRow?.id!}
+        sellerName={selectedRow?.name!}
+      />
+      {selectedRow && (
+        <EditSellerModal
+          orgID={orgID}
+          seller={selectedRow!}
+          dialogRef={editSellerDialog.dialogRef}
+          closeModal={() => {
+            setModalState("");
+            editSellerDialog.close();
+          }}
+        />
+      )}
+      {/* EDIT SELLER MODAL */}
       {/* SELLERS DETAIL MODAL */}
       <dialog
         ref={dialogSellerDetail}
@@ -299,28 +306,28 @@ export function SellersSection() {
         <div className="flex w-full items-center gap-8 pt-4 text-sm">
           <div className="w-full rounded-md border px-4 py-2 shadow-sm">
             {/* SELLER´S PHONE NUMBER */}
-            <p>Telefono: {selectedRow?.phoneNumber}</p>
+            <p>Telefono: {selectedRow?.phone}</p>
             {/* SELLER´S INFO */}
-            <p>Informacion adicional: {selectedRow?.description}</p>
+            <p>Informacion adicional: {selectedRow?.info}</p>
             <div className="mt-1 border-t pt-1">
               {/* SELLER´S NET PROFIT */}
               <span className="text-lg font-semibold text-slate-500">
                 Ganancia neta: $
-                {detailsTableType === "operations"
+                {/*detailsTableType === "operations"
                   ? netProfitTotal.toLocaleString("es-AR")
                   : calculateNetProfitForLoans(filteredLoans).toLocaleString(
                       "es-AR",
-                    )}
+                    )*/}
               </span>
             </div>
             {/* SELLER´S TOTAL COMMISSION */}
             <span className="text-lg font-semibold text-slate-500">
               Comisión total: $
-              {detailsTableType === "operations"
+              {/*detailsTableType === "operations"
                 ? calculateTotalCommissionFromOperations(
                     filteredOperationsByCurrency,
                   )
-                : calculateTotalCommissionFromLoans(filteredLoans)}
+                : calculateTotalCommissionFromLoans(filteredLoans)*/}
             </span>
           </div>
         </div>
@@ -356,11 +363,11 @@ export function SellersSection() {
                   className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
                 >
                   <option value="">Todas las divisas</option>
-                  {availableCurrencies.map((currency) => (
+                  {/*availableCurrencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency.charAt(0).toUpperCase() + currency.slice(1)}
                     </option>
-                  ))}
+                  ))*/}
                 </select>
               </label>
               {/* START DATE AND END DATE FILTER */}
@@ -403,11 +410,11 @@ export function SellersSection() {
                   className="rounded-lg border p-3 text-slate-400 shadow-sm outline-none focus:border-green-400"
                 >
                   <option value="">Todas las divisas</option>
-                  {availableLoanCurrencies.map((currency) => (
+                  {/*availableLoanCurrencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency.charAt(0).toUpperCase() + currency.slice(1)}
                     </option>
-                  ))}
+                  ))*/}
                 </select>
               </label>
               {/* START AND END OF THE NEXT DUE DATE FILTER */}
@@ -452,7 +459,7 @@ export function SellersSection() {
             />
           )}
           {/* LOANS TABLE */}
-          {detailsTableType === "loans" && (
+          {/*detailsTableType === "loans" && (
             <TableWork
               columns={LOANS_COLUMNS}
               data={filteredLoans}
@@ -462,7 +469,7 @@ export function SellersSection() {
               openModal={null}
               optionsMenu={[]}
             />
-          )}
+          )*/}
         </div>
       </dialog>
       {/* DATALIST FOR SEARCH SELLERS INPUT */}

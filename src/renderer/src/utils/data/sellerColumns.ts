@@ -1,5 +1,6 @@
 /* UTILS*/
 
+import { Seller } from "@renderer/hooks/seller";
 import { getNextDueDate } from "../functions/loanUtils";
 import { LoanExample, OperationsExample, SellerExample } from "../types/seller.types";
 
@@ -8,19 +9,19 @@ export const COLUMNS = [
   {
     label: "Nombre",
     key: "name",
-    render: (item: SellerExample) => item.name,
+    render: (item: Seller) => item.name,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Numero de telefono",
-    key: "phoneNumber",
-    render: (item: SellerExample) => item.phoneNumber,
+    key: "phone",
+    render: (item: Seller) => item.phone,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Informacion adicional",
-    key: "description",
-    render: (item: SellerExample) => item.description,
+    key: "info",
+    render: (item: Seller) => item.info,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
 ];

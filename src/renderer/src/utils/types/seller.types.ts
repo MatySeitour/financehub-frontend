@@ -3,7 +3,7 @@ import { ModalState } from "@renderer/utils/types";
 
 /* DATA TYPES */
 //Modals to open
-export type ModalStateSeller = ModalState | "detalles";
+export type ModalStateSeller = ModalState | "detalles" | "eliminar" | "editar";
 //Data type of what i will recieve from the API (seller)
 export type SellerExample = {
   id: number;
