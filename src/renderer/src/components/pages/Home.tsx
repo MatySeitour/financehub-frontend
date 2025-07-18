@@ -655,7 +655,7 @@ export function Home() {
         render: (item: TInstallment) => {
           const remainingDate = differenceInDays(
             item.dueDate,
-            item.paymentDate,
+            item.paymentDate ?? "",
           );
 
           return (
@@ -714,7 +714,7 @@ export function Home() {
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return loansQuery?.data?.filter((loan) => {
+    return loansQuery?.data?.loans?.filter((loan) => {
       let searched = `${loan.client.name}${loan.principal}${loan.retainedEarnings}${loan.seller.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
