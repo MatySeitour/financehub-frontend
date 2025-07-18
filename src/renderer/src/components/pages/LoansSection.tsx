@@ -2,17 +2,20 @@
 import { Button } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { TableWork } from "../Table";
-import { contextMenuBasicOptions } from "@renderer/utils";
-import { BaseResponseServer, MenuOption, ModalState, ServerError, User } from "@renderer/utils/types";
-import { GoPaperclip } from "react-icons/go";
+import {
+  BaseResponseServer,
+  MenuOption,
+  ModalState,
+  ServerError,
+  User,
+} from "@renderer/utils/types";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { useQuery } from "react-query";
-import { getLoans } from "@renderer/hooks/loan";
-import { useMutation } from "react-query";
-import { createLoan } from "@renderer/hooks/loan";
+import { getLoans, Loan } from "@renderer/hooks/loan";
 import { useDialog } from "@renderer/hooks/useDialog";
 import { CreateLoanModal } from "../modals/loans";
-import { useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
+import { PaperclipIcon } from "lucide-react";
 
 /* DATA TYPES */
 //Modals to open
@@ -48,43 +51,34 @@ const COLUMNS = [
   {
     label: "Cliente",
     key: "client",
-    render: (item: LoanExample) => item.client,
+    render: (item: Loan) => item.client.name,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Vendedor",
     key: "seller",
-    render: (item: LoanExample) => item.seller,
+    render: (item: Loan) => item.seller.name,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Capital",
     key: "principal",
-    render: (item: LoanExample) => `$${item.principal.toLocaleString("es-ES")}`,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
-  {
-    label: "Divisa",
-    key: "currency",
-    render: (item: LoanExample) => item.currency,
+    render: (item: Loan) => `$${item.principal.toLocaleString("es-ES")}`,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Valor de la cuota",
     key: "installment",
-    render: (item: LoanExample) =>
-      `$${item.installment.toLocaleString("es-ES")}`,
+    render: (item: Loan) =>
+      `$${item.installment_value.toLocaleString("es-ES")}`,
     // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
-  {
-    label: "Proximo vencimiento",
-    key: "nextDueDate",
-    render: (item: LoanExample) => {
-      const { dateString } = getNextDueDate(item);
-      return dateString;
-    },
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
-  },
+  // {
+  //   label: "Proximo vencimiento",
+  //   key: "nextDueDate",
+  //   render: (item: Loan) => item.next_due_date,
+  //   // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+  // },
 ];
 //Loans details table's columns
 const LOAN_DETAIL_COLUMNS = [
@@ -108,13 +102,7 @@ const LOAN_DETAIL_COLUMNS = [
   },
 ];
 //Custom menu options
-const contextMenuOption: MenuOption[] = [
-  {
-    name: "Detalles",
-    icon: GoPaperclip,
-    route: undefined,
-  },
-] as const;
+
 //Original simulation of what y will recieve from the API
 const originalLoans: LoanExample[] = [
   {
@@ -391,6 +379,8 @@ function getTotalReceivableCapitalByCurrency(
 
 //Component starts here
 export function LoansSection() {
+  const navigate = useNavigate();
+
   /* STATES */
   //Manipulate the filter that search for client or seller
   const [searchText, setSearchText] = useState("");
@@ -440,6 +430,7 @@ export function LoansSection() {
     sellerId: 0,
     total_paid: 0,
   });
+  const [loans, setLoans] = useState<Loan[]>([]);
 
   /* HOOKS */
   //
@@ -453,16 +444,12 @@ export function LoansSection() {
   >({
     queryFn: () => getLoans(),
     queryKey: ["loans", "all"],
-  });
+    onSuccess: (data) => {
+      if (data && Array.isArray(data)) {
+        setLoans(data);
 
-  const createLoanMutation = useMutation({
-    mutationFn: createLoan,
-    onSuccess: () => {
-      console.log("Préstamo creado correctamente");
-      // Acá podrías cerrar el modal, mostrar un toast o hacer refetch
-    },
-    onError: (error) => {
-      console.error("Error al crear préstamo:", error);
+        console.log("PRESTAMOS: ", data);
+      }
     },
   });
 
@@ -471,8 +458,6 @@ export function LoansSection() {
   const loansSection = useRef(null);
   //loans details container ref
   const dialogLoanDetail = useRef<HTMLDialogElement>(null);
-  //add loans container ref
-  const dialogAddLoan = useRef<HTMLDialogElement>(null);
   //add pay to loan container ref
   const dialogPayLoan = useRef<HTMLDialogElement>(null);
 
@@ -625,9 +610,14 @@ export function LoansSection() {
 
   /* UTILS */
   //
-  const user: BaseResponseServer & { data: User } = useOutletContext();
-  //
-  const orgID: number = user.data.organization.id;
+
+  const contextMenuOption: MenuOption<Loan>[] = [
+    {
+      name: "Detalles",
+      icon: PaperclipIcon,
+      onAction: (item) => navigate(`/loans/${item?.id}`),
+    },
+  ] as const;
 
   return (
     <>
@@ -744,202 +734,21 @@ export function LoansSection() {
         <div className="relative flex-grow overflow-hidden px-6 pb-4">
           <TableWork
             columns={COLUMNS}
-            loading={false}
+            loading={loansQuery.isLoading || loansQuery.isFetching}
             error={false}
             searchInput={""}
-            data={filteredData}
+            data={loans}
             openModal={setModalState}
-            optionsMenu={[...contextMenuOption, ...contextMenuBasicOptions]}
+            optionsMenu={contextMenuOption}
             selectRowID={setRowID}
           />
         </div>
       </section>
       {/* ADD LOAN MODAL */}
-      <CreateLoanModal orgID={orgID} dialogRef={createLoanDialog.dialogRef} closeModal={createLoanDialog.close}/>
-      <dialog ref={dialogAddLoan} className="h-fit w-1/2 rounded-lg">
-        {/* FORM'S CONTAINER */}
-
-        <form
-          className="flex h-full w-full flex-col items-center justify-evenly px-8 py-4 text-slate-500"
-          onSubmit={(e) => {
-            e.preventDefault();
-
-            const form = e.currentTarget;
-            const formData = new FormData(form);
-
-            const newLoan = {
-              principal: Number(formData.get("principal")),
-              currency: formData.get("currency") as any,
-              installment_value: Number(formData.get("installmentValue")),
-              number_of_installments: Number(
-                formData.get("numberOfInstallments"),
-              ),
-              payment_frequency: formData.get("paymentFrequency") as any,
-              first_due_date: formData.get("firstDueDate") as string,
-              commission: Number(formData.get("commission")),
-              client_id: Number(formData.get("clientId")),
-              seller_id: Number(formData.get("sellerId")),
-              total_paid: 0,
-            };
-
-            console.log("newLoan:", newLoan);
-
-            createLoanMutation.mutate(newLoan, {
-              onSuccess: () => {
-                closeDialog(dialogAddLoan);
-              },
-              onError: (error) => {
-                console.error("Error al crear préstamo", error);
-              },
-            });
-          }}
-        >
-          {/* TITLE'S CONTAINER */}
-          <h3 className="w-full border-b pb-4 text-center text-xl font-semibold">
-            Crear una nuevo prestamo
-          </h3>
-          <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Cliente
-              <input
-                required
-                name="clientId"
-                list="clientsList"
-                placeholder="Nombre del cliente.."
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Vendedor
-              <input
-                required
-                name="sellerId"
-                list="sellersList"
-                placeholder="Nombre del vendedor.."
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Capital
-              <input
-                required
-                name="principal"
-                type="number"
-                placeholder="Ej: 150000"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Divisa
-              <select
-                required
-                name="currency"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              >
-                <option className="text-slate-500" value="ars">
-                  Pesos
-                </option>
-                <option className="text-slate-500" value="usd">
-                  Dolares
-                </option>
-                <option className="text-slate-500" value="real">
-                  Real
-                </option>
-                <option className="text-slate-500" value="eur">
-                  Euro
-                </option>
-                <option className="text-slate-500" value="lib">
-                  Libra
-                </option>
-              </select>
-            </label>
-          </div>
-          <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Valor de las cuotas
-              <input
-                required
-                name="installmentValue"
-                type="number"
-                placeholder="Ej: 20000"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Cantidad de cuotas
-              <input
-                required
-                name="numberOfInstallments"
-                type="number"
-                placeholder="Ej: 12"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          <div className="flex w-full flex-row items-center justify-center gap-8 pt-4">
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Frecuencia de cobro
-              <select
-                required
-                name="paymentFrequency"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              >
-                <option className="text-slate-500" value="daily">
-                  Diario
-                </option>
-                <option className="text-slate-500" value="weekly">
-                  Semanal
-                </option>
-                <option className="text-slate-500" value="biweekly">
-                  Quincenal
-                </option>
-                <option className="text-slate-500" value="monthly">
-                  Mensual
-                </option>
-              </select>
-            </label>
-            <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-              Primer vencimiento
-              <input
-                required
-                name="firstDueDate"
-                type="date"
-                className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-              />
-            </label>
-          </div>
-          <label className="flex flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
-            Comision
-            <input
-              required
-              name="commission"
-              type="number"
-              placeholder="Ej: 150000"
-              className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-            />
-          </label>
-          {/* END MODAL CONTAINER */}
-          <div className="flex w-full justify-evenly pt-4 text-center">
-            <Button
-              type="submit"
-              color="success"
-              className="rounded-md text-white"
-            >
-              Aceptar
-            </Button>
-            <Button
-              type="reset"
-              onPress={() => closeDialog(dialogAddLoan)}
-              color="danger"
-              className="rounded-md text-white"
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
-      </dialog>
+      <CreateLoanModal
+        dialogRef={createLoanDialog.dialogRef}
+        closeModal={createLoanDialog.close}
+      />
       {/* LOAN DETAIL MODAL */}
       <dialog
         ref={dialogLoanDetail}
@@ -1080,28 +889,6 @@ export function LoansSection() {
           </div>
         </form>
       </dialog>
-      {/* DATALIST FOR SEARCH CLIENTS INPUT */}
-      <datalist id="clientsList">
-        <option value="1" label="Gisela">
-          Gisela
-        </option>
-        <option value="2" label="Poncha"></option>
-        <option value="3" label="Ale berardi"></option>
-        <option value="4" label="Marcelo parlante"></option>
-        <option value="5" label="Gerardo ausa"></option>
-        <option value="6" label="Lucas"></option>
-      </datalist>
-      {/* DATALIST FOR SEARCH SELLERS INPUT */}
-      <datalist id="sellersList">
-        <option value="1" label="Alejandro"></option>
-        <option value="2" label="Karina"></option>
-        <option value="3" label="Patricio"></option>
-        <option value="4" label="Fernando"></option>
-        <option value="5" label="Facundo"></option>
-        <option value="6" label="Nacho"></option>
-        <option value="7" label="Thiago"></option>
-        <option value="8" label="Cesar"></option>
-      </datalist>
     </>
   );
 }
