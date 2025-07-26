@@ -7,6 +7,7 @@ import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/CashboxSection";
 import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
+import { CashBoxHistorySection } from "./components/pages/CashboxHistory";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -58,6 +59,11 @@ function App() {
               }
             />
             <Route path="/cajas" element={<CashBoxSection />} />
+
+            <Route
+              path="/cajas/:id/history"
+              element={<CashBoxHistorySection />}
+            />
             <Route
               path="/operaciones"
               element={

@@ -36,6 +36,10 @@ export const cn = (...args: ClassValue[]) => {
   return twMerge(clsx(...args));
 };
 
+export function strNormalize(s: string) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 export function errorsResponse(error: any) {
   console.error(error);
   if (error instanceof ZodError) {

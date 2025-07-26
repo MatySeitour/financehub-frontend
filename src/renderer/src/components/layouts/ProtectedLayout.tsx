@@ -14,10 +14,10 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/modal";
-import { Button } from "@heroui/button";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 import { CircleAlertIcon, CircleUserRoundIcon, LogOutIcon } from "lucide-react";
+import { Button } from "../Button";
 
 export default function ProtectedLayout() {
   const queryClient = useQueryClient();
@@ -82,17 +82,20 @@ export default function ProtectedLayout() {
     <div className="flex h-screen w-screen bg-white">
       {sessionQuery.isError ? (
         <div className="flex h-full w-full items-center justify-center">
-          <div className="flex h-96 w-full max-w-2xl flex-col items-center justify-center gap-2 rounded-md bg-gradient-to-t from-red-200/50 via-white to-white">
-            <CircleAlertIcon className="size-24 min-w-24 text-red-500" />
-            <p className="text-2xl font-medium text-red-500">
+          <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
+            <CircleAlertIcon className="size-20 min-w-20 text-red-500" />
+            <p className="text-lg font-medium text-red-500">
               Ha ocurrido un error en el servidor
             </p>
+            <Button onClick={() => navigate("/login")} variant="success">
+              Volver al inicio
+            </Button>
           </div>
         </div>
       ) : (
         <>
           <nav className="relative flex h-full min-w-72 flex-col gap-4 border-r">
-            <div className="flex items-center justify-between p-5">
+            <div className="flex h-16 items-center justify-between border-b border-slate-200 p-5">
               <div className="flex items-center gap-3">
                 <div className="h-6 w-6 rounded-full bg-red-200" />
                 <div className="text-center">
@@ -106,7 +109,6 @@ export default function ProtectedLayout() {
                 className="size-6 min-w-6 cursor-pointer text-slate-300 transition-colors hover:text-red-500"
               />
             </div>
-            <div className="h-[1px] w-full bg-slate-200" />
             <div className="flex h-full w-full flex-col justify-between p-4">
               <ul className="flex flex-col gap-2">
                 {navItems.map((navItem) => (
@@ -172,22 +174,22 @@ export default function ProtectedLayout() {
                   </ModalBody>
                   <ModalFooter className="flex items-center justify-center gap-4">
                     <Button
-                      radius="sm"
+                      variant="outline"
                       className="min-w-32 bg-slate-200 font-medium text-slate-500"
-                      onPress={onClose}
+                      onClick={onClose}
                     >
                       Cancelar
                     </Button>
                     <Button
-                      radius="sm"
+                      variant="error"
                       isLoading={
                         mutationLogout.isLoading || mutationLogout.isSuccess
                       }
-                      isDisabled={
+                      disabled={
                         mutationLogout.isLoading || mutationLogout.isSuccess
                       }
                       className="min-w-32 bg-red-500 text-white"
-                      onPress={() => {
+                      onClick={() => {
                         mutationLogout.mutate();
                       }}
                     >
