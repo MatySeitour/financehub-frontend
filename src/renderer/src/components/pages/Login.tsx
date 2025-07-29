@@ -6,10 +6,10 @@ import axios from "@renderer/hooks/axios";
 import { useState } from "react";
 import { cn, errorsResponse } from "@renderer/utils";
 import { useNavigate } from "react-router";
-import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Tooltip } from "@heroui/tooltip";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { Button } from "../Button";
 
 export function Login() {
   const queryClient = useQueryClient();
@@ -166,12 +166,8 @@ export function Login() {
             </div>
             <Button
               isLoading={login.isLoading || login.isSuccess}
-              type="submit"
-              // color="success"
-
-              className="bg-primary text-white"
-              radius="sm"
-              isDisabled={login.isLoading || login.isSuccess}
+              disabled={login.isLoading || login.isSuccess}
+              variant="success"
             >
               Iniciar sesión
             </Button>

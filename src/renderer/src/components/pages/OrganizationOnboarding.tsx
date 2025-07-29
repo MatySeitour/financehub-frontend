@@ -1,5 +1,4 @@
 import {
-  Button,
   Input,
   Modal,
   ModalBody,
@@ -51,13 +50,11 @@ import {
   UserRoundPlusIcon,
   XIcon,
 } from "lucide-react";
+import { Button } from "../Button";
 
 type OrganizationName = z.infer<typeof organizationNameSchema>;
 const organizationNameSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Debe tener al menos 3 caracteres" })
-    .regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/, { message: "Solo se permiten letras" }),
+  name: z.string().min(3, { message: "Debe tener al menos 3 caracteres" }),
 });
 
 type FirstStepResponse = {
@@ -402,10 +399,10 @@ export function OrganizationOnboarding() {
                         </p>
                         <Link to={"/home"}>
                           <Button
-                            color="success"
-                            className="rounded-md text-white"
+                            className="flex items-center gap-1"
+                            variant="success"
                           >
-                            <HomeIcon className="size-6 min-w-6" />
+                            <HomeIcon className="size-4 min-w-4" />
                             Ir a dashboard
                           </Button>
                         </Link>
@@ -494,7 +491,7 @@ export function OrganizationOnboarding() {
                                     />
                                     <div
                                       className={cn(
-                                        "flex h-auto w-full items-center gap-2 rounded-md bg-slate-300/40 p-2 transition-colors",
+                                        "flex h-auto w-full items-center gap-2 rounded-md bg-slate-300/20 p-2 transition-colors",
                                         errors?.name && "bg-red-500/20",
                                       )}
                                     >
@@ -528,11 +525,10 @@ export function OrganizationOnboarding() {
                                   )}
                                   <div className="flex items-center justify-end">
                                     <Button
+                                      variant="success"
                                       disabled={mutationFirstStep.isLoading}
                                       isLoading={mutationFirstStep.isLoading}
                                       type="submit"
-                                      color="primary"
-                                      radius="sm"
                                     >
                                       Siguiente
                                     </Button>
@@ -783,7 +779,7 @@ export function OrganizationOnboarding() {
                                   )}
                                   <div className="flex items-center justify-end">
                                     <Button
-                                      isDisabled={
+                                      disabled={
                                         mutationSecondStep.isLoading ||
                                         (stepTwo?.watch("password") !== "" &&
                                           stepTwo?.watch("password") !=
@@ -792,8 +788,7 @@ export function OrganizationOnboarding() {
                                       }
                                       isLoading={mutationSecondStep.isLoading}
                                       type="submit"
-                                      color="primary"
-                                      radius="sm"
+                                      variant="success"
                                     >
                                       Siguiente
                                     </Button>
@@ -843,37 +838,32 @@ export function OrganizationOnboarding() {
                                           </p>
                                         </div>
                                         <Button
-                                          isDisabled={
+                                          disabled={
                                             usersOrganizationQuery?.isError
                                           }
-                                          onPress={addUserOptions.onOpen}
-                                          className="h-8 w-fit min-w-fit rounded-md bg-green-700 px-2 !text-xs text-white"
+                                          onClick={addUserOptions.onOpen}
+                                          className="flex h-8 w-fit min-w-fit items-center gap-1 rounded-md bg-green-700 px-2 !text-xs text-white"
                                         >
-                                          <PlusIcon className="size-3 min-w-3 text-white" />
+                                          <PlusIcon className="size-4 min-w-4 text-white" />
                                           Agregar miembro
                                         </Button>
                                       </div>
                                     </div>
                                     {usersOrganizationQuery?.isLoading ||
                                     usersOrganizationQuery?.isFetching ? (
-                                      <div className="flex h-full w-full flex-col gap-1">
-                                        <div className="flex h-10 w-full items-center justify-between p-2">
-                                          <span className="h-full w-64 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                          <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                        </div>
-                                        <div className="flex h-10 w-full items-center justify-between p-2">
-                                          <span className="h-full w-64 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                          <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                        </div>
-                                        <div className="flex h-10 w-full items-center justify-between p-2">
-                                          <span className="h-full w-64 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                          <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                        </div>
-                                        <div className="flex h-10 w-full items-center justify-between p-2">
-                                          <span className="h-full w-64 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                          <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80"></span>
-                                        </div>
-                                      </div>
+                                      <ul className="flex h-full w-full flex-col gap-1">
+                                        {Array.from({ length: 3 }).map(
+                                          (_, index) => (
+                                            <li
+                                              key={index}
+                                              className="flex h-10 w-full items-center justify-between p-2"
+                                            >
+                                              <span className="h-full w-64 animate-skeletonTable rounded-md bg-slate-200/80" />
+                                              <span className="h-full w-32 animate-skeletonTable rounded-md bg-slate-200/80" />
+                                            </li>
+                                          ),
+                                        )}
+                                      </ul>
                                     ) : !usersOrganizationQuery?.isError ? (
                                       <ul className="h-full w-full overflow-y-auto">
                                         {usersOrganization?.map((user) => (
@@ -930,7 +920,7 @@ export function OrganizationOnboarding() {
                                                         }}
                                                         className="flex cursor-pointer items-center gap-2 p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
                                                       >
-                                                        <SquarePenIcon className="h-3.5 min-w-3" />
+                                                        <SquarePenIcon className="size-3.5 min-w-3.5" />
                                                         <p className="text-xs">
                                                           Editar usuario
                                                         </p>
@@ -942,7 +932,7 @@ export function OrganizationOnboarding() {
                                                         }}
                                                         className="flex cursor-pointer items-center gap-2 p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-red-500/10 hover:text-red-500"
                                                       >
-                                                        <Trash2Icon className="size-3 min-w-3" />
+                                                        <Trash2Icon className="size-3.5 min-w-3.5" />
                                                         <p className="text-xs">
                                                           Eliminar usuario
                                                         </p>
@@ -978,10 +968,10 @@ export function OrganizationOnboarding() {
                                   )}
                                   <div className="flex items-center justify-end">
                                     <Button
-                                      onPress={() =>
+                                      onClick={() =>
                                         mutationCompleteSteps.mutate()
                                       }
-                                      isDisabled={
+                                      disabled={
                                         mutationCompleteSteps?.isLoading ||
                                         usersOrganizationQuery?.isError
                                       }
@@ -989,8 +979,7 @@ export function OrganizationOnboarding() {
                                         mutationCompleteSteps.isLoading
                                       }
                                       type="submit"
-                                      color="primary"
-                                      radius="sm"
+                                      variant="success"
                                     >
                                       Finalizar
                                     </Button>
@@ -1241,11 +1230,9 @@ export function OrganizationOnboarding() {
                                     </ModalBody>
                                     <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
                                       <Button
-                                        onPress={() => {
-                                          onClose();
-                                        }}
-                                        className="border border-slate-300 bg-white font-medium text-slate-500"
-                                        radius="sm"
+                                        variant="error"
+                                        onClick={onClose}
+                                        // className="border border-slate-300 bg-white font-medium text-slate-500"
                                       >
                                         Cerrar
                                       </Button>
@@ -1253,18 +1240,17 @@ export function OrganizationOnboarding() {
                                         isLoading={
                                           mutationCreateMember?.isLoading
                                         }
-                                        isDisabled={
+                                        disabled={
                                           mutationCreateMember?.isLoading
                                         }
-                                        onPress={() => {
+                                        onClick={() => {
                                           stepThreeForm?.setValue("role_id", 2);
                                           stepThreeForm.handleSubmit(
                                             threeStep,
                                           )();
                                         }}
                                         type="submit"
-                                        radius="sm"
-                                        color="primary"
+                                        variant="success"
                                       >
                                         Crear miembro
                                       </Button>
@@ -1517,31 +1503,28 @@ export function OrganizationOnboarding() {
                                     </ModalBody>
                                     <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
                                       <Button
-                                        onPress={() => {
+                                        onClick={() => {
                                           onClose();
                                           setMemberData(undefined);
                                         }}
-                                        className="border border-slate-300 bg-white font-medium text-slate-500"
-                                        radius="sm"
+                                        variant="error"
                                       >
                                         Cerrar
                                       </Button>
+
                                       <Button
                                         isLoading={
                                           mutationUpdateUser?.isLoading
                                         }
-                                        isDisabled={
-                                          mutationUpdateUser?.isLoading
-                                        }
-                                        onPress={() => {
+                                        disabled={mutationUpdateUser?.isLoading}
+                                        onClick={() => {
                                           stepThreeForm?.setValue("role_id", 1);
                                           stepThreeForm.handleSubmit(
                                             updateUser,
                                           )();
                                         }}
                                         type="submit"
-                                        radius="sm"
-                                        color="primary"
+                                        variant="success"
                                       >
                                         Confirmar
                                       </Button>
@@ -1599,27 +1582,21 @@ export function OrganizationOnboarding() {
                                     )}
                                     <ModalFooter className="flex h-auto w-full items-center justify-center gap-4 py-2">
                                       <Button
+                                        onClick={onClose}
+                                        variant="outline"
+                                      >
+                                        Cerrar
+                                      </Button>
+                                      <Button
                                         isLoading={
                                           mutationDeleteUser?.isLoading
                                         }
-                                        isDisabled={
-                                          mutationDeleteUser?.isLoading
-                                        }
-                                        onPress={deleteUser}
+                                        disabled={mutationDeleteUser?.isLoading}
+                                        onClick={deleteUser}
                                         type="submit"
-                                        radius="sm"
-                                        color="danger"
+                                        variant="error"
                                       >
                                         Eliminar miembro
-                                      </Button>
-                                      <Button
-                                        onPress={() => {
-                                          onClose();
-                                        }}
-                                        className="min-w-32 border border-slate-300 bg-white font-medium text-slate-500"
-                                        radius="sm"
-                                      >
-                                        Cerrar
                                       </Button>
                                     </ModalFooter>
                                   </>
