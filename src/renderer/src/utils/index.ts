@@ -1,11 +1,5 @@
 import clsx, { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { TiHome } from "react-icons/ti";
-import { IoPeople } from "react-icons/io5";
-import { FaGear, FaPeopleGroup } from "react-icons/fa6";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
-import { IoLogoUsd } from "react-icons/io";
-import { FaMoneyCheckDollar } from "react-icons/fa6";
 import {
   ContextMenuState,
   ErrorResponse,
@@ -15,11 +9,21 @@ import {
 } from "./types";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
-import { MdDelete, MdModeEdit } from "react-icons/md";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import {
+  BanknoteArrowUpIcon,
+  CogIcon,
+  DollarSignIcon,
+  HandCoinsIcon,
+  HouseIcon,
+  LandmarkIcon,
+  PencilIcon,
+  Trash2Icon,
+  UsersIcon,
+} from "lucide-react";
 
 export const errorAuth = [
   "not_organization",
@@ -206,49 +210,49 @@ export const navItems: NavItem[] = [
   {
     name: "Inicio",
     linkTo: "/home",
-    icon: TiHome,
+    icon: HouseIcon,
   },
   {
     name: "Clientes",
     linkTo: "/clientes",
-    icon: IoPeople,
+    icon: UsersIcon,
   },
   {
     name: "Vendedores",
     linkTo: "/vendedores",
-    icon: FaPeopleGroup,
+    icon: HandCoinsIcon,
   },
   {
     name: "Operaciones",
     linkTo: "/operaciones",
-    icon: FaMoneyBillTransfer,
+    icon: BanknoteArrowUpIcon,
   },
   {
     name: "Cajas",
     linkTo: "/cajas",
-    icon: IoLogoUsd,
+    icon: DollarSignIcon,
   },
   {
     name: "Prestamos",
     linkTo: "/prestamos",
-    icon: FaMoneyCheckDollar,
+    icon: LandmarkIcon,
   },
   {
     name: "Configuraciones",
     linkTo: "/configuracion",
-    icon: FaGear,
+    icon: CogIcon,
   },
 ];
 
 export const contextMenuBasicOptions: Array<MenuOption> = [
   {
     name: "Editar",
-    icon: MdModeEdit,
+    icon: PencilIcon,
     route: undefined,
   },
   {
     name: "Eliminar",
-    icon: MdDelete,
+    icon: Trash2Icon,
     route: undefined,
   },
 ];

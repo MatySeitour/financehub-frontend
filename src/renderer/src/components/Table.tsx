@@ -26,15 +26,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
 import { ErrorResponse, ModalState } from "@renderer/utils/types";
-import { PiTableLight } from "react-icons/pi";
-import { LuPlus } from "react-icons/lu";
-import { MdError, MdSearchOff } from "react-icons/md";
-import { TbWorldCancel } from "react-icons/tb";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
 import { Button } from "@heroui/react";
+import {
+  ArrowDownZAIcon,
+  ArrowUpAZIcon,
+  ArrowUpDownIcon,
+  CircleAlertIcon,
+  GlobeLockIcon,
+  Grid2x2PlusIcon,
+  PlusIcon,
+  SearchXIcon,
+} from "lucide-react";
 
 type Column<T> = {
   label: string | ReactNode;
@@ -136,9 +141,9 @@ function TableWork<T extends TableNode>({
     {
       sortIcon: {
         margin: "0px",
-        iconDefault: <FaSort fontSize="small" />,
-        iconUp: <FaSortUp fontSize="small" />,
-        iconDown: <FaSortDown fontSize="small" />,
+        iconDefault: <ArrowUpDownIcon className="size-3.5 min-w-3.5" />,
+        iconUp: <ArrowUpAZIcon className="size-3.5 min-w-3.5" />,
+        iconDown: <ArrowDownZAIcon className="size-3.5 min-w-3.5" />,
       },
       sortFns,
     },
@@ -155,15 +160,13 @@ function TableWork<T extends TableNode>({
   if (data?.length === 0 && searchInput === "") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <div>
-          <PiTableLight className="h-24 w-24 text-slate-500" />
-        </div>
+        <Grid2x2PlusIcon className="size-24 text-slate-500" />
         <p className="text-lg text-slate-500">No hay datos cargados aún</p>
         <Button
           className="flex w-64 items-center gap-1"
           onClick={() => openModal && openModal("agregar")}
         >
-          <LuPlus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           Agregar
         </Button>
       </div>
@@ -173,7 +176,7 @@ function TableWork<T extends TableNode>({
   if (data?.length === 0 && searchInput !== "") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <MdSearchOff className="h-20 w-20 text-slate-600" />
+        <SearchXIcon className="size-20 text-slate-600" />
         <p className="text-slate-600">
           No hay resultados para <b> {searchInput}</b>...
         </p>
@@ -384,7 +387,7 @@ function TableError({ error }: { error: ErrorResponse }) {
   if (error.code === "connection-error") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <TbWorldCancel className="h-20 w-20 text-red-500" />
+        <GlobeLockIcon className="h-20 w-20 text-red-500" />
         <h4 className="text-xl text-red-500">
           Ha ocurrido un error de conexión
         </h4>
@@ -395,7 +398,7 @@ function TableError({ error }: { error: ErrorResponse }) {
   if (error.code === "zod_validation") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <MdError className="h-20 w-20 text-red-500" />
+        <CircleAlertIcon className="h-20 w-20 text-red-500" />
         <h4 className="text-xl text-red-500">{error?.data}</h4>
       </div>
     );
@@ -431,7 +434,7 @@ function TableError({ error }: { error: ErrorResponse }) {
 
   return (
     <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-      <MdError className="h-20 w-20 text-red-500" />
+      <CircleAlertIcon className="h-20 w-20 text-red-500" />
       <h4 className="text-xl text-red-500">
         Ha ocurrido un error en el servidor
       </h4>

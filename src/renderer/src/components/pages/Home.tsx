@@ -2,16 +2,21 @@ import { Button, Chip, Skeleton, Tooltip } from "@heroui/react";
 import { getCurrencies } from "@renderer/hooks/dollar";
 import { cn, formatFullDateEs } from "@renderer/utils";
 import { BaseResponseServer, ServerError, User } from "@renderer/utils/types";
-import { FaCaretUp } from "react-icons/fa6";
-import {
-  IoCalendarOutline,
-  IoInformationCircle,
-  IoReload,
-} from "react-icons/io5";
-import { MdErrorOutline } from "react-icons/md";
+// import {
+//   IoCalendarOutline,
+//   IoInformationCircle,
+//   IoReload,
+// } from "react-icons/io5";
 import { useQuery } from "react-query";
 import { useOutletContext } from "react-router";
 import { motion } from "framer-motion";
+import {
+  CalendarIcon,
+  ChevronUpIcon,
+  CircleAlertIcon,
+  InfoIcon,
+  RefreshCcwIcon,
+} from "lucide-react";
 
 export function Home() {
   const user: BaseResponseServer & { data: User } = useOutletContext();
@@ -67,7 +72,7 @@ export function Home() {
                   <p className="text-sm font-light text-slate-400">
                     ${currency?.buy_value.toFixed(2)}
                   </p>
-                  <FaCaretUp className="size-3 min-w-3 text-green-500" />
+                  <ChevronUpIcon className="size-3 min-w-3 text-green-500" />
                   <p className="text-sm font-light text-slate-400">
                     ${currency?.sale_value.toFixed(2)}
                   </p>
@@ -88,7 +93,7 @@ export function Home() {
             </ul>
           ) : (
             <div className="flex h-12 w-full items-center justify-center gap-2 text-red-500">
-              <MdErrorOutline className="size-4 min-w-4" />
+              <CircleAlertIcon className="size-4 min-w-4" />
               <p className="text-sm font-medium">
                 Ha ocurrido un error intentando cargar los datos
               </p>
@@ -106,7 +111,7 @@ export function Home() {
           >
             <div className="flex h-auto items-center justify-center gap-2">
               <div className="flex items-center gap-1.5">
-                <IoCalendarOutline className="size-4 min-w-4 2xl:size-5 2xl:min-w-5" />
+                <CalendarIcon className="size-4 min-w-4 2xl:size-5 2xl:min-w-5" />
                 <p className="text-xs font-medium 2xl:text-sm">
                   Ultima fecha de actualización:{" "}
                 </p>
@@ -124,7 +129,7 @@ export function Home() {
                 color="primary"
                 isLoading={currenciesQuery?.isFetching}
               >
-                <IoReload className="size-4 min-w-4" />
+                <RefreshCcwIcon className="size-4 min-w-4" />
               </Button>
               <Tooltip
                 placement="bottom"
@@ -134,7 +139,7 @@ export function Home() {
                 showArrow={true}
               >
                 <div className="flex h-8 items-center rounded-md border border-slate-300 bg-white p-2 2xl:h-9">
-                  <IoInformationCircle className="size-5 min-w-5 text-slate-400 2xl:size-6 2xl:min-w-6" />
+                  <InfoIcon className="size-5 min-w-5 text-slate-400 2xl:size-6 2xl:min-w-6" />
                 </div>
               </Tooltip>
             </div>

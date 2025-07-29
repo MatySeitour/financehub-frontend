@@ -1,8 +1,7 @@
-import { CiClock1 } from "react-icons/ci";
 import { cn } from "@renderer/utils";
+import { BanIcon, ClockIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { ImBlocked } from "react-icons/im";
 
 export function CashBox({
   title,
@@ -89,7 +88,7 @@ export function CashBox({
                 <h4 className="text-lg font-semibold">{title}</h4>
               </div>
               <div className="flex items-center gap-1 rounded-2xl bg-slate-200 px-2 text-[11px] font-semibold">
-                <CiClock1 className="size-4 min-w-4 text-slate-500" />
+                <ClockIcon className="size-4 min-w-4 text-slate-500" />
                 <p>{openingTime}</p>
               </div>
             </div>
@@ -193,7 +192,7 @@ export function CashBox({
               </div>
             </div>
             <div className="flex flex-col items-center justify-center gap-3 px-3 text-sm font-semibold">
-              <ImBlocked className="text-4xl text-red-400" />
+              <BanIcon className="text-4xl text-red-400" />
               <p className="text-lg font-bold text-red-400">
                 Esta caja esta cerrada
               </p>

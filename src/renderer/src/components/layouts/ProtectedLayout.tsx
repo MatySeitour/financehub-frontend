@@ -1,5 +1,4 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
-import { FaUserCircle } from "react-icons/fa";
 import {
   errorAuth,
   errorsResponse,
@@ -8,7 +7,6 @@ import {
 } from "@renderer/utils";
 import { useCookies } from "react-cookie";
 import { SessionResponse } from "@renderer/utils/types";
-import { IoLogOutOutline } from "react-icons/io5";
 import {
   Modal,
   ModalContent,
@@ -19,7 +17,7 @@ import {
 import { Button } from "@heroui/button";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
-import { MdError } from "react-icons/md";
+import { CircleAlertIcon, CircleUserRoundIcon, LogOutIcon } from "lucide-react";
 
 export default function ProtectedLayout() {
   const queryClient = useQueryClient();
@@ -85,7 +83,7 @@ export default function ProtectedLayout() {
       {sessionQuery.isError ? (
         <div className="flex h-full w-full items-center justify-center">
           <div className="flex h-96 w-full max-w-2xl flex-col items-center justify-center gap-2 rounded-md bg-gradient-to-t from-red-200/50 via-white to-white">
-            <MdError className="size-24 min-w-24 text-red-500" />
+            <CircleAlertIcon className="size-24 min-w-24 text-red-500" />
             <p className="text-2xl font-medium text-red-500">
               Ha ocurrido un error en el servidor
             </p>
@@ -103,8 +101,8 @@ export default function ProtectedLayout() {
                   </p>
                 </div>
               </div>
-              <IoLogOutOutline
-                onClick={() => onOpen()}
+              <LogOutIcon
+                onClick={onOpen}
                 className="size-6 min-w-6 cursor-pointer text-slate-300 transition-colors hover:text-red-500"
               />
             </div>
@@ -129,7 +127,7 @@ export default function ProtectedLayout() {
               </ul>
               <div className="flex h-12 w-full items-center gap-4 rounded-md bg-white px-2 py-1 shadow-md">
                 <div className="rounded-full">
-                  <FaUserCircle className="size-6 min-w-6 text-slate-500" />
+                  <CircleUserRoundIcon className="size-6 min-w-6 text-slate-500" />
                 </div>
                 <div className="flex w-full flex-col gap-1">
                   <div className="group relative h-4 w-full overflow-hidden">
@@ -162,7 +160,7 @@ export default function ProtectedLayout() {
               {(onClose) => (
                 <div className="flex flex-col gap-2 px-2 py-4">
                   <div className="flex justify-center">
-                    <IoLogOutOutline className="size-12 min-w-12 pl-1 text-red-500" />
+                    <LogOutIcon className="size-12 min-w-12 pl-1 text-red-500" />
                   </div>
                   <ModalBody className="flex items-center justify-center gap-3">
                     <p className="text-2xl font-semibold text-slate-600">

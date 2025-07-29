@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { IconType } from "react-icons";
+import { LucideIcon } from "lucide-react";
 
 export type ErrorResponse =
   | { code: "unauthorized"; data: null }
@@ -49,7 +49,7 @@ export type ContextMenuState = {
 
 export type MenuOption = {
   name: string;
-  icon: IconType;
+  icon: LucideIcon;
   route: undefined | string;
   queryData?: number | string;
 };
@@ -65,5 +65,5 @@ export type ModalState =
 export type NavItem = {
   name: string;
   linkTo: string;
-  icon: IconType;
+  icon: LucideIcon;
 };

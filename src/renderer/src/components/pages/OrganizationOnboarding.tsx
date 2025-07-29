@@ -29,34 +29,28 @@ import { ServerError } from "@renderer/utils/types";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  FaCheck,
-  FaCheckCircle,
-  FaInfoCircle,
-  FaRegTrashAlt,
-  FaUserCircle,
-  FaUserEdit,
-} from "react-icons/fa";
-import {
-  FaCircleInfo,
-  FaEllipsis,
-  FaEye,
-  FaEyeSlash,
-  FaPlus,
-  FaUserPlus,
-  FaXmark,
-} from "react-icons/fa6";
-import { IoIosWarning, IoMdCheckmark } from "react-icons/io";
-import {
-  MdError,
-  MdHomeFilled,
-  MdModeEdit,
-  MdOutlineError,
-} from "react-icons/md";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { z } from "zod";
 import { Chip } from "../Chip";
 import { Link } from "react-router";
+import {
+  AlertCircleIcon,
+  CheckIcon,
+  CircleAlertIcon,
+  CircleUserRoundIcon,
+  Edit2Icon,
+  EllipsisVerticalIcon,
+  EyeIcon,
+  EyeOffIcon,
+  HomeIcon,
+  InfoIcon,
+  PlusIcon,
+  SquarePenIcon,
+  Trash2Icon,
+  TriangleAlertIcon,
+  UserRoundPlusIcon,
+  XIcon,
+} from "lucide-react";
 
 type OrganizationName = z.infer<typeof organizationNameSchema>;
 const organizationNameSchema = z.object({
@@ -411,7 +405,7 @@ export function OrganizationOnboarding() {
                             color="success"
                             className="rounded-md text-white"
                           >
-                            <MdHomeFilled className="size-6 min-w-6" />
+                            <HomeIcon className="size-6 min-w-6" />
                             Ir a dashboard
                           </Button>
                         </Link>
@@ -431,7 +425,7 @@ export function OrganizationOnboarding() {
                 className="flex h-full w-full items-start justify-center"
               >
                 <div className="flex h-64 w-full max-w-2xl flex-col items-center justify-center gap-6 px-4">
-                  <MdError className="size-16 min-w-16 text-red-500" />
+                  <CircleAlertIcon className="size-16 min-w-16 text-red-500" />
                   <p className="text-xl font-medium text-red-500">
                     {currentStepQuery?.error?.code === "connection-error"
                       ? "Ha ocurrido un error de conexión"
@@ -504,7 +498,7 @@ export function OrganizationOnboarding() {
                                         errors?.name && "bg-red-500/20",
                                       )}
                                     >
-                                      <FaInfoCircle
+                                      <InfoIcon
                                         className={cn(
                                           "size-5 min-w-5 text-slate-400 transition-colors",
                                           errors?.name && "text-red-500",
@@ -523,7 +517,7 @@ export function OrganizationOnboarding() {
                                   </div>
                                   {mutationFirstStep?.isError && (
                                     <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                      <MdError className="size-8 min-w-8 text-red-500" />
+                                      <CircleAlertIcon className="size-8 min-w-8 text-red-500" />
                                       <p className="text-sm font-medium text-red-500">
                                         {mutationFirstStep?.error?.code ===
                                         "connection-error"
@@ -646,7 +640,7 @@ export function OrganizationOnboarding() {
                                           }
                                         >
                                           <div className="flex">
-                                            <FaEye
+                                            <EyeIcon
                                               onClick={() =>
                                                 setIsPasswordVisible(
                                                   !isPasswordVisible,
@@ -657,7 +651,7 @@ export function OrganizationOnboarding() {
                                                 !isPasswordVisible && "hidden",
                                               )}
                                             />
-                                            <FaEyeSlash
+                                            <EyeOffIcon
                                               onClick={() =>
                                                 setIsPasswordVisible(
                                                   !isPasswordVisible,
@@ -715,7 +709,7 @@ export function OrganizationOnboarding() {
                                       )}
                                     >
                                       {!stepTwo?.watch("password") ? (
-                                        <IoIosWarning
+                                        <TriangleAlertIcon
                                           className={cn(
                                             "size-6 min-w-6 text-yellow-500 transition-colors",
                                             stepTwo?.formState?.errors?.name &&
@@ -724,17 +718,9 @@ export function OrganizationOnboarding() {
                                         />
                                       ) : stepTwo?.watch("password") &&
                                         !hasValidationError ? (
-                                        <FaCheckCircle
-                                          className={cn(
-                                            "size-6 min-w-6 text-primary transition-colors",
-                                          )}
-                                        />
+                                        <EyeOffIcon className="size-6 min-w-6 text-primary transition-colors" />
                                       ) : (
-                                        <MdOutlineError
-                                          className={cn(
-                                            "size-6 min-w-6 text-danger transition-colors",
-                                          )}
-                                        />
+                                        <CircleAlertIcon className="size-6 min-w-6 text-danger transition-colors" />
                                       )}
                                       <p
                                         className={cn(
@@ -766,9 +752,9 @@ export function OrganizationOnboarding() {
                                               key={validation?.text}
                                             >
                                               {!validation?.test ? (
-                                                <FaXmark className="size-3 min-w-3 text-danger/80" />
+                                                <XIcon className="size-3 min-w-3 text-danger/80" />
                                               ) : (
-                                                <IoMdCheckmark className="size-3 min-w-3 text-primary" />
+                                                <CheckIcon className="size-3 min-w-3 text-primary" />
                                               )}
                                               <p
                                                 className={cn(
@@ -786,7 +772,7 @@ export function OrganizationOnboarding() {
                                   </div>
                                   {mutationSecondStep?.isError && (
                                     <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                      <MdError className="size-8 min-w-8 text-red-500" />
+                                      <CircleAlertIcon className="size-8 min-w-8 text-red-500" />
                                       <p className="text-sm font-medium text-red-500">
                                         {mutationSecondStep?.error?.code ===
                                         "connection-error"
@@ -863,7 +849,7 @@ export function OrganizationOnboarding() {
                                           onPress={addUserOptions.onOpen}
                                           className="h-8 w-fit min-w-fit rounded-md bg-green-700 px-2 !text-xs text-white"
                                         >
-                                          <FaPlus className="size-3 min-w-3 text-white" />
+                                          <PlusIcon className="size-3 min-w-3 text-white" />
                                           Agregar miembro
                                         </Button>
                                       </div>
@@ -896,7 +882,7 @@ export function OrganizationOnboarding() {
                                             className="mb-2 flex h-auto w-full justify-between rounded-md border border-slate-300/40 p-2"
                                           >
                                             <div className="flex items-center gap-3">
-                                              <FaUserCircle className="size-7 min-w-7 text-slate-400" />
+                                              <CircleUserRoundIcon className="size-7 min-w-7 text-slate-400" />
                                               <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
                                                   <p className="text-sm font-semibold text-slate-500">
@@ -929,9 +915,7 @@ export function OrganizationOnboarding() {
                                                 >
                                                   <PopoverTrigger>
                                                     <div className="cursor-pointer rounded-md border border-slate-200 p-1.5 transition-colors hover:border-slate-300">
-                                                      <div>
-                                                        <FaEllipsis className="size-5 min-w-5 text-slate-400" />
-                                                      </div>
+                                                      <EllipsisVerticalIcon className="size-5 min-w-5 text-slate-400" />
                                                     </div>
                                                   </PopoverTrigger>
                                                   <PopoverContent className="p-1.5">
@@ -946,7 +930,7 @@ export function OrganizationOnboarding() {
                                                         }}
                                                         className="flex cursor-pointer items-center gap-2 p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
                                                       >
-                                                        <MdModeEdit className="h-3.5 min-w-3" />
+                                                        <SquarePenIcon className="h-3.5 min-w-3" />
                                                         <p className="text-xs">
                                                           Editar usuario
                                                         </p>
@@ -958,7 +942,7 @@ export function OrganizationOnboarding() {
                                                         }}
                                                         className="flex cursor-pointer items-center gap-2 p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-red-500/10 hover:text-red-500"
                                                       >
-                                                        <FaRegTrashAlt className="size-3 min-w-3" />
+                                                        <Trash2Icon className="size-3 min-w-3" />
                                                         <p className="text-xs">
                                                           Eliminar usuario
                                                         </p>
@@ -973,7 +957,7 @@ export function OrganizationOnboarding() {
                                       </ul>
                                     ) : (
                                       <div className="flex h-64 w-full max-w-2xl flex-col items-center justify-center gap-2 px-4">
-                                        <MdError className="size-16 min-w-16 text-red-500" />
+                                        <CircleAlertIcon className="size-16 min-w-16 text-red-500" />
                                         <p className="text-lg font-medium text-red-500">
                                           Ha ocurrido un error intentando cargar
                                           los miembros
@@ -983,7 +967,7 @@ export function OrganizationOnboarding() {
                                   </div>
                                   {mutationCompleteSteps?.isError && (
                                     <div className="flex h-20 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                      <MdError className="size-8 min-w-8 text-red-500" />
+                                      <CircleAlertIcon className="size-8 min-w-8 text-red-500" />
                                       <p className="text-sm font-medium text-red-500">
                                         {mutationCompleteSteps?.error?.code ===
                                         "connection-error"
@@ -1032,7 +1016,7 @@ export function OrganizationOnboarding() {
                                   <>
                                     <ModalHeader className="flex h-auto items-center gap-3">
                                       <div className="h-full w-fit rounded-md border border-slate-200 p-2">
-                                        <FaUserPlus className="size-6 min-w-6 text-slate-400" />
+                                        <UserRoundPlusIcon className="size-6 min-w-6 text-slate-400" />
                                       </div>
                                       <div className="flex w-fit flex-col justify-center">
                                         <p className="text-base text-slate-500">
@@ -1127,7 +1111,7 @@ export function OrganizationOnboarding() {
                                             }
                                           >
                                             <div className="flex">
-                                              <FaEye
+                                              <EyeIcon
                                                 onClick={() =>
                                                   setIsPasswordVisible(
                                                     !isPasswordVisible,
@@ -1139,7 +1123,7 @@ export function OrganizationOnboarding() {
                                                     "hidden",
                                                 )}
                                               />
-                                              <FaEyeSlash
+                                              <EyeOffIcon
                                                 onClick={() =>
                                                   setIsPasswordVisible(
                                                     !isPasswordVisible,
@@ -1186,7 +1170,7 @@ export function OrganizationOnboarding() {
                                       />
                                       <div className="flex h-auto items-center rounded-md bg-slate-100 p-3 font-medium text-danger/80 transition-all">
                                         <div className="flex items-center gap-2">
-                                          <FaCircleInfo className="size-3.5 min-w-3.5 text-slate-400" />
+                                          <InfoIcon className="size-3.5 min-w-3.5 text-slate-400" />
                                           <p className="text-xs text-slate-400">
                                             La contraseña debe tener:
                                           </p>
@@ -1204,9 +1188,9 @@ export function OrganizationOnboarding() {
                                               key={validation?.text}
                                             >
                                               {!validation?.test ? (
-                                                <FaXmark className="size-3 min-w-3 text-danger/80" />
+                                                <XIcon className="size-3 min-w-3 text-danger/80" />
                                               ) : (
-                                                <IoMdCheckmark className="size-3 min-w-3 text-primary" />
+                                                <CheckIcon className="size-3 min-w-3 text-primary" />
                                               )}
                                               <p
                                                 className={cn(
@@ -1245,7 +1229,7 @@ export function OrganizationOnboarding() {
                                       />
                                       {mutationCreateMember?.isError && (
                                         <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                          <MdError className="size-8 min-w-8 text-red-500" />
+                                          <AlertCircleIcon className="size-8 min-w-8 text-red-500" />
                                           <p className="text-sm font-medium text-red-500">
                                             {mutationCreateMember?.error
                                               ?.code === "connection-error"
@@ -1308,7 +1292,7 @@ export function OrganizationOnboarding() {
                                   <>
                                     <ModalHeader className="flex h-auto items-center gap-3">
                                       <div className="h-full w-fit rounded-md border border-slate-200 p-2">
-                                        <FaUserEdit className="size-6 min-w-6 text-slate-400" />
+                                        <Edit2Icon className="size-6 min-w-6 text-slate-400" />
                                       </div>
                                       <div className="flex w-fit flex-col justify-center">
                                         <p className="text-base text-slate-500">
@@ -1403,7 +1387,7 @@ export function OrganizationOnboarding() {
                                             }
                                           >
                                             <div className="flex">
-                                              <FaEye
+                                              <EyeIcon
                                                 onClick={() =>
                                                   setIsPasswordVisible(
                                                     !isPasswordVisible,
@@ -1415,7 +1399,7 @@ export function OrganizationOnboarding() {
                                                     "hidden",
                                                 )}
                                               />
-                                              <FaEyeSlash
+                                              <EyeOffIcon
                                                 onClick={() =>
                                                   setIsPasswordVisible(
                                                     !isPasswordVisible,
@@ -1462,7 +1446,7 @@ export function OrganizationOnboarding() {
                                       />
                                       <div className="flex h-auto items-center rounded-md bg-slate-100 p-3 font-medium text-danger/80 transition-all">
                                         <div className="flex items-center gap-2">
-                                          <FaCircleInfo className="size-3.5 min-w-3.5 text-slate-400" />
+                                          <InfoIcon className="size-3.5 min-w-3.5 text-slate-400" />
                                           <p className="text-xs text-slate-400">
                                             La contraseña debe tener:
                                           </p>
@@ -1480,9 +1464,9 @@ export function OrganizationOnboarding() {
                                               key={validation?.text}
                                             >
                                               {!validation?.test ? (
-                                                <FaXmark className="size-3 min-w-3 text-danger/80" />
+                                                <XIcon className="size-3 min-w-3 text-danger/80" />
                                               ) : (
-                                                <IoMdCheckmark className="size-3 min-w-3 text-primary" />
+                                                <CheckIcon className="size-3 min-w-3 text-primary" />
                                               )}
                                               <p
                                                 className={cn(
@@ -1521,7 +1505,7 @@ export function OrganizationOnboarding() {
                                       />
                                       {mutationUpdateUser?.isError && (
                                         <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                          <MdError className="size-8 min-w-8 text-red-500" />
+                                          <AlertCircleIcon className="size-8 min-w-8 text-red-500" />
                                           <p className="text-sm font-medium text-red-500">
                                             {mutationUpdateUser?.error?.code ===
                                             "connection-error"
@@ -1586,7 +1570,7 @@ export function OrganizationOnboarding() {
                                     <ModalHeader className="flex h-auto items-center gap-3">
                                       <div className="flex h-auto w-full flex-col items-center justify-center gap-2">
                                         <div className="flex items-center rounded-full bg-red-200/30 p-4">
-                                          <IoIosWarning className="size-12 min-w-12 text-danger" />
+                                          <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                                         </div>
                                         <p className="text-base text-slate-500">
                                           Eliminar usuario
@@ -1603,7 +1587,7 @@ export function OrganizationOnboarding() {
                                     {mutationDeleteUser?.isError && (
                                       <div className="flex items-center justify-center px-8">
                                         <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
-                                          <MdError className="size-8 min-w-8 text-red-500" />
+                                          <AlertCircleIcon className="size-8 min-w-8 text-red-500" />
                                           <p className="text-sm font-medium text-red-500">
                                             {mutationDeleteUser?.error?.code ===
                                             "connection-error"
@@ -1679,7 +1663,7 @@ export function OrganizationOnboarding() {
                       )}
                     >
                       <div className="relative">
-                        <FaCheck
+                        <CheckIcon
                           className={cn(
                             "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                             currentStep > 1 && "-translate-y-1/2",
@@ -1711,7 +1695,7 @@ export function OrganizationOnboarding() {
                       )}
                     >
                       <div className="relative">
-                        <FaCheck
+                        <CheckIcon
                           className={cn(
                             "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                             currentStep > 2 && "-translate-y-1/2",
@@ -1745,7 +1729,7 @@ export function OrganizationOnboarding() {
                       )}
                     >
                       <div className="relative">
-                        <FaCheck
+                        <CheckIcon
                           className={cn(
                             "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                             currentStep > 3 && "-translate-y-1/2",
@@ -1805,7 +1789,7 @@ export function OrganizationOnboarding() {
                   )}
                 >
                   <div className="relative">
-                    <FaCheck
+                    <CheckIcon
                       className={cn(
                         "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                         currentStep > 1 && "-translate-y-1/2",
@@ -1837,7 +1821,7 @@ export function OrganizationOnboarding() {
                   )}
                 >
                   <div className="relative">
-                    <FaCheck
+                    <CheckIcon
                       className={cn(
                         "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                         currentStep > 2 && "-translate-y-1/2",
@@ -1871,7 +1855,7 @@ export function OrganizationOnboarding() {
                   )}
                 >
                   <div className="relative">
-                    <FaCheck
+                    <CheckIcon
                       className={cn(
                         "absolute -top-1/2 left-1/2 size-4 min-w-4 -translate-x-1/2 translate-y-full text-white transition-all",
                         currentStep > 3 && "-translate-y-1/2",

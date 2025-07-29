@@ -4,13 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { cn, errorsResponse } from "@renderer/utils";
-import { MdError } from "react-icons/md";
 import { useNavigate } from "react-router";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Tooltip } from "@heroui/tooltip";
+import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 
 export function Login() {
   const queryClient = useQueryClient();
@@ -106,14 +105,14 @@ export function Login() {
                     }
                   >
                     <div className="flex">
-                      <FaEye
+                      <EyeIcon
                         onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                         className={cn(
                           "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
                           !isPasswordVisible && "hidden",
                         )}
                       />
-                      <FaEyeSlash
+                      <EyeOffIcon
                         onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                         className={cn(
                           "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
@@ -154,7 +153,7 @@ export function Login() {
               </a>
               {login?.isError && (
                 <div className="flex h-12 w-full items-center gap-2 rounded-md bg-red-300/30 px-4">
-                  <MdError className="size-8 min-w-8 text-red-500" />
+                  <CircleAlertIcon className="size-8 min-w-8 text-red-500" />
                   <p className="text-sm font-medium text-red-500">
                     {login?.error?.code === "unauthorized"
                       ? "El correo o la contraseña son incorrectos"
