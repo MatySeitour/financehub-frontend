@@ -42,42 +42,49 @@ export function errorsResponse(error: any) {
     console.error(error?.errors);
     throw {
       code: "zod_validation",
-      data: "Error: Solicitud mal formada",
+      message: "Error: Solicitud mal formada",
     } as ErrorResponse;
   } else if (error.response) {
     const status = error.response.status;
 
     if (status === 401)
-      throw { code: "unauthorized", data: null } as ErrorResponse;
+      throw { code: "unauthorized", message: null } as ErrorResponse;
 
     if (status === 400) {
       throw {
         code: "bad_request",
-        data: error?.response?.data?.message,
+        message: error?.response?.data?.message,
       } as ErrorResponse;
     }
 
     if (status === 422) {
-      const errorsChecked = Object.fromEntries(
-        Object.entries(
-          error?.response?.data?.errors as Record<string, string[]>,
-        ).map(([key, val]) => {
-          if (val[0].includes("has already been taken")) {
-            return [key, ["Esté valor ya está en uso."]];
-          } else {
-            return [key, val];
-          }
-        }),
-      );
+      // const errorsChecked = Object.fromEntries(
+      //   Object.entries(
+      //     error?.response?.data?.errors as Record<string, string[]>,
+      //   ).map(([key, val]) => {
+      //     if (val[0].includes("has already been taken")) {
+      //       return [key, ["Esté valor ya está en uso."]];
+      //     } else {
+      //       return [key, val];
+      //     }
+      //   }),
+      // );
+      // throw {
+      //   code: "unprocess_fields",
+      //   data: errorsChecked,
+      // } as ErrorResponse;
       throw {
         code: "unprocess_fields",
-        data: errorsChecked,
+        message: error?.response?.data?.message,
       } as ErrorResponse;
     }
 
-    throw { code: "server-error", data: null } as ErrorResponse;
+    throw { code: "server-error", message: error.message } as ErrorResponse;
   } else {
-    throw { code: "connection-error", data: null } as ErrorResponse;
+    throw {
+      code: "connection-error",
+      message: "Error de conexion",
+    } as ErrorResponse;
   }
 }
 

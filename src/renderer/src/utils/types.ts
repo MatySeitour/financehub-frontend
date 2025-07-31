@@ -2,18 +2,19 @@ import { AxiosError } from "axios";
 import { LucideIcon } from "lucide-react";
 
 export type ErrorResponse =
-  | { code: "unauthorized"; data: null }
-  | { code: "unprocess_fields"; data: Record<string, string[]> }
-  | { code: "server-error"; data: null }
-  | { code: "bad_request"; data: string }
-  | { code: "connection-error"; data: null }
-  | { code: "zod_validation"; data: string };
+  | { code: "unauthorized"; message: null }
+  | { code: "unprocess_fields"; message: Record<string, string[]> }
+  | { code: "server-error"; message: string }
+  | { code: "bad_request"; message: string }
+  | { code: "connection-error"; message: string }
+  | { code: "zod_validation"; message: string };
 
 export type Roles = "admin" | "empleado";
 
-export type ServerError<T = any> = AxiosError<{
-  code: string;
-  data?: T | null;
+export type ServerError = AxiosError<{
+  success: boolean;
+  status: number;
+  message: string;
 }>;
 
 export type BaseResponseServer = {
@@ -66,4 +67,9 @@ export type NavItem = {
   name: string;
   linkTo: string;
   icon: LucideIcon;
+};
+
+export type ModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
 };

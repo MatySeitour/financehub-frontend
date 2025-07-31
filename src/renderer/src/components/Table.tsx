@@ -399,7 +399,7 @@ function TableError({ error }: { error: ErrorResponse }) {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
         <CircleAlertIcon className="h-20 w-20 text-red-500" />
-        <h4 className="text-xl text-red-500">{error?.data}</h4>
+        <h4 className="text-xl text-red-500">{error?.message}</h4>
       </div>
     );
   }
