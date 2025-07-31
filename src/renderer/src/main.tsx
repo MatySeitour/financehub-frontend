@@ -4,6 +4,7 @@ import App from "./App";
 import { HeroUIProvider } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { CookiesProvider } from "react-cookie";
+import { Toaster } from "sonner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <QueryClientProvider client={queryClient}>
       <CookiesProvider>
         <App />
+        <Toaster richColors />
       </CookiesProvider>
     </QueryClientProvider>
   </HeroUIProvider>,
