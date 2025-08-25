@@ -4,6 +4,8 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { z } from "zod";
 import { Cashbox } from "@renderer/hooks/cashboxes";
@@ -23,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "../Button";
 import { toast } from "sonner";
+import { Currency } from "@renderer/hooks/currencies";
 
 type ChangeStateCashbox = z.infer<ReturnType<typeof checkIsCashboxOpenSchema>>;
 const checkIsCashboxOpenSchema = (isCashboxOpen: boolean) =>
@@ -91,8 +94,10 @@ export function ChangeStateCashboxModal({
   const onSubmit: SubmitHandler<ChangeStateCashbox> = (data) =>
     mutation.mutate(data);
 
+  const isCashboxClosed = cashbox.state === 0;
+
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose}>
+    <Modal isOpen={isOpen} onOpenChange={onClose} size="3xl">
       <ModalContent className="flex flex-col gap-2">
         {(onClose) => (
           <>
@@ -105,7 +110,7 @@ export function ChangeStateCashboxModal({
               <div className="flex w-fit flex-col justify-center">
                 <p className="text-lg text-slate-500">
                   {" "}
-                  {cashbox.state === 0
+                  {isCashboxClosed
                     ? `Abrir ${cashbox.name}`
                     : `Cerrar ${cashbox.name}`}
                 </p>
@@ -117,7 +122,7 @@ export function ChangeStateCashboxModal({
               onSubmit={handleSubmit(onSubmit)}
             >
               <ModalBody className="py-0">
-                {cashbox.state === 0 ? (
+                {isCashboxClosed ? (
                   <div className="flex w-full flex-col gap-1">
                     <label
                       htmlFor="openingValue"
@@ -190,13 +195,17 @@ export function ChangeStateCashboxModal({
                   isLoading={mutation?.isLoading}
                   disabled={mutation?.isLoading}
                   type="submit"
-                  variant="success"
+                  variant={isCashboxClosed ? "success" : "error"}
                   className="w-full"
                 >
-                  Confirmar
+                  {isCashboxClosed ? "Confirmar" : "Cerrar"}
                 </Button>
-                <Button variant="error" className="w-full" onClick={onClose}>
-                  Cerrar
+                <Button
+                  variant={isCashboxClosed ? "error" : "outline"}
+                  className="w-full"
+                  onClick={onClose}
+                >
+                  {isCashboxClosed ? "Cerrar" : "Cancelar"}
                 </Button>
               </ModalFooter>
             </form>
@@ -210,16 +219,21 @@ export function ChangeStateCashboxModal({
 type Input = z.infer<typeof inputSchema>;
 const inputSchema = z.object({
   name: z.string().min(1, { message: "Campo requerido" }),
-  currency: z.string().min(1, { message: "Campo requerido" }),
+  currency_id: z.number({ message: "Campo requerido" }),
 });
 
-export function CreateCashboxModal({ isOpen, onClose }: ModalProps) {
+export function CreateCashboxModal({
+  isOpen,
+  onClose,
+  currencies,
+}: ModalProps & { currencies: Currency[] }) {
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
   const queryClient = useQueryClient();
 
   const {
     formState: { errors },
     handleSubmit,
+    control,
     register,
   } = useForm<Input>({
     resolver: zodResolver(inputSchema),
@@ -302,21 +316,49 @@ export function CreateCashboxModal({ isOpen, onClose }: ModalProps) {
                     >
                       Divisa
                     </label>
-                    <div
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
-                        errors.currency && "border-red-500",
+
+                    <Controller
+                      name="currency_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={field.value ? `${field.value}` : ""}
+                          placeholder="Selecciona una divisa"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300",
+                          }}
+                          className="min-h-9 rounded-md outline-none"
+                          //  selectedKeys={new Set([selected.name])}
+                          onSelectionChange={(key) => {
+                            if (key.currentKey) field.onChange(+key.currentKey);
+                          }}
+                        >
+                          {currencies.map((filter) => (
+                            <SelectItem
+                              textValue={`${filter.name} (${filter.nomenclature})`}
+                              classNames={{
+                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                              }}
+                              className="flex items-center gap-1"
+                              key={filter.id}
+                            >
+                              <span className="text-sm">{filter.name}</span>{" "}
+                              <span className="text-xs text-slate-400">
+                                ({filter.nomenclature})
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </Select>
                       )}
-                    >
-                      <input
-                        className="h-full w-full bg-transparent text-sm font-medium outline-none"
-                        type="text"
-                        {...register("currency")}
-                      />
-                    </div>
-                    {errors.currency && (
+                    />
+                    {errors.currency_id && (
                       <p className="text-xs font-medium text-red-500">
-                        {errors.currency.message}
+                        {errors.currency_id.message}
                       </p>
                     )}
                   </div>
@@ -382,7 +424,8 @@ export function UpdateCashboxModal({
   isOpen,
   onClose,
   cashbox,
-}: ModalProps & { cashbox: Cashbox }) {
+  currencies,
+}: ModalProps & { cashbox: Cashbox; currencies: Currency[] }) {
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
   const queryClient = useQueryClient();
 
@@ -395,7 +438,7 @@ export function UpdateCashboxModal({
     resolver: zodResolver(inputUpdateSchema(cashbox.state === 1)),
     defaultValues: {
       name: cashbox.name,
-      currency: cashbox.currency,
+      currency_id: cashbox.currency.id,
       openingValue: cashbox.state === 1 ? cashbox.openingValue : undefined,
     },
   });
@@ -407,6 +450,7 @@ export function UpdateCashboxModal({
           `/api/v1/cashboxes/${cashbox.id}`,
           body,
         );
+        console.log(body);
         return data;
       } catch (error) {
         console.error(error);
@@ -480,23 +524,48 @@ export function UpdateCashboxModal({
                     >
                       Divisa
                     </label>
-                    <div
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
-                        errors.currency && "border-red-500",
+
+                    <Controller
+                      name="currency_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={
+                            field.value ? `${field.value}` : undefined
+                          }
+                          placeholder="Selecciona una divisa"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300",
+                          }}
+                          className="min-h-9 rounded-md outline-none"
+                          //  selectedKeys={new Set([selected.name])}
+                          onSelectionChange={(key) => {
+                            if (key.currentKey) field.onChange(+key.currentKey);
+                          }}
+                        >
+                          {currencies.map((filter) => (
+                            <SelectItem
+                              textValue={`${filter.name} (${filter.nomenclature})`}
+                              classNames={{
+                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                              }}
+                              className="flex items-center gap-1"
+                              key={filter.id}
+                            >
+                              <span className="text-sm">{filter.name}</span>{" "}
+                              <span className="text-xs text-slate-400">
+                                ({filter.nomenclature})
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </Select>
                       )}
-                    >
-                      <input
-                        className="h-full w-full bg-transparent text-sm font-medium outline-none"
-                        type="text"
-                        {...register("currency")}
-                      />
-                    </div>
-                    {errors.currency && (
-                      <p className="text-xs font-medium text-red-500">
-                        {errors.currency.message}
-                      </p>
-                    )}
+                    />
                   </div>
 
                   {/* opening value */}
@@ -630,7 +699,7 @@ export function DeleteCashboxModal({
         onClose();
       }}
     >
-      <ModalContent className="h-auto gap-2 bg-gradient-to-t from-red-200/50 via-white to-white">
+      <ModalContent className="h-auto gap-2 bg-gradient-to-t from-red-200 via-white to-white">
         {(onClose) => (
           <>
             <ModalHeader className="flex h-auto items-center gap-3">
