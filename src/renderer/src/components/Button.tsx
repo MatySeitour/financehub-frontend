@@ -10,8 +10,9 @@ const buttonStyles = cva(
   {
     variants: {
       variant: {
-        success: "border-green-700 bg-primary",
-        error: "bg-red-500 border-red-800",
+        success:
+          "border-green-700 bg-primary hover:bg-primary/90 transition-all",
+        error: "bg-red-500 border-red-800 hover:bg-danger/90 transition-all",
         outline:
           "bg-white border border-slate-300 opacity-100 text-slate-400 after:h-0 after:w-0",
       },

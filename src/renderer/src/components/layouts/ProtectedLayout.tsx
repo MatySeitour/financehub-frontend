@@ -13,7 +13,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@heroui/modal";
+} from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 import { CircleAlertIcon, CircleUserRoundIcon, LogOutIcon } from "lucide-react";
