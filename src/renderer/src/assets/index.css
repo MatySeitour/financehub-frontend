@@ -12,6 +12,10 @@ body {
   font-family: "Inter", sans-serif;
 }
 
+* {
+  outline: none !important;
+}
+
 .table {
   grid-auto-rows: 48px !important;
 }

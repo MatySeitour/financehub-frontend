@@ -1,4 +1,5 @@
 import {
+  DatePicker,
   Modal,
   ModalBody,
   ModalContent,
@@ -6,6 +7,7 @@ import {
   ModalHeader,
   Select,
   SelectItem,
+  Textarea,
 } from "@heroui/react";
 import { z } from "zod";
 import { Cashbox } from "@renderer/hooks/cashboxes";
@@ -26,6 +28,8 @@ import {
 import { Button } from "../Button";
 import { toast } from "sonner";
 import { Currency } from "@renderer/hooks/currencies";
+import { now } from "@internationalized/date";
+import { I18nProvider } from "@react-aria/i18n";
 
 type ChangeStateCashbox = z.infer<ReturnType<typeof checkIsCashboxOpenSchema>>;
 const checkIsCashboxOpenSchema = (isCashboxOpen: boolean) =>
@@ -132,11 +136,12 @@ export function ChangeStateCashboxModal({
                     </label>
                     <div
                       className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
+                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus-within:border-primary focus:border-primary",
                         errors.openingValue && "border-red-500",
                       )}
                     >
-                      $
+                      <span className="pt-0.5">$</span>
+
                       <Controller
                         control={control}
                         name="openingValue"
@@ -289,18 +294,15 @@ export function CreateCashboxModal({
                     <label htmlFor="name" className="text-sm text-slate-500">
                       Nombre de caja
                     </label>
-                    <div
+
+                    <input
                       className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
+                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
                         errors.name && "border-red-500",
                       )}
-                    >
-                      <input
-                        className="h-full w-full bg-transparent text-sm font-medium outline-none"
-                        type="text"
-                        {...register("name")}
-                      />
-                    </div>
+                      type="text"
+                      {...register("name")}
+                    />
                     {errors.name && (
                       <p className="text-xs font-medium text-red-500">
                         {errors.name.message}
@@ -330,9 +332,13 @@ export function CreateCashboxModal({
                             mainWrapper: "rounded-md",
                             popoverContent: "rounded-md font-normal",
                             trigger:
-                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300",
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
                           }}
-                          className="min-h-9 rounded-md outline-none"
+                          className={cn(
+                            errors.currency_id?.message && "!border-red-500",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none",
+                          )}
                           //  selectedKeys={new Set([selected.name])}
                           onSelectionChange={(key) => {
                             if (key.currentKey) field.onChange(+key.currentKey);
@@ -497,18 +503,14 @@ export function UpdateCashboxModal({
                     <label htmlFor="name" className="text-sm text-slate-500">
                       Nombre de caja
                     </label>
-                    <div
+                    <input
                       className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
+                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
                         errors.name && "border-red-500",
                       )}
-                    >
-                      <input
-                        className="h-full w-full bg-transparent text-sm font-medium outline-none"
-                        type="text"
-                        {...register("name")}
-                      />
-                    </div>
+                      type="text"
+                      {...register("name")}
+                    />
                     {errors.name && (
                       <p className="text-xs font-medium text-red-500">
                         {errors.name.message}
@@ -579,11 +581,12 @@ export function UpdateCashboxModal({
                       </label>
                       <div
                         className={cn(
-                          "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 p-1 text-sm outline-none",
+                          "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus-within:border-primary focus:border-primary",
                           errors.openingValue && "border-red-500",
                         )}
                       >
-                        $
+                        <span className="pt-0.5">$</span>
+
                         <Controller
                           control={control}
                           name="openingValue"
@@ -740,6 +743,240 @@ export function DeleteCashboxModal({
                 Cerrar
               </Button>
             </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}
+
+type InputExpense = z.infer<ReturnType<typeof getInputExpenseSchema>>;
+const getInputExpenseSchema = (maxCashboxValue: number) => {
+  return z.object({
+    description: z.string().min(1, { message: "Campo requerido" }),
+    amount: z
+      .number({ message: "Campo requerido" })
+      .gt(0, { message: "Debe ser mayor a 0" })
+      .refine((val) => val <= maxCashboxValue, {
+        message: "El monto súpera el valor de la caja",
+      }),
+    date: z.date({ message: "Campo requerido" }),
+    cashbox_id: z.number(),
+  });
+};
+
+export function CreateCashboxExpenseModal({
+  isOpen,
+  onClose,
+  cashbox,
+}: ModalProps & { cashbox: Cashbox }) {
+  const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+  const queryClient = useQueryClient();
+
+  const {
+    formState: { errors },
+    handleSubmit,
+    control,
+    register,
+  } = useForm<InputExpense>({
+    resolver: zodResolver(getInputExpenseSchema(cashbox.value)),
+    defaultValues: {
+      cashbox_id: cashbox.id,
+      date: now("America/Argentina/Buenos_Aires").toDate(),
+    },
+  });
+
+  const mutation = useMutation<Cashbox, ServerError, InputExpense>({
+    mutationFn: async (body) => {
+      try {
+        const { data } = await AxiosFetch.post(`/api/v1/expenses`, body);
+        return data;
+      } catch (error) {
+        console.error(error);
+        errorsResponse(error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cashboxes", "all"] });
+      onClose();
+    },
+  });
+
+  const onSubmit: SubmitHandler<InputExpense> = (data) => mutation.mutate(data);
+
+  console.log(errors.date);
+  return (
+    <Modal
+      backdrop="opaque"
+      radius="sm"
+      size="3xl"
+      isOpen={isOpen}
+      onOpenChange={onClose}
+    >
+      <ModalContent className="flex flex-col gap-2">
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex h-auto items-center gap-3">
+              <PackagePlusIcon className="size-8 min-w-8 text-slate-500" />
+              <div className="flex w-fit flex-col justify-center">
+                <p className="text-lg text-slate-500">Crear movimiento</p>
+              </div>
+            </ModalHeader>
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleSubmit(onSubmit)}
+            >
+              <ModalBody className="py-0">
+                <div className="flex w-full items-start gap-4">
+                  {/* currency */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label htmlFor="amount" className="text-sm text-slate-500">
+                      Cantidad
+                    </label>
+                    <div
+                      className={cn(
+                        "flex h-9 w-full items-center gap-1 rounded-md border border-slate-300/70 p-1 px-3 text-sm outline-none focus-within:border-primary",
+                        errors.amount && "border-red-500",
+                      )}
+                    >
+                      <span className="pt-0.5">$</span>
+                      <Controller
+                        control={control}
+                        name="amount"
+                        render={({ field }) => (
+                          <input
+                            className="h-full w-full bg-transparent text-sm font-medium outline-none"
+                            type="text"
+                            onChange={(e) => {
+                              const input = e.target.value;
+
+                              const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                              if (!isValid) return;
+
+                              if (
+                                `${field.value}` === "0" &&
+                                input.length === 2
+                              ) {
+                                // if the field number is 0 and the input has 2 values, remove the 0
+                                field.onChange(+input[1]);
+                              } else if (input === "") {
+                                ////////////////////////////// if input has no values, set default 0
+                                field.onChange(+"0");
+                              } else {
+                                +input > cashbox.value
+                                  ? field.onChange(cashbox.value)
+                                  : field.onChange(+input);
+                              }
+                            }}
+                            value={field.value ?? ""}
+                          />
+                        )}
+                      />
+                    </div>
+                    {errors.amount && (
+                      <p className="text-sm text-red-500">
+                        {errors.amount.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Moviment date */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label htmlFor="amount" className="text-sm text-slate-500">
+                      Fecha
+                    </label>
+                    <Controller
+                      control={control}
+                      name="date"
+                      render={({ field }) => (
+                        <I18nProvider locale="es-AR">
+                          <DatePicker
+                            className={cn(
+                              errors.date?.message && "!border-red-500",
+                              "rounded-md border border-slate-300/70",
+                            )}
+                            onChange={(val) => {
+                              field.onChange(val ? val.toDate() : null);
+                            }}
+                            granularity="day"
+                            defaultValue={now("America/Argentina/Buenos_Aires")}
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              inputWrapper:
+                                "hover:!bg-white hover:!border-primary  bg-white !h-8 min-h-7 ",
+                              popoverContent:
+                                "rounded-md text-slate-400 font-normal",
+                              segment: "rounded-sm focus:bg-slate-300/40",
+                            }}
+                          />
+                        </I18nProvider>
+                      )}
+                    />
+                    {errors.date && (
+                      <p className="text-sm text-red-500">
+                        {errors.date.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex w-full flex-col gap-1">
+                  <label
+                    htmlFor="description"
+                    className="text-sm text-slate-500"
+                  >
+                    Observación
+                  </label>
+                  <Textarea
+                    {...register("description")}
+                    classNames={{
+                      inputWrapper: [
+                        "rounded-md border border-slate-300/70 bg-transparent px-3",
+                        "hover:!bg-transparent",
+                        "group-data-[focus=true]:border-primary group-data-[focus=true]:bg-transparent",
+                      ].join(" "),
+                      input: "bg-transparent p-0 placeholder:text-slate-400",
+                    }}
+                    labelPlacement="outside"
+                    placeholder="Ej: Sueldos de mes de Agosto"
+                  />
+                  {errors.description && (
+                    <p className="text-sm text-red-500">
+                      {errors.description.message}
+                    </p>
+                  )}
+                </div>
+
+                {mutation.isError && (
+                  <div className="flex w-full items-center gap-2 rounded-md border border-red-500 bg-red-200/20 p-2">
+                    <CircleAlertIcon className="size-3.5 min-w-3.5 text-red-500" />
+                    <p className="text-sm text-red-500">
+                      {mutation.error.message}
+                    </p>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
+                <Button
+                  isLoading={mutation?.isLoading}
+                  disabled={mutation?.isLoading}
+                  type="submit"
+                  variant="success"
+                  className="w-full"
+                >
+                  Confirmar
+                </Button>
+                <Button
+                  variant="error"
+                  className="w-full"
+                  type="button"
+                  onClick={onClose}
+                >
+                  Cerrar
+                </Button>
+              </ModalFooter>
+            </form>
           </>
         )}
       </ModalContent>

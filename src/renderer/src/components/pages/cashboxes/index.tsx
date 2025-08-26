@@ -16,6 +16,7 @@ import {
 } from "@heroui/react";
 import {
   ChangeStateCashboxModal,
+  CreateCashboxExpenseModal,
   CreateCashboxModal,
   DeleteCashboxModal,
   UpdateCashboxModal,
@@ -27,6 +28,7 @@ import {
   CircleDollarSignIcon,
   DollarSignIcon,
   EllipsisVerticalIcon,
+  HandCoinsIcon,
   Package2Icon,
   PackageIcon,
   PackageOpenIcon,
@@ -75,6 +77,8 @@ export function CashBoxSection() {
   const [cashboxToChangeState, setCashboxToChangeState] = useState<Cashbox>();
   const [cashboxToUpdate, setCashboxToUpdate] = useState<Cashbox>();
   const [cashboxToDelete, setCashboxToDelete] = useState<Cashbox>();
+  const [createCashboxExpenseModal, setCreateCashboxExpenseModal] =
+    useState<Cashbox>();
   const [search, setSearch] = useState("");
 
   const cashboxesQuery = useQuery<
@@ -424,7 +428,7 @@ export function CashBoxSection() {
                                     "data-[hover=true]:text-slate-400",
                                   ].join(" "),
                                 }}
-                                className="cursor-pointer p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-200"
+                                className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-200"
                               >
                                 {!cashbox.state ? (
                                   <PackageOpenIcon className="size-3.5 min-w-3.5" />
@@ -450,11 +454,37 @@ export function CashBoxSection() {
                                     "data-[hover=true]:text-slate-400",
                                   ].join(" "),
                                 }}
-                                className="cursor-pointer p-2 font-medium text-slate-400/70 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
+                                className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
                               >
                                 <SquarePenIcon className="size-3.5 min-w-3.5" />
                                 <p className="text-xs">Editar caja</p>
                               </DropdownItem>
+
+                              {/* Make expense move */}
+                              {cashbox.state === 1 ? (
+                                <DropdownItem
+                                  key="expense-cashbox"
+                                  textValue="Agregar movimiento"
+                                  onClick={() =>
+                                    setCreateCashboxExpenseModal(cashbox)
+                                  }
+                                  classNames={{
+                                    title: "!flex !items-center gap-1",
+                                    base: [
+                                      "rounded-md p-2 font-medium transition-colors",
+                                      "text-slate-400/70",
+                                      "data-[hover=true]:bg-slate-300/30",
+                                      "data-[hover=true]:text-slate-400",
+                                    ].join(" "),
+                                  }}
+                                  className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
+                                >
+                                  <HandCoinsIcon className="size-3.5 min-w-3.5" />
+                                  <p className="text-xs">Agregar movimiento</p>
+                                </DropdownItem>
+                              ) : (
+                                <></>
+                              )}
 
                               <DropdownItem
                                 key="disabled-cashbox"
@@ -475,7 +505,7 @@ export function CashBoxSection() {
                                   shortcut:
                                     "!hover:bg-red-500/10 !hover:text-red-500",
                                 }}
-                                className="!hover:bg-red-500 cursor-pointer p-2 font-medium text-red-500 transition-all hover:rounded-md"
+                                className="!hover:bg-red-500 cursor-pointer p-2 font-semibold text-red-500 transition-all hover:rounded-md"
                               >
                                 <Trash2Icon className="size-3.5 min-w-3.5" />
                                 <p className="text-xs">Deshabilitar</p>
@@ -648,6 +678,17 @@ export function CashBoxSection() {
           onClose={() => setCashboxToUpdate(undefined)}
         />
       )}
+
+      {/* Create expense cashbox  */}
+      {cashboxesQuery.isSuccess &&
+        createCashboxExpenseModal &&
+        currenciesQuery.data && (
+          <CreateCashboxExpenseModal
+            isOpen={!!createCashboxExpenseModal}
+            cashbox={createCashboxExpenseModal}
+            onClose={() => setCreateCashboxExpenseModal(undefined)}
+          />
+        )}
 
       {/* Delete cashbox modal */}
       {cashboxesQuery.isSuccess && cashboxToDelete && (
