@@ -5,8 +5,10 @@ import { lazy, Suspense } from "react";
 import { CashboxDetail } from "@components/pages/CashboxDetail";
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
-import { CashBoxSection } from "./components/pages/CashboxSection";
+import { CashBoxSection } from "./components/pages/cashboxes";
 import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
+import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
+import { HistorySection } from "./components/pages/cashboxes/history/details";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -58,6 +60,17 @@ function App() {
               }
             />
             <Route path="/cajas" element={<CashBoxSection />} />
+
+            <Route
+              path="/cajas/:id/history"
+              element={<CashBoxHistorySection />}
+            />
+
+            <Route
+              path="/cajas/:id/history/:historyID"
+              element={<HistorySection />}
+            />
+
             <Route
               path="/operaciones"
               element={

@@ -6,8 +6,8 @@ import axios from "@renderer/hooks/axios";
 import { useState } from "react";
 import { cn, errorsResponse } from "@renderer/utils";
 import { useNavigate } from "react-router";
-import { Input } from "@heroui/input";
-import { Tooltip } from "@heroui/tooltip";
+import { Input } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "../Button";
 

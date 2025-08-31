@@ -5,10 +5,14 @@ import { HeroUIProvider } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { CookiesProvider } from "react-cookie";
 import { Toaster } from "sonner";
+import { ServerError } from "./utils/types";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      onError: (error) => {
+        console.error((error as ServerError).message);
+      },
       retry: false,
       refetchOnWindowFocus: false,
     },
