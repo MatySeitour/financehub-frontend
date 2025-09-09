@@ -1,5 +1,9 @@
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import {
+  BaseResponseServer,
+  MenuOption,
+  ServerError,
+} from "@renderer/utils/types";
 import { Select, SelectItem, Tooltip } from "@heroui/react";
 
 import { useState } from "react";
