@@ -1,14 +1,25 @@
 import { cn } from "@renderer/utils";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import {
+  BaseResponseServer,
+  MenuOption,
+  ServerError,
+} from "@renderer/utils/types";
 import { Select, SelectItem, Tooltip } from "@heroui/react";
 
-import { useEffect, useRef, useState } from "react";
-import { DollarSignIcon, SearchIcon, Undo2Icon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DollarSignIcon, Edit, SearchIcon, Undo2Icon } from "lucide-react";
 import { useMediaQueryElement } from "@renderer/hooks/useMediaQueries";
 import { useNavigate, useParams } from "react-router";
 import { z } from "zod";
-import { getOperationsHistory } from "@renderer/hooks/operations";
+import {
+  getCashbox,
+  getCashboxHistoryOperations,
+} from "@renderer/hooks/cashboxes";
+import { TableWork } from "@renderer/components/Table";
+import { Operation } from "@renderer/hooks/operations";
+import { OperationsHistorialCashbox } from "@renderer/components/cashboxes/histories/operations";
+import { LoansHistorialCashbox } from "@renderer/components/cashboxes/histories/loans";
 
 const filters = [
   { label: "Operaciones", name: "operations" },
@@ -17,45 +28,29 @@ const filters = [
 type CashboxFilters = (typeof filters)[number];
 
 export function HistorySection() {
-  const { id, historyID } = useParams();
+  const params = useParams();
   const navigate = useNavigate();
 
-  const isValidCashbox = z.string().catch("").parse(historyID);
-  const historyIDValid = +isValidCashbox;
+  const isValidCashbox = z.string().catch("").parse(params.id);
+  const cashboxID = +isValidCashbox;
 
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  const mqSection = useMediaQueryElement(sectionRef);
+  const isValidHistory = z.string().catch("").parse(params.historyID);
+  const historyID = +isValidHistory;
 
   const [selected, setSelected] = useState<CashboxFilters>(filters[0]);
-  const [search, setSearch] = useState("");
 
-  const historyOperationsQuery = useQuery<
-    Awaited<ReturnType<typeof getOperationsHistory>>,
+  const cashboxQuery = useQuery<
+    Awaited<ReturnType<typeof getCashbox>>,
     BaseResponseServer
   >({
-    queryKey: ["history-operations", historyIDValid],
-    queryFn: () => getOperationsHistory(historyIDValid ?? -1),
+    queryKey: ["cashboxes", cashboxID],
+    queryFn: () => getCashbox(cashboxID ?? -1),
     retry: false,
-    enabled: !!historyIDValid && selected.name === "operations",
+    enabled: !!cashboxID && !!historyID,
   });
 
-  /// Focus search with Ctrl + f
-  useEffect(() => {
-    const handleFocusSearch = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "f") {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleFocusSearch);
-    return () => window.removeEventListener("keydown", handleFocusSearch);
-  }, []);
-
   return (
-    <section ref={sectionRef} className="flex h-full w-full flex-col">
+    <section className="flex h-full w-full flex-col">
       {/* Header */}
       <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-6">
         <div className="flex items-center gap-2">
@@ -71,25 +66,17 @@ export function HistorySection() {
               <Undo2Icon className="size-5 min-w-5" />
             </div>
           </Tooltip>
-          <div className="flex items-center gap-2">
-            <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
-              <DollarSignIcon className="size-5 min-w-5" />
-            </div>
-            <h1 className="text-xl font-semibold text-slate-500">
-              Historial #{historyID} de caha ejemplo
-            </h1>
-          </div>
+
+          <h1 className="text-xl font-semibold text-slate-500">
+            Historial #{historyID} de {cashboxQuery.data?.name}
+          </h1>
         </div>
       </div>
 
-      <article className="flex h-full w-full flex-col gap-6 overflow-hidden p-6">
+      <article className="flex h-auto w-full flex-col gap-6 overflow-hidden p-6">
         <div className="flex min-h-10 items-center gap-2">
           {/* Filter */}
           <Select
-            isDisabled={
-              historyOperationsQuery.isLoading ||
-              historyOperationsQuery.isFetching
-            }
             aria-label="filters"
             defaultSelectedKeys={selected.name}
             classNames={{
@@ -124,9 +111,8 @@ export function HistorySection() {
           </Select>
 
           {/* Search */}
-          <div
+          {/* <div
             className={cn(
-              historyOperationsQuery.isFetching && "opacity-60",
               "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
             )}
           >
@@ -150,8 +136,19 @@ export function HistorySection() {
                 F
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
+
+        {selected.name === "operations" && (
+          <OperationsHistorialCashbox
+            cashboxID={cashboxID}
+            historyID={historyID}
+          />
+        )}
+
+        {selected.name === "loans" && (
+          <LoansHistorialCashbox cashboxID={cashboxID} historyID={historyID} />
+        )}
       </article>
     </section>
   );

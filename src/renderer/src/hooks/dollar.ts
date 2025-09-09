@@ -9,7 +9,7 @@ const currenciesSchema = z.object({
   name: z.string(),
   update_date: z.string(),
   sale_value: z.coerce.number(),
-  buy_value: z.coerce.number(),
+  buys_value: z.coerce.number(),
   variation: z.coerce.number(),
 });
 

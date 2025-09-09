@@ -16,10 +16,6 @@ body {
   outline: none !important;
 }
 
-.table {
-  grid-auto-rows: 48px !important;
-}
-
 .onboarding-title::after {
   opacity: 0.35;
   background-image: radial-gradient(#17c964 1.35px, transparent 1.35px);

@@ -2,8 +2,13 @@ import { z } from "zod";
 import axios from "./axios";
 import { errorsResponse } from "@renderer/utils";
 import { currencySchema } from "./currencies";
+import { operationSchema } from "./operations";
+import { loanSchema } from "./loans";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+
+type Moviments = (typeof moviments)[number];
+const moviments = ["operations", "installments", "loans", "expenses"] as const;
 
 export type Cashbox = z.infer<typeof cashboxSchema>;
 export const cashboxSchema = z.object({
@@ -22,10 +27,15 @@ export async function getCashboxes() {
   const { data } = await AxiosFetch("/api/v1/cashboxes");
   return cashboxSchema.array().parse(data.data);
 }
+
+export async function getCashbox(id: number) {
+  const { data } = await AxiosFetch(`/api/v1/cashboxes/${id}`);
+  return cashboxSchema.parse(data.data);
+}
 //////////////////////////
 ////////////// Cashbox history //////////////
-export type CashboxHistoryOperation = z.infer<typeof cashboxSchema>;
-export const cashboxHistoryOperationSchema = z.object({
+export type CashboxHistory = z.infer<typeof cashboxSchema>;
+export const cashboxHistorySchema = z.object({
   id: z.number(),
   openingValue: z.coerce.number(),
   lastValue: z.coerce.number(),
@@ -35,12 +45,44 @@ export const cashboxHistoryOperationSchema = z.object({
   movementsCount: z.number(),
 });
 
-export async function getHistoryCashboxOperations(cashboxID: number) {
+export type CashboxHistoryList = z.infer<typeof cashboxSchema>;
+export const cashboxHistoryListSchema = z.object({
+  current: cashboxHistorySchema.nullable(),
+  records: cashboxHistorySchema.array(),
+});
+
+export async function getHistoryCashbox(cashboxID: number) {
+  try {
+    const { data } = await AxiosFetch(`/api/v1/cashboxes/${cashboxID}/history`);
+    return cashboxHistoryListSchema.parse(data.data);
+  } catch (error) {
+    return errorsResponse(error);
+  }
+}
+
+export async function getCashboxHistoryOperations(
+  cashboxID: number,
+  historyID: number,
+) {
   try {
     const { data } = await AxiosFetch(
-      `/api/v1/cashboxes/${cashboxID}/history/operations`,
+      `/api/v1/cashboxes/${cashboxID}/history/${historyID}/operations`,
     );
-    return cashboxHistoryOperationSchema.array().parse(data.data);
+    return operationSchema.array().parse(data.data);
+  } catch (error) {
+    return errorsResponse(error);
+  }
+}
+
+export async function getCashboxHistoryLoans(
+  cashboxID: number,
+  historyID: number,
+) {
+  try {
+    const { data } = await AxiosFetch(
+      `/api/v1/cashboxes/${cashboxID}/history/${historyID}/loans`,
+    );
+    return loanSchema.array().parse(data.data);
   } catch (error) {
     return errorsResponse(error);
   }

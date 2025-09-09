@@ -5,14 +5,12 @@ import { cva, VariantProps } from "class-variance-authority";
 import React, { ButtonHTMLAttributes } from "react";
 
 const buttonStyles = cva(
-  // "relative h-8 rounded-md z-10 p-2 px-4 text-xs min-w-24 text-white disabled:opacity-60 after:absolute after:left-0 after:top-0 after:h-full after:w-full before:absolute before:left-0 before:bottom-0 before:h-[3.5px] before:w-full before:bg-black/20 before:rounded-full overflow-hidden after:scale-x-[99.2%] after:scale-y-[92.5%] after:-z-10 after:rounded-md after:border-t after:border-white/70",
-  "relative h-9 rounded-md flex items-center justify-center border-x-[1.5px] border-t-1 border-b-[3px] z-10 px-4 text-xs min-w-24 text-white disabled:opacity-60 after:absolute after:left-0 after:top-[0.5px] after:h-full after:w-full after:rounded-md",
+  "h-9 rounded-md flex items-center justify-center disabled:opacity-60 px-4 py-2 text-xs relative text-white border border-b-2 border-black/20 min-w-24 after:absolute after:left-0 after:top-0 after:h-px after:w-full after:scale-x-[94%] shadow-md after:rounded-md after:bg-gradient-to-b after:from-white/70 after:to-transparent",
   {
     variants: {
       variant: {
-        success:
-          "border-green-700 bg-primary hover:bg-primary/90 transition-all",
-        error: "bg-red-500 border-red-800 hover:bg-danger/90 transition-all",
+        success: "bg-primary hover:bg-primary/90 transition-all",
+        error: "bg-red-500 hover:bg-danger/90 transition-all",
         outline:
           "bg-white border border-slate-300 opacity-100 text-slate-400 after:h-0 after:w-0",
       },

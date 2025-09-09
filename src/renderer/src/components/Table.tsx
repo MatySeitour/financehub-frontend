@@ -31,7 +31,7 @@ import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
 import { Button } from "@heroui/react";
 import {
-  ArrowDownZAIcon,
+  ArrowDownAZIcon,
   ArrowUpAZIcon,
   ArrowUpDownIcon,
   CircleAlertIcon,
@@ -91,37 +91,26 @@ function TableWork<T extends TableNode>({
     return useTheme([
       getTheme(),
       {
-        HeaderRow: `
-            color: #687387;
-            font-size: 12px;
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            border-top: 1px solid red;
-          `,
-
         Table: `
           --data-table-library_grid-template-columns:  ${percentageNumber} minmax(150px, 1fr);
             overflow-y: auto;
-            height: 100%;
         `,
-        Header: `
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-          `,
-        Row: `
-          border-right: 1px solid #dddc;
-          height: 40px;
-          max-height: 40px;
-          overflow: hidden;
-          `,
-        Cell: `
-            padding: 6px;
-            color: #8b94a5;
-            font-weight: 500;
-          `,
-        HeaderCell: `
-            font-weight: 500;
-          `,
+        // Header: `
+        //     border-bottom-left-radius: 6px;
+        //     border-bottom-right-radius: 6px;
+        //   `,
+        // Row: `
+        //   border-right: 1px solid #dddc;
+        //   overflow: hidden;
+        //   `,
+        // Cell: `
+        //     padding: 6px;
+        //     color: #8b94a5;
+        //     font-weight: 500;
+        //   `,
+        // HeaderCell: `
+        //     font-weight: 500;
+        //   `,
       },
     ]);
   };
@@ -140,10 +129,10 @@ function TableWork<T extends TableNode>({
     },
     {
       sortIcon: {
-        margin: "0px",
-        iconDefault: <ArrowUpDownIcon className="size-3.5 min-w-3.5" />,
-        iconUp: <ArrowUpAZIcon className="size-3.5 min-w-3.5" />,
-        iconDown: <ArrowDownZAIcon className="size-3.5 min-w-3.5" />,
+        margin: "6px",
+        iconDefault: <ArrowUpDownIcon className="size-4 min-w-4" />,
+        iconUp: <ArrowUpAZIcon className="size-4 min-w-4" />,
+        iconDown: <ArrowDownAZIcon className="size-4 min-w-4" />,
       },
       sortFns,
     },
@@ -206,14 +195,14 @@ function TableWork<T extends TableNode>({
               {(tableList: T[]) => (
                 <>
                   <Header>
-                    <HeaderRow>
+                    <HeaderRow className="!uppercase !text-slate-500">
                       {columns.map((column, index) => (
                         <HeaderCellSort
                           className={cn(
-                            "h-10 border-b border-t border-slate-200 !bg-slate-100",
-                            index === 0 && "rounded-l-md border-l",
+                            "!h-12 border-b border-t border-slate-200 !bg-slate-100 !text-xs",
+                            index === 0 && "rounded-tl-md border-l",
                             index === columns.length - 1 &&
-                              "custom-header-last rounded-r-md border-r",
+                              "custom-header-last rounded-tr-md border-r",
                           )}
                           resize={index === columns.length - 1 ? false : true}
                           sortKey={column.key}
@@ -225,11 +214,11 @@ function TableWork<T extends TableNode>({
                     </HeaderRow>
                   </Header>
                   <Body>
-                    {tableList.map((item) => (
+                    {tableList.map((item, index) => (
                       <Row
                         id={`row-${item.id}`}
                         className={cn(
-                          "cursor-pointer text-xs transition-colors hover:bg-slate-200/50",
+                          "cursor-pointer text-xs transition-colors hover:bg-slate-200/20",
                         )}
                         onClick={(item, e) => {
                           const hasEnableMenu = columns.some(
@@ -269,7 +258,12 @@ function TableWork<T extends TableNode>({
                       >
                         {columns.map((column) => (
                           <Cell
-                            className={cn("h-12 text-xs", column.className)}
+                            className={cn(
+                              index === tableList.length - 1 &&
+                                "first:rounded-bl-md last:rounded-br-md",
+                              "!h-12 min-h-12 border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
+                              column.className,
+                            )}
                             key={`${item.id}-${column.key}`}
                           >
                             {column.render
@@ -289,7 +283,6 @@ function TableWork<T extends TableNode>({
               x={contextMenu.x}
               y={contextMenu.y}
               isOpen={contextMenu.show && contextMenu.visible}
-              setModalState={openModal}
               onCloseContextMenu={() => closeContextMenuHandler(setContextMenu)}
               options={optionsMenu}
               parentRef={table}
@@ -449,7 +442,6 @@ function ContextMenu({
   y,
   onCloseContextMenu,
   options,
-  setModalState,
   isOpen,
 }: {
   x: number;
@@ -457,7 +449,6 @@ function ContextMenu({
   onCloseContextMenu: any;
   parentRef: any;
   options: MenuOption[];
-  setModalState: (state: ModalState) => void;
   isOpen: boolean;
 }) {
   // const router = useRouter();
@@ -499,7 +490,9 @@ function ContextMenu({
   }, []);
 
   const handleMenuClick = (option: MenuOption) => {
-    if (!option.route) return;
+    option.onAction();
+
+    onCloseContextMenu();
     // router.push(`${option.route}`);
   };
 
@@ -530,7 +523,6 @@ function ContextMenu({
             <li
               onClick={() => {
                 handleMenuClick(option);
-                setModalState(option.name.toLowerCase());
               }}
               className={cn(
                 "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs hover:bg-slate-200/40",

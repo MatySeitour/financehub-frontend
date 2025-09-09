@@ -71,7 +71,7 @@ export function Home() {
     //                 {currency?.name}
     //               </p>
     //               <p className="text-sm font-light text-slate-400">
-    //                 ${currency?.buy_value.toFixed(2)}
+    //                 ${currency?.buys_value.toFixed(2)}
     //               </p>
     //               <FaCaretUp className="size-3 min-w-3 text-green-500" />
     //               <p className="text-sm font-light text-slate-400">

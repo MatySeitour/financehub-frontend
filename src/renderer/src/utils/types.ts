@@ -51,8 +51,7 @@ export type ContextMenuState = {
 export type MenuOption = {
   name: string;
   icon: LucideIcon;
-  route: undefined | string;
-  queryData?: number | string;
+  onAction: () => void;
 };
 
 export type ModalState =

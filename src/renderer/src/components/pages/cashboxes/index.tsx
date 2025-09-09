@@ -26,6 +26,7 @@ import {
   CalendarArrowUpIcon,
   CircleAlertIcon,
   CircleDollarSignIcon,
+  ClipboardClockIcon,
   DollarSignIcon,
   EllipsisVerticalIcon,
   HandCoinsIcon,
@@ -169,7 +170,7 @@ export function CashBoxSection() {
           onClick={onOpenCreateCashboxModal}
           disabled={cashboxesQuery.isFetching || cashboxesQuery.isError}
           variant="success"
-          className="flex h-8 items-center gap-1"
+          className="flex h-8 items-center gap-1 pr-5"
         >
           <PlusIcon className="size-4 min-w-4" />
           Agregar caja
@@ -318,7 +319,6 @@ export function CashBoxSection() {
                   {filteredCashboxes?.map((cashbox) => (
                     <motion.li
                       layout
-                      // onClick={() => navigate(`/cajas/${cashbox.id}/history`)}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -409,6 +409,28 @@ export function CashBoxSection() {
                               </div>
                             </DropdownTrigger>
                             <DropdownMenu className="flex p-1.5">
+                              {/* History cashbox option */}
+                              <DropdownItem
+                                key="history-cashbox"
+                                textValue="Historial de caja"
+                                onClick={() =>
+                                  navigate(`/cajas/${cashbox.id}/history`)
+                                }
+                                classNames={{
+                                  title: "!flex !items-center gap-1",
+                                  base: [
+                                    "rounded-md p-2 font-medium transition-colors",
+                                    "text-slate-400/70",
+                                    "data-[hover=true]:bg-slate-300/30",
+                                    "data-[hover=true]:text-slate-400",
+                                  ].join(" "),
+                                }}
+                                className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
+                              >
+                                <ClipboardClockIcon className="size-3.5 min-w-3.5" />
+                                <p className="text-xs">Historial</p>
+                              </DropdownItem>
+
                               {/* Change state cashbox option */}
                               <DropdownItem
                                 key="open-close-cashbox"
@@ -440,26 +462,6 @@ export function CashBoxSection() {
                                 </p>
                               </DropdownItem>
 
-                              {/* Update cashbox option */}
-                              <DropdownItem
-                                key="update-cashbox"
-                                textValue="Editar caja"
-                                onClick={() => setCashboxToUpdate(cashbox)}
-                                classNames={{
-                                  title: "!flex !items-center gap-1",
-                                  base: [
-                                    "rounded-md p-2 font-medium transition-colors",
-                                    "text-slate-400/70",
-                                    "data-[hover=true]:bg-slate-300/30",
-                                    "data-[hover=true]:text-slate-400",
-                                  ].join(" "),
-                                }}
-                                className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
-                              >
-                                <SquarePenIcon className="size-3.5 min-w-3.5" />
-                                <p className="text-xs">Editar caja</p>
-                              </DropdownItem>
-
                               {/* Make expense move */}
                               {cashbox.state === 1 ? (
                                 <DropdownItem
@@ -485,6 +487,26 @@ export function CashBoxSection() {
                               ) : (
                                 <></>
                               )}
+
+                              {/* Update cashbox option */}
+                              <DropdownItem
+                                key="update-cashbox"
+                                textValue="Editar caja"
+                                onClick={() => setCashboxToUpdate(cashbox)}
+                                classNames={{
+                                  title: "!flex !items-center gap-1",
+                                  base: [
+                                    "rounded-md p-2 font-medium transition-colors",
+                                    "text-slate-400/70",
+                                    "data-[hover=true]:bg-slate-300/30",
+                                    "data-[hover=true]:text-slate-400",
+                                  ].join(" "),
+                                }}
+                                className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
+                              >
+                                <SquarePenIcon className="size-3.5 min-w-3.5" />
+                                <p className="text-xs">Editar caja</p>
+                              </DropdownItem>
 
                               <DropdownItem
                                 key="disabled-cashbox"
@@ -541,7 +563,7 @@ export function CashBoxSection() {
                             <div className="flex flex-col">
                               {/* Current value */}
                               <div className="flex items-center gap-1">
-                                <WalletIcon className="size-4 min-w-4 text-slate-400/70" />
+                                <WalletIcon className="size-3.5 min-w-3.5 text-slate-400/70" />
                                 <p className="text-xs text-slate-400/70">
                                   Valor actual
                                 </p>
