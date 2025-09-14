@@ -20,10 +20,12 @@ import { TableWork } from "@renderer/components/Table";
 import { Operation } from "@renderer/hooks/operations";
 import { OperationsHistorialCashbox } from "@renderer/components/cashboxes/histories/operations";
 import { LoansHistorialCashbox } from "@renderer/components/cashboxes/histories/loans";
+import { ExpensesHistorialCashbox } from "@renderer/components/cashboxes/histories/expenses";
 
 const filters = [
   { label: "Operaciones", name: "operations" },
   { label: "Préstamos", name: "loans" },
+  { label: "Gastos", name: "expenses" },
 ] as const;
 type CashboxFilters = (typeof filters)[number];
 
@@ -88,7 +90,7 @@ export function HistorySection() {
               listbox: "text-slate-400",
               value: "!text-slate-400",
             }}
-            className="min-h-9 max-w-44 rounded-md outline-none"
+            className="min-h-9 max-w-64 rounded-md outline-none"
             selectedKeys={new Set([selected.name])}
             onSelectionChange={(e) => {
               const key = typeof e === "string" ? e : e?.currentKey;
@@ -148,6 +150,13 @@ export function HistorySection() {
 
         {selected.name === "loans" && (
           <LoansHistorialCashbox cashboxID={cashboxID} historyID={historyID} />
+        )}
+
+        {selected.name === "expenses" && (
+          <ExpensesHistorialCashbox
+            cashboxID={cashboxID}
+            historyID={historyID}
+          />
         )}
       </article>
     </section>

@@ -4,6 +4,7 @@ import { errorsResponse } from "@renderer/utils";
 import { currencySchema } from "./currencies";
 import { operationSchema } from "./operations";
 import { loanSchema } from "./loans";
+import { expenseSchema } from "./expenses";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -86,4 +87,14 @@ export async function getCashboxHistoryLoans(
   } catch (error) {
     return errorsResponse(error);
   }
+}
+
+export async function getCashboxHistoryExpenses(
+  cashboxID: number,
+  historyID: number,
+) {
+  const { data } = await AxiosFetch(
+    `/api/v1/cashboxes/${cashboxID}/history/${historyID}/expenses`,
+  );
+  return expenseSchema.array().parse(data.data);
 }
