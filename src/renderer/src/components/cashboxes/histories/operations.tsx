@@ -16,7 +16,7 @@ import { TableWork } from "@renderer/components/Table";
 import { Operation } from "@renderer/hooks/operations";
 import { format } from "date-fns";
 
-export function OperationsHistorialCashbox({
+export function OperationsHistoryCashbox({
   cashboxID,
   historyID,
 }: {

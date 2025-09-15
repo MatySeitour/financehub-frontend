@@ -45,7 +45,7 @@ const getInstallmentStatusSyles = (
   return "text-danger";
 };
 
-export function LoansHistorialCashbox({
+export function LoansHistoryCashbox({
   cashboxID,
   historyID,
 }: {

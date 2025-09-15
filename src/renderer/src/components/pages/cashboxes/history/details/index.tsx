@@ -1,31 +1,22 @@
-import { cn } from "@renderer/utils";
 import { useQuery } from "react-query";
-import {
-  BaseResponseServer,
-  MenuOption,
-  ServerError,
-} from "@renderer/utils/types";
+import { BaseResponseServer } from "@renderer/utils/types";
 import { Select, SelectItem, Tooltip } from "@heroui/react";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { DollarSignIcon, Edit, SearchIcon, Undo2Icon } from "lucide-react";
-import { useMediaQueryElement } from "@renderer/hooks/useMediaQueries";
+import { useState } from "react";
+import { Undo2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { z } from "zod";
-import {
-  getCashbox,
-  getCashboxHistoryOperations,
-} from "@renderer/hooks/cashboxes";
-import { TableWork } from "@renderer/components/Table";
-import { Operation } from "@renderer/hooks/operations";
-import { OperationsHistorialCashbox } from "@renderer/components/cashboxes/histories/operations";
-import { LoansHistorialCashbox } from "@renderer/components/cashboxes/histories/loans";
-import { ExpensesHistorialCashbox } from "@renderer/components/cashboxes/histories/expenses";
+import { getCashbox } from "@renderer/hooks/cashboxes";
+import { OperationsHistoryCashbox } from "@renderer/components/cashboxes/histories/operations";
+import { LoansHistoryCashbox } from "@renderer/components/cashboxes/histories/loans";
+import { ExpensesHistoryCashbox } from "@renderer/components/cashboxes/histories/expenses";
+import { InstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/installments";
 
 const filters = [
   { label: "Operaciones", name: "operations" },
   { label: "Préstamos", name: "loans" },
   { label: "Gastos", name: "expenses" },
+  { label: "Cuotas", name: "installments" },
 ] as const;
 type CashboxFilters = (typeof filters)[number];
 
@@ -70,7 +61,7 @@ export function HistorySection() {
           </Tooltip>
 
           <h1 className="text-xl font-semibold text-slate-500">
-            Historial #{historyID} de {cashboxQuery.data?.name}
+            History #{historyID} de {cashboxQuery.data?.name}
           </h1>
         </div>
       </div>
@@ -142,18 +133,22 @@ export function HistorySection() {
         </div>
 
         {selected.name === "operations" && (
-          <OperationsHistorialCashbox
+          <OperationsHistoryCashbox
             cashboxID={cashboxID}
             historyID={historyID}
           />
         )}
 
         {selected.name === "loans" && (
-          <LoansHistorialCashbox cashboxID={cashboxID} historyID={historyID} />
+          <LoansHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
         )}
 
         {selected.name === "expenses" && (
-          <ExpensesHistorialCashbox
+          <ExpensesHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
+        )}
+
+        {selected.name === "installments" && (
+          <InstallmentsHistoryCashbox
             cashboxID={cashboxID}
             historyID={historyID}
           />

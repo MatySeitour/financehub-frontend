@@ -412,7 +412,7 @@ export function CashBoxSection() {
                               {/* History cashbox option */}
                               <DropdownItem
                                 key="history-cashbox"
-                                textValue="Historial de caja"
+                                textValue="History de caja"
                                 onClick={() =>
                                   navigate(`/cajas/${cashbox.id}/history`)
                                 }
@@ -428,7 +428,7 @@ export function CashBoxSection() {
                                 className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
                               >
                                 <ClipboardClockIcon className="size-3.5 min-w-3.5" />
-                                <p className="text-xs">Historial</p>
+                                <p className="text-xs">History</p>
                               </DropdownItem>
 
                               {/* Change state cashbox option */}

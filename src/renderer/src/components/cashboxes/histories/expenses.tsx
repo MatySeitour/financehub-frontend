@@ -4,16 +4,12 @@ import { BaseResponseServer } from "@renderer/utils/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleAlertIcon, SearchIcon } from "lucide-react";
-import {
-  getCashboxHistoryExpenses,
-  getCashboxHistoryLoans,
-} from "@renderer/hooks/cashboxes";
+import { getCashboxHistoryExpenses } from "@renderer/hooks/cashboxes";
 import { TableWork } from "@renderer/components/Table";
 import { format } from "date-fns";
-import { Loan } from "@renderer/hooks/loans";
 import { Expense } from "@renderer/hooks/expenses";
 
-export function ExpensesHistorialCashbox({
+export function ExpensesHistoryCashbox({
   cashboxID,
   historyID,
 }: {

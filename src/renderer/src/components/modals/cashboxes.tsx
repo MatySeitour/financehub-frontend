@@ -713,7 +713,7 @@ export function DeleteCashboxModal({
                 <p className="text-xl text-danger">Deshabilitar caja</p>
                 <p className="text-balance text-center text-sm font-normal text-red-400">
                   No podrás realizar <b>operaciones ni prestamos</b> en esta
-                  caja si está deshabilitada, pero conservarás su historial
+                  caja si está deshabilitada, pero conservarás su History
                 </p>
               </div>
             </ModalHeader>
