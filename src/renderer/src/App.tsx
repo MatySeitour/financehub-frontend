@@ -9,6 +9,7 @@ import { CashBoxSection } from "./components/pages/cashboxes";
 import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
+import { HistoryCurrentSection } from "./components/pages/cashboxes/history/current";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -64,6 +65,11 @@ function App() {
             <Route
               path="/cajas/:id/history"
               element={<CashBoxHistorySection />}
+            />
+
+            <Route
+              path="/cajas/:id/history/current"
+              element={<HistoryCurrentSection />}
             />
 
             <Route

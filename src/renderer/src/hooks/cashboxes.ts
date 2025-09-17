@@ -109,3 +109,40 @@ export async function getCashboxHistoryInstallments(
   );
   return installmentHistorySchema.array().parse(data.data);
 }
+////////////////////////////////////////////////////////////
+////////////// Cashbox current history //////////////
+export async function getCashboxCurrentHistoryOperations(cashboxID: number) {
+  try {
+    const { data } = await AxiosFetch(
+      `/api/v1/cashboxes/${cashboxID}/history/current/operations`,
+    );
+    return operationSchema.array().parse(data.data);
+  } catch (error) {
+    return errorsResponse(error);
+  }
+}
+
+export async function getCashboxCurrentHistoryLoans(cashboxID: number) {
+  try {
+    const { data } = await AxiosFetch(
+      `/api/v1/cashboxes/${cashboxID}/history/current/loans`,
+    );
+    return loanSchema.array().parse(data.data);
+  } catch (error) {
+    return errorsResponse(error);
+  }
+}
+
+export async function getCashboxCurrentHistoryExpenses(cashboxID: number) {
+  const { data } = await AxiosFetch(
+    `/api/v1/cashboxes/${cashboxID}/history/current/expenses`,
+  );
+  return expenseSchema.array().parse(data.data);
+}
+
+export async function getCashboxCurrentHistoryInstallments(cashboxID: number) {
+  const { data } = await AxiosFetch(
+    `/api/v1/cashboxes/${cashboxID}/history/current/installments`,
+  );
+  return installmentHistorySchema.array().parse(data.data);
+}

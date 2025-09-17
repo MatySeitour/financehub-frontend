@@ -11,31 +11,28 @@ import {
   TrendingDownIcon,
   TrendingUpIcon,
 } from "lucide-react";
-import { getCashboxHistoryOperations } from "@renderer/hooks/cashboxes";
+import { getCashboxCurrentHistoryOperations } from "@renderer/hooks/cashboxes";
 import { TableWork } from "@renderer/components/Table";
 import { Operation } from "@renderer/hooks/operations";
 import { format } from "date-fns";
 
-export function OperationsHistoryCashbox({
+export function CurrentOperationsHistoryCashbox({
   cashboxID,
-  historyID,
 }: {
   cashboxID: number;
-  historyID: number;
 }) {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
 
   const historyOperationsQuery = useQuery<
-    Awaited<ReturnType<typeof getCashboxHistoryOperations>>,
+    Awaited<ReturnType<typeof getCashboxCurrentHistoryOperations>>,
     BaseResponseServer
   >({
-    queryKey: ["history-operations", historyID],
-    queryFn: () =>
-      getCashboxHistoryOperations(cashboxID ?? -1, historyID ?? -1),
+    queryKey: ["history-operation-current", cashboxID],
+    queryFn: () => getCashboxCurrentHistoryOperations(cashboxID ?? -1),
     retry: false,
-    enabled: !!cashboxID && !!historyID,
+    enabled: !!cashboxID,
   });
 
   const COLUMNS = useMemo(() => {
