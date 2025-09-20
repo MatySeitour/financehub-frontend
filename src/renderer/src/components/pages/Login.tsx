@@ -47,123 +47,144 @@ export function Login() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <article className="h-full w-1/3 p-10">
-        <div className="flex h-full w-full flex-col justify-center gap-8">
-          <div className="flex flex-col items-center justify-center gap-2.5">
-            <div className="h-12 w-12 rounded-md bg-green-300"></div>
-            <h1 className="text-2xl font-medium text-slate-600">
-              Iniciar sesión
-            </h1>
-          </div>
+    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-bl from-primary/10 to-transparent">
+      <div className="flex h-full w-full justify-center p-10">
+        <div className="flex h-full w-full max-w-lg flex-col justify-center gap-12">
+          <h1 className="text-left text-3xl font-medium text-slate-500">
+            Iniciar sesión
+          </h1>
+
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex h-auto w-full flex-col gap-16"
           >
             <div className="flex flex-col gap-6">
-              <Input
-                isInvalid={errors?.email?.message ? true : false}
-                errorMessage={errors?.email?.message}
-                {...register("email")}
-                name="email"
-                id="email"
-                classNames={{
-                  inputWrapper:
-                    "after:bg-green-600 group-data-[has-helper=true]:after:!bg-red-500",
-                  input: "!text-slate-500",
-                  errorMessage: "text-red-500 font-medium",
-                }}
-                placeholder=" "
-                label={
-                  <label
-                    className={cn(
-                      "text-slate-400/80",
-                      errors?.email?.message && "text-red-500",
-                    )}
-                    htmlFor="email"
-                  >
-                    Correo eléctronico
-                  </label>
-                }
-                variant="underlined"
-                type="string"
-              />
-              <Input
-                isInvalid={errors?.password?.message ? true : false}
-                errorMessage={errors?.password?.message}
-                {...register("password")}
-                name="password"
-                endContent={
-                  <Tooltip
-                    color="success"
-                    className="text-xs text-white"
-                    closeDelay={0}
-                    content={
-                      isPasswordVisible
-                        ? "Ocultar contraseña"
-                        : "Mostrar contraseña"
-                    }
-                  >
-                    <div className="flex">
-                      <EyeIcon
-                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                        className={cn(
-                          "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
-                          !isPasswordVisible && "hidden",
-                        )}
-                      />
-                      <EyeOffIcon
-                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                        className={cn(
-                          "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
-                          isPasswordVisible && "hidden",
-                        )}
-                      />
-                    </div>
-                  </Tooltip>
-                }
-                id="password"
-                className="placeholder:text-slate-200"
-                classNames={{
-                  inputWrapper:
-                    "after:bg-green-600 group-data-[has-helper=true]:after:!bg-red-500",
-                  input: "!text-slate-500",
-                  errorMessage: "text-red-500 font-medium",
-                }}
-                placeholder=" "
-                label={
-                  <label
-                    className={cn(
-                      "text-slate-400/80",
-                      errors?.password?.message && "text-red-500",
-                    )}
-                    htmlFor="password"
-                  >
-                    Contraseña
-                  </label>
-                }
-                variant="underlined"
-                type={isPasswordVisible ? "text" : "password"}
-              />
+              {/* Email */}
+              <div className="flex flex-col gap-1">
+                <Input
+                  errorMessage={errors?.email?.message}
+                  {...register("email")}
+                  name="email"
+                  labelPlacement="outside-top"
+                  id="email"
+                  placeholder=" "
+                  classNames={{
+                    inputWrapper: cn(
+                      errors.password
+                        ? "border-red-500 "
+                        : "border-slate-300/60",
+                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 transition-all",
+                    ),
+                    label: "text-slate-400",
+                  }}
+                  label={
+                    <label
+                      className={cn(
+                        "text-slate-400/80",
+                        errors?.email?.message && "text-red-500",
+                      )}
+                      htmlFor="email"
+                    >
+                      Correo eléctronico
+                    </label>
+                  }
+                  type="string"
+                />
+
+                {errors?.email?.message && (
+                  <span className="text-xs font-medium text-red-500">
+                    {errors?.email?.message}
+                  </span>
+                )}
+              </div>
+
+              {/* Password */}
+              <div className="flex flex-col gap-1">
+                <Input
+                  errorMessage={errors?.password?.message}
+                  {...register("password")}
+                  name="password"
+                  endContent={
+                    <Tooltip
+                      color="success"
+                      className="text-xs text-white"
+                      closeDelay={0}
+                      content={
+                        isPasswordVisible
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
+                    >
+                      <div className="flex">
+                        <EyeIcon
+                          onClick={() =>
+                            setIsPasswordVisible(!isPasswordVisible)
+                          }
+                          className={cn(
+                            "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
+                            !isPasswordVisible && "hidden",
+                          )}
+                        />
+                        <EyeOffIcon
+                          onClick={() =>
+                            setIsPasswordVisible(!isPasswordVisible)
+                          }
+                          className={cn(
+                            "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
+                            isPasswordVisible && "hidden",
+                          )}
+                        />
+                      </div>
+                    </Tooltip>
+                  }
+                  labelPlacement="outside-top"
+                  id="password"
+                  classNames={{
+                    inputWrapper: cn(
+                      errors.password
+                        ? "border-red-500 "
+                        : "border-slate-300/60",
+                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 transition-all",
+                    ),
+                    label: "text-slate-400",
+                  }}
+                  label={
+                    <label
+                      className={cn(
+                        "text-slate-400/80",
+                        errors?.password?.message && "text-red-500",
+                      )}
+                      htmlFor="password"
+                    >
+                      Contraseña
+                    </label>
+                  }
+                  type={isPasswordVisible ? "text" : "password"}
+                />
+                {errors?.password?.message && (
+                  <span className="text-xs font-medium text-red-500">
+                    {errors?.password?.message}
+                  </span>
+                )}
+              </div>
+
+              {/* Forgot password link */}
               <a
                 href="/"
                 className="w-fit cursor-pointer text-sm text-green-500 hover:underline"
               >
                 ¿Olvidaste tu contraseña?
               </a>
-              {login?.isError && (
-                <div className="flex h-12 w-full items-center gap-2 rounded-md bg-red-300/30 px-4">
-                  <CircleAlertIcon className="size-8 min-w-8 text-red-500" />
+              {login.isError && (
+                <div className="flex w-full items-center gap-2 rounded-md border border-red-400/70 bg-red-200/20 p-3">
+                  <CircleAlertIcon className="size-5 min-w-5 text-red-500" />
                   <p className="text-sm font-medium text-red-500">
-                    {login?.error?.code === "unauthorized"
-                      ? "El correo o la contraseña son incorrectos"
-                      : login?.error?.code === "server-error"
-                        ? "Ha ocurrido un error en el servidor"
-                        : "Ha ocurrido un error de conexión"}
+                    {login.error.message}
                   </p>
                 </div>
               )}
             </div>
+
             <Button
               isLoading={login.isLoading || login.isSuccess}
               disabled={login.isLoading || login.isSuccess}
@@ -173,32 +194,28 @@ export function Login() {
             </Button>
           </form>
         </div>
-      </article>
-      <article className="h-full w-2/3 p-4">
-        <div className="flex h-full w-full flex-col gap-10 rounded-2xl border-slate-200 bg-gradient-to-t from-green-300/80 via-green-300/20 to-green-300/10 py-10 pb-20 pl-16">
-          <div className="flex flex-col gap-8">
-            <div className="flex items-center gap-4">
-              <div className="hola h-fit w-fit rounded-full bg-gradient-to-b from-green-500 to-green-500/50 px-3.5 py-1.5 text-white">
-                <p className="text-xs">Gestion de clientes</p>
-              </div>
-              <div className="h-fit w-fit rounded-full bg-gradient-to-b from-green-500 to-green-500/50 px-3.5 py-1.5 text-white">
-                <p className="text-xs">Gestion de cajas</p>
-              </div>
-              <div className="h-fit w-fit rounded-full bg-gradient-to-b from-green-500 to-green-500/50 px-3.5 py-1.5 text-white">
-                <p className="text-xs">Gestion de empleados</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-xl font-medium text-slate-600">
-                Llevamos el <b className="text-green-500">control</b> y{" "}
-                <b className="text-green-500">administración</b> de las
-                operaciones a otro nivel{" "}
-              </p>
-            </div>
+      </div>
+
+      {/* Hero */}
+      <div className="relative flex h-full w-full items-center justify-center p-4">
+        <span className="absolute top-0 z-0 h-72 w-0.5 bg-gradient-to-b from-primary/70 to-transparent 2xl:h-96" />
+        <span className="absolute bottom-0 h-72 w-0.5 bg-gradient-to-t from-primary/70 to-transparent 2xl:h-96" />
+
+        <div className="flex h-auto min-h-32 translate-x-12 flex-col justify-center overflow-hidden">
+          <div className="flex items-center">
+            <span className="onboarding-text text-5xl font-extrabold text-slate-200 2xl:text-6xl">
+              Finance
+            </span>
+            <b className="onboarding-text inline-block text-5xl font-extrabold 2xl:text-6xl">
+              {" "}
+              hub
+            </b>
           </div>
-          <div className="relative flex h-full w-full overflow-hidden rounded-l-md bg-gradient-to-b from-white via-white to-transparent before:absolute before:bottom-0 before:z-40 before:h-40 before:w-full before:bg-gradient-to-b before:from-transparent before:to-transparent"></div>
+          <span className="text-xl font-medium text-slate-400/70">
+            Sistema de gestión de cajas y operaciones
+          </span>
         </div>
-      </article>
+      </div>
     </div>
   );
 }
