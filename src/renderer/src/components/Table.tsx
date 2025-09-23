@@ -95,22 +95,6 @@ function TableWork<T extends TableNode>({
           --data-table-library_grid-template-columns:  ${percentageNumber} minmax(150px, 1fr);
             overflow-y: auto;
         `,
-        // Header: `
-        //     border-bottom-left-radius: 6px;
-        //     border-bottom-right-radius: 6px;
-        //   `,
-        // Row: `
-        //   border-right: 1px solid #dddc;
-        //   overflow: hidden;
-        //   `,
-        // Cell: `
-        //     padding: 6px;
-        //     color: #8b94a5;
-        //     font-weight: 500;
-        //   `,
-        // HeaderCell: `
-        //     font-weight: 500;
-        //   `,
       },
     ]);
   };
@@ -174,110 +158,107 @@ function TableWork<T extends TableNode>({
   }
 
   return (
-    <article className="h-full w-full">
+    <>
       {data?.length !== 0 && (
         <>
-          <div
-            className="h-full max-h-full overflow-auto"
+          <Table
             ref={table}
             id="table-container"
+            layout={
+              columnsLength > 4
+                ? { custom: true, horizontalScroll: true }
+                : undefined
+            }
+            sort={sort}
+            data={{ nodes: data }}
+            theme={theme}
           >
-            <Table
-              layout={
-                columnsLength > 4
-                  ? { custom: true, horizontalScroll: true }
-                  : undefined
-              }
-              sort={sort}
-              data={{ nodes: data }}
-              theme={theme}
-            >
-              {(tableList: T[]) => (
-                <>
-                  <Header>
-                    <HeaderRow className="!uppercase !text-slate-500">
-                      {columns.map((column, index) => (
-                        <HeaderCellSort
-                          className={cn(
-                            "!h-12 border-b border-t border-slate-200 !bg-slate-100 !text-xs",
-                            index === 0 && "rounded-tl-md border-l",
-                            index === columns.length - 1 &&
-                              "custom-header-last rounded-tr-md border-r",
-                          )}
-                          resize={index === columns.length - 1 ? false : true}
-                          sortKey={column.key}
-                          key={column.key}
-                        >
-                          {column.label}
-                        </HeaderCellSort>
-                      ))}
-                    </HeaderRow>
-                  </Header>
-                  <Body>
-                    {tableList.map((item, index) => (
-                      <Row
-                        id={`row-${item.id}`}
+            {(tableList: T[]) => (
+              <>
+                <Header>
+                  <HeaderRow className="!uppercase !text-slate-500">
+                    {columns.map((column, index) => (
+                      <HeaderCellSort
                         className={cn(
-                          "cursor-pointer text-xs transition-colors hover:bg-slate-200/20",
+                          "!h-12 border-b border-t border-slate-200 !bg-slate-100 !text-xs",
+                          index === 0 && "rounded-tl-md border-l",
+                          index === columns.length - 1 &&
+                            "custom-header-last rounded-tr-md border-r",
                         )}
-                        onClick={(item, e) => {
-                          const hasEnableMenu = columns.some(
-                            (column) => column.enabledContextMenu,
-                          );
-
-                          const enableMenu = columns.some((column) =>
-                            column.enabledContextMenu
-                              ? column.enabledContextMenu(item)
-                              : false,
-                          );
-
-                          if (enableMenu || !hasEnableMenu) {
-                            selectRowID && selectRowID(Number(item.id));
-                            openContextMenuHandler(e, setContextMenu);
-                          }
-                        }}
-                        onDoubleClick={(item) => {
-                          const hasEnableMenu = columns.some(
-                            (column) => column.enabledContextMenu,
-                          );
-
-                          const enableMenu = columns.some((column) =>
-                            column.enabledContextMenu
-                              ? column.enabledContextMenu(item)
-                              : false,
-                          );
-
-                          if (enableMenu || !hasEnableMenu) {
-                            closeContextMenuHandler(setContextMenu);
-                            selectRowID && selectRowID(Number(item.id));
-                            openModal && openModal("editar");
-                          }
-                        }}
-                        key={item.id}
-                        item={item}
+                        resize={index === columns.length - 1 ? false : true}
+                        sortKey={column.key}
+                        key={column.key}
                       >
-                        {columns.map((column) => (
-                          <Cell
-                            className={cn(
-                              index === tableList.length - 1 &&
-                                "first:rounded-bl-md last:rounded-br-md",
-                              "!h-12 min-h-12 border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
-                              column.className,
-                            )}
-                            key={`${item.id}-${column.key}`}
-                          >
-                            {column.render
-                              ? column.render(item)
-                              : item[column.key]}
-                          </Cell>
-                        ))}
-                      </Row>
+                        {column.label}
+                      </HeaderCellSort>
                     ))}
-                  </Body>
-                </>
-              )}
-            </Table>
-          </div>
+                  </HeaderRow>
+                </Header>
+                <Body>
+                  {tableList.map((item, index) => (
+                    <Row
+                      id={`row-${item.id}`}
+                      className={cn(
+                        "cursor-pointer text-xs transition-colors hover:bg-slate-200/20",
+                      )}
+                      onClick={(item, e) => {
+                        const hasEnableMenu = columns.some(
+                          (column) => column.enabledContextMenu,
+                        );
+
+                        const enableMenu = columns.some((column) =>
+                          column.enabledContextMenu
+                            ? column.enabledContextMenu(item)
+                            : false,
+                        );
+
+                        if (enableMenu || !hasEnableMenu) {
+                          selectRowID && selectRowID(Number(item.id));
+                          openContextMenuHandler(e, setContextMenu);
+                        }
+                      }}
+                      onDoubleClick={(item) => {
+                        const hasEnableMenu = columns.some(
+                          (column) => column.enabledContextMenu,
+                        );
+
+                        const enableMenu = columns.some((column) =>
+                          column.enabledContextMenu
+                            ? column.enabledContextMenu(item)
+                            : false,
+                        );
+
+                        if (enableMenu || !hasEnableMenu) {
+                          closeContextMenuHandler(setContextMenu);
+                          selectRowID && selectRowID(Number(item.id));
+                          openModal && openModal("editar");
+                        }
+                      }}
+                      key={item.id}
+                      item={item}
+                    >
+                      {columns.map((column) => (
+                        <Cell
+                          className={cn(
+                            index === tableList.length - 1 &&
+                              "first:rounded-bl-md last:rounded-br-md",
+                            "!h-12 min-h-12 border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
+                            column.className,
+                          )}
+                          key={`${item.id}-${column.key}`}
+                        >
+                          {column.render
+                            ? column.render(item)
+                            : item[column.key]}
+                        </Cell>
+                      ))}
+                    </Row>
+                  ))}
+                </Body>
+              </>
+            )}
+          </Table>
+
           {contextMenu.show && openModal && optionsMenu && (
             <ContextMenu
               x={contextMenu.x}
@@ -290,7 +271,7 @@ function TableWork<T extends TableNode>({
           )}
         </>
       )}
-    </article>
+    </>
   );
 }
 

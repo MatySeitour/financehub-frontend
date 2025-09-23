@@ -198,16 +198,14 @@ export function CurrentInstallmentsHistoryCashbox({
           <p className="text-slate-600">No hay cuotas en este historial</p>
         </div>
       ) : (
-        <div className="relative flex-grow overflow-hidden">
-          <TableWork
-            columns={COLUMNS}
-            error={historyInstallmentsQuery.error}
-            loading={historyInstallmentsQuery.isFetching}
-            searchInput={search}
-            data={filteredInstallments}
-            openModal={() => console.log()}
-          />
-        </div>
+        <TableWork
+          columns={COLUMNS}
+          error={historyInstallmentsQuery.error}
+          loading={historyInstallmentsQuery.isFetching}
+          searchInput={search}
+          data={filteredInstallments}
+          openModal={() => console.log()}
+        />
       )}
     </>
   );

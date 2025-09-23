@@ -224,16 +224,14 @@ export function CurrentOperationsHistoryCashbox({
           <p className="text-slate-600">No hay operaciones en este historial</p>
         </div>
       ) : (
-        <div className="relative flex-grow overflow-hidden">
-          <TableWork
-            columns={COLUMNS}
-            loading={historyOperationsQuery.isLoading}
-            error={historyOperationsQuery.isError}
-            searchInput={search}
-            data={filteredOperations}
-            openModal={() => console.log()}
-          />
-        </div>
+        <TableWork
+          columns={COLUMNS}
+          loading={historyOperationsQuery.isLoading}
+          error={historyOperationsQuery.isError}
+          searchInput={search}
+          data={filteredOperations}
+          openModal={() => console.log()}
+        />
       )}
     </>
   );

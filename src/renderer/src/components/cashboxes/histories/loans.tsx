@@ -269,16 +269,14 @@ export function LoansHistoryCashbox({
           <p className="text-slate-600">No hay préstamos en este historial</p>
         </div>
       ) : (
-        <div className="relative flex-grow overflow-hidden">
-          <TableWork
-            columns={COLUMNS}
-            loading={historyLoansQuery.isLoading}
-            error={historyLoansQuery.isError}
-            searchInput={search}
-            data={filteredLoans}
-            openModal={() => console.log()}
-          />
-        </div>
+        <TableWork
+          columns={COLUMNS}
+          loading={historyLoansQuery.isLoading}
+          error={historyLoansQuery.isError}
+          searchInput={search}
+          data={filteredLoans}
+          openModal={() => console.log()}
+        />
       )}
     </>
   );

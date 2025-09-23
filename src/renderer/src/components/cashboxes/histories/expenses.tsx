@@ -117,16 +117,14 @@ export function ExpensesHistoryCashbox({
           <p className="text-slate-600">No hay gastos en este historial</p>
         </div>
       ) : (
-        <div className="relative flex-grow overflow-hidden">
-          <TableWork
-            columns={COLUMNS}
-            error={historyExpensesQuery.error}
-            loading={historyExpensesQuery.isFetching}
-            searchInput={search}
-            data={filteredExpenses}
-            openModal={() => console.log()}
-          />
-        </div>
+        <TableWork
+          columns={COLUMNS}
+          error={historyExpensesQuery.error}
+          loading={historyExpensesQuery.isFetching}
+          searchInput={search}
+          data={filteredExpenses}
+          openModal={() => console.log()}
+        />
       )}
     </>
   );

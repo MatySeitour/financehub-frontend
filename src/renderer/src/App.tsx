@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
 
-import { CashboxDetail } from "@components/pages/CashboxDetail";
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
@@ -93,7 +92,6 @@ function App() {
                 </main>
               }
             />
-            <Route path="/detail" element={<CashboxDetail />} />
           </Route>
         </Routes>
       </Suspense>
