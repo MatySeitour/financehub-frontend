@@ -142,9 +142,9 @@ export default function ProtectedLayout() {
                       className={({ isActive }) =>
                         cn(
                           isActive
-                            ? "rounded-md bg-primary/5 font-medium text-primary"
-                            : "border-transparent text-slate-400 hover:text-slate-500",
-                          "flex h-auto w-full items-center px-2 py-1 font-medium transition-all",
+                            ? "rounded-md border-slate-300/30 bg-slate-300/10 font-medium text-slate-500/80"
+                            : "border-transparent text-slate-400 hover:text-slate-500/80",
+                          "flex h-auto w-full items-center border px-2 py-1 font-medium transition-all",
                         )
                       }
                       to={navItem.linkTo}
@@ -158,7 +158,7 @@ export default function ProtectedLayout() {
             </div>
 
             {/* User */}
-            <div className="flex h-16 w-full items-center gap-2 rounded-md border-t border-slate-200 bg-white px-2 py-5">
+            <div className="flex h-16 w-full items-center gap-2 rounded-md border-t border-slate-200 bg-white p-4">
               <div className="flex items-center justify-center rounded-full bg-primary/10 p-1.5">
                 <span className="text-sm font-medium uppercase text-primary">
                   {firstLetter}
