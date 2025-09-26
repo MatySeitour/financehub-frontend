@@ -26,6 +26,21 @@ export const userSchema = z.object({
   role_id: z.number(),
 });
 
+export type TSession = z.infer<typeof sessionSchema>;
+export const sessionSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  organization: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  role: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+});
+
 export type LoginUser = Omit<User, "name">;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
 

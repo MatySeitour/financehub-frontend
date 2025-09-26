@@ -25,7 +25,10 @@ function App() {
         }
       >
         <Routes>
+          {/* Redirect home */}
           <Route path="/" element={<Navigate to={"/home"} />} />
+
+          {/* Auth */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route
@@ -33,8 +36,13 @@ function App() {
               element={<OrganizationOnboarding />}
             />
           </Route>
+
+          {/* ------------ Main routes ------------ */}
           <Route element={<ProtectedLayout />}>
+            {/* Home */}
             <Route path="/home" element={<Home />} />
+
+            {/* Clients */}
             <Route
               path="/clientes"
               element={
@@ -43,6 +51,8 @@ function App() {
                 </main>
               }
             />
+
+            {/* Sellers */}
             <Route
               path="/vendedores"
               element={
@@ -51,6 +61,8 @@ function App() {
                 </main>
               }
             />
+
+            {/* Loans */}
             <Route
               path="/prestamos"
               element={
@@ -59,23 +71,29 @@ function App() {
                 </main>
               }
             />
+
+            {/* Cashboxes */}
             <Route path="/cajas" element={<CashBoxSection />} />
 
+            {/* Cashboxes history */}
             <Route
               path="/cajas/:id/history"
               element={<CashBoxHistorySection />}
             />
 
+            {/* Cashboxes current history */}
             <Route
               path="/cajas/:id/history/current"
               element={<HistoryCurrentSection />}
             />
 
+            {/* Cashbox history */}
             <Route
               path="/cajas/:id/history/:historyID"
               element={<HistorySection />}
             />
 
+            {/* Operations */}
             <Route
               path="/operaciones"
               element={
@@ -84,6 +102,8 @@ function App() {
                 </main>
               }
             />
+
+            {/* Settings */}
             <Route
               path="/configuracion"
               element={
