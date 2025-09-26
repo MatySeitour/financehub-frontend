@@ -36,11 +36,6 @@ export type User = {
   };
 };
 
-export type SessionResponse = {
-  user?: User;
-  error?: BaseResponseServer;
-};
-
 export type ContextMenuState = {
   show: boolean;
   x: number;
