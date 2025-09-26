@@ -1,29 +1,23 @@
 import clsx, { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import {
-  ContextMenuState,
-  ErrorResponse,
-  MenuOption,
-  NavItem,
-  SessionResponse,
-} from "./types";
-import { useTheme } from "@table-library/react-table-library/theme";
-import { getTheme } from "@table-library/react-table-library/baseline";
+import { ContextMenuState, ErrorResponse, NavItem } from "./types";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   BanknoteArrowUpIcon,
+  Building2Icon,
+  CircleUserRoundIcon,
   CogIcon,
   DollarSignIcon,
   HandCoinsIcon,
   HouseIcon,
   LandmarkIcon,
-  PencilIcon,
-  Trash2Icon,
+  LucideIcon,
   UsersIcon,
 } from "lucide-react";
+import { sessionSchema, TSession } from "@renderer/hooks/user";
 
 export const errorAuth = [
   "not_organization",
@@ -62,21 +56,6 @@ export function errorsResponse(error: any) {
     }
 
     if (status === 422) {
-      // const errorsChecked = Object.fromEntries(
-      //   Object.entries(
-      //     error?.response?.data?.errors as Record<string, string[]>,
-      //   ).map(([key, val]) => {
-      //     if (val[0].includes("has already been taken")) {
-      //       return [key, ["Esté valor ya está en uso."]];
-      //     } else {
-      //       return [key, val];
-      //     }
-      //   }),
-      // );
-      // throw {
-      //   code: "unprocess_fields",
-      //   data: errorsChecked,
-      // } as ErrorResponse;
       throw {
         code: "unprocess_fields",
         message: error?.response?.data?.message,
@@ -94,16 +73,16 @@ export function errorsResponse(error: any) {
 
 export async function getSession(
   cookie: string | undefined,
-): Promise<SessionResponse> {
+): Promise<TSession> {
   if (!cookie) {
     throw { status: 401, message: "invalid_token" };
   }
   try {
     const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
-    const rawSession = await AxiosFetch.get("/api/user");
-    return { ...rawSession.data, error: undefined };
+    const { data } = await AxiosFetch.get("/api/user");
+    return sessionSchema.parse(data.data);
   } catch (e: any) {
-    console.log("Error de intento de sesión: \n", e);
+    console.log("entra en el error");
     const errorMessage =
       e?.response?.data?.error ?? e?.response?.data?.message ?? "unknown_error";
     throw { status: e?.response?.status || 500, message: errorMessage };
@@ -186,37 +165,7 @@ export function dynamicSort(array: any[], key: string, order: "asc" | "desc") {
   });
 }
 
-export const useTableTheme = () =>
-  useTheme([
-    getTheme(),
-    {
-      HeaderRow: `
-        color: #687387;
-        font-size: 12px;
-        border-bottom-left-radius: 6px;
-        border-bottom-right-radius: 6px;
-        border-top: 1px solid red;
-      `,
-      Table: `
-      `,
-      Header: `
-        border-bottom-left-radius: 6px;
-        border-bottom-right-radius: 6px;
-      `,
-      Row: `
-        border-right: 1px solid #dddc;
-      `,
-      Cell: `
-        padding: 6px;
-        color: #8b94a5;
-        font-weight: 500;
-      `,
-      HeaderCell: `
-        font-weight: 500;
-      `,
-    },
-  ]);
-
+/* Sections navigate */
 export const navItems: NavItem[] = [
   {
     name: "Inicio",
@@ -255,16 +204,24 @@ export const navItems: NavItem[] = [
   },
 ];
 
-export const contextMenuBasicOptions: Array<MenuOption> = [
+type AccountNavItem = {
+  name: string;
+  linkTo: string;
+  icon: LucideIcon;
+  disabled: boolean;
+};
+export const accountNavItems = (orgID: number): AccountNavItem[] => [
   {
-    name: "Editar",
-    icon: PencilIcon,
-    route: undefined,
+    name: "Mi organización",
+    linkTo: `/${orgID}/organization`,
+    icon: Building2Icon,
+    disabled: true,
   },
   {
-    name: "Eliminar",
-    icon: Trash2Icon,
-    route: undefined,
+    name: "Mi cuenta",
+    linkTo: `/${orgID}/account`,
+    icon: CircleUserRoundIcon,
+    disabled: true,
   },
 ];
 

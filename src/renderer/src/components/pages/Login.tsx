@@ -68,14 +68,16 @@ export function Login() {
                   labelPlacement="outside-top"
                   id="email"
                   placeholder=" "
+                  className="focus:outline-none focus:ring-0 focus-visible:ring-0"
                   classNames={{
                     inputWrapper: cn(
                       errors.password
                         ? "border-red-500 "
                         : "border-slate-300/60",
-                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 transition-all",
+                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 data-[focus=true]:!outline-none  data-[focus=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0 data-[focus=true]:!border-green-500",
                     ),
                     label: "text-slate-400",
+                    input: "focus:outline-none focus:ring-0",
                   }}
                   label={
                     <label
@@ -144,9 +146,10 @@ export function Login() {
                       errors.password
                         ? "border-red-500 "
                         : "border-slate-300/60",
-                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 transition-all",
+                      "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 data-[focus=true]:!outline-none  data-[focus=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0 data-[focus=true]:!border-green-500",
                     ),
                     label: "text-slate-400",
+                    input: "focus:outline-none focus:ring-0",
                   }}
                   label={
                     <label
