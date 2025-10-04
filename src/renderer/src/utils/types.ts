@@ -43,10 +43,10 @@ export type ContextMenuState = {
   visible: boolean;
 };
 
-export type MenuOption = {
+export type MenuOption<T> = {
   name: string;
   icon: LucideIcon;
-  onAction: () => void;
+  onAction: (e?: T) => void;
 };
 
 export type ModalState =

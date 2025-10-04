@@ -1,11 +1,20 @@
+/* IMPORTS */
 import { z } from "zod";
 import axios from "./axios";
 
+import { DataPerPage } from "@renderer/components/Table";
+
+/* UTILS */
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
+/* DATA TYPES */
+export type Operation = z.infer<typeof operationSchema>;
+
+/* ENUMS */
 const operationType = ["sale", "buys"] as const;
 
-export type Operation = z.infer<typeof operationSchema>;
+/* SCHEMAS */
+//Operations base structure
 export const operationSchema = z.object({
   id: z.number(),
   date: z.string(),
@@ -29,13 +38,25 @@ export const operationSchema = z.object({
   type: z.enum(operationType),
 });
 
-export async function getOperations(from?: Date, to?: Date) {
+export const operationWithTotalSchema = z.object({
+  total: z.number(),
+  operations: operationSchema.array(),
+});
+
+export async function getOperations(
+  from?: Date,
+  to?: Date,
+  page?: number,
+  limit?: DataPerPage,
+) {
   const params = {
     from,
     to,
+    page,
+    limit,
   };
   const { data } = await AxiosFetch("/api/v1/operations", { params });
-  return operationSchema.array().parse(data.data);
+  return operationWithTotalSchema.parse(data.data);
 }
 
 export type TOperationCount = z.infer<typeof operationCountSchema>;

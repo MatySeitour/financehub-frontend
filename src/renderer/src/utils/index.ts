@@ -1,6 +1,6 @@
 import clsx, { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { ContextMenuState, ErrorResponse, NavItem } from "./types";
+import { ContextMenuState, ErrorResponse, NavItem, ServerError } from "./types";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 import { format } from "date-fns";
@@ -32,6 +32,16 @@ export const cn = (...args: ClassValue[]) => {
 
 export function strNormalize(s: string) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+export function getErrorMessage(error: ServerError | null) {
+  if (!error) return "";
+
+  console.error("[getErrorMessage]", error);
+
+  if (error.response?.data.message) return error.response?.data.message;
+  if (error.code === "ERR_NETWORK") return "Sin conexión";
+  return "Ocurrió un error inesperado";
 }
 
 export function errorsResponse(error: any) {
@@ -106,34 +116,25 @@ export const openContextMenuHandler = (
 
     setTimeout(() => {
       const menuElement = document.getElementById("menuOptions");
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
 
       const tableRect = element[elementLength]?.getBoundingClientRect();
 
-      const offsetX = e.clientX + scrollX;
-      const offsetY = e.clientY + scrollY;
-      if (tableRect) {
-        let menuX = offsetX - tableRect?.left;
-        let menuY = offsetY - tableRect?.top;
+      const menuWidth = menuElement?.getBoundingClientRect()?.width;
+      const menuHeight = menuElement?.getBoundingClientRect()?.height;
 
-        const menuWidth = menuElement?.getBoundingClientRect()?.width;
-        const menuHeight = menuElement?.getBoundingClientRect()?.height;
-
-        const containerRect = element[elementLength]
-          ?.closest("#table-container")
-          ?.getBoundingClientRect();
-
-        if (containerRect && menuWidth && menuHeight) {
-          menuX + menuWidth > containerRect.width
-            ? (menuX = containerRect.width - menuWidth)
-            : (menuX = menuX + 40);
-
-          menuY + menuHeight > containerRect?.height
-            ? (menuY = containerRect.height - menuHeight)
-            : (menuY = menuY - 50);
-        }
-        setContextMenu({ show: true, x: menuX, y: menuY, visible: true });
+      if (tableRect && menuWidth) {
+        setContextMenu({
+          show: true,
+          x:
+            menuWidth + e.clientX > tableRect.width
+              ? e.clientX - 150
+              : e.clientX,
+          y:
+            menuHeight + e.clientY > tableRect.height
+              ? e.clientY - 50
+              : e.clientY,
+          visible: true,
+        });
       }
     }, 0);
   } else {
@@ -265,3 +266,20 @@ export const formatFullDateEs = (date: string) =>
   format(date, "dd 'de' MMMM 'a las' hh:mm:ss", {
     locale: es,
   });
+
+export const withCbk = <S, E>(options: {
+  queryFn: () => Promise<S>;
+  onSuccess?: (d: S) => void;
+  onError?: (e: E) => void;
+}) => {
+  return async () => {
+    try {
+      const data = await options.queryFn();
+      options.onSuccess?.(data);
+      return data;
+    } catch (e) {
+      options.onError?.(e as E);
+      throw e;
+    }
+  };
+};

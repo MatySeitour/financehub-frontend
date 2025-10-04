@@ -1,7 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
-
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
@@ -9,6 +8,7 @@ import { OrganizationOnboarding } from "./components/pages/OrganizationOnboardin
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
 import { HistoryCurrentSection } from "./components/pages/cashboxes/history/current";
+import { OperationsSection } from "./components/pages/Operations";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -92,18 +92,7 @@ function App() {
               path="/cajas/:id/history/:historyID"
               element={<HistorySection />}
             />
-
-            {/* Operations */}
-            <Route
-              path="/operaciones"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en operaciones
-                </main>
-              }
-            />
-
-            {/* Settings */}
+            <Route path="/operaciones" element={<OperationsSection />} />
             <Route
               path="/configuracion"
               element={

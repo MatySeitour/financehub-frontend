@@ -37,7 +37,11 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   return (
-    <button {...props} className={cn(buttonStyles({ variant, className }))}>
+    <button
+      disabled={isLoading}
+      {...props}
+      className={cn(buttonStyles({ variant, className }))}
+    >
       {isLoading ? (
         <span className="flex items-center gap-1">
           <span className="relative inline-block size-3.5 min-w-3.5 animate-rotateFull rounded-[50%] border border-white border-b-white/70 after:absolute after:left-1/2 after:top-1/2 after:h-14 after:w-14 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-4 after:border-transparent" />

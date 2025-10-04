@@ -70,7 +70,7 @@ export function HistorySection() {
         </div>
       </div>
 
-      <article className="flex h-auto w-full flex-col gap-6 overflow-hidden p-6">
+      <div className="flex h-auto w-full flex-col gap-6 overflow-hidden p-6">
         <div className="flex min-h-10 items-center gap-2">
           {/* Filter */}
           <Select
@@ -157,7 +157,7 @@ export function HistorySection() {
             historyID={historyID}
           />
         )}
-      </article>
+      </div>
     </section>
   );
 }

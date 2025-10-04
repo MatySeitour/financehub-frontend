@@ -37,6 +37,8 @@ import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
   ArrowUpDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CircleAlertIcon,
   GlobeLockIcon,
   Grid2x2PlusIcon,
@@ -44,12 +46,18 @@ import {
   SearchXIcon,
 } from "lucide-react";
 import { Button } from "./Button";
+import { usePagination } from "@table-library/react-table-library/pagination";
+import { Select, SelectItem } from "@heroui/react";
+
+export type DataPerPage = (typeof dataPerPage)[number];
+export const dataPerPage = [10, 20, 40] as const;
 
 type Column<T> = {
   label: string | ReactNode;
   key: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  wrapContent?: boolean;
   enabledContextMenu?: (bol?: any) => void;
 };
 
@@ -59,7 +67,15 @@ type TableProps<T extends TableNode> = {
   error: any;
   searchInput: string;
   columns: Column<T>[];
-  optionsMenu?: MenuOption[] | null;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    nextPage: (page: number) => void;
+    prevPage: (page: number) => void;
+    changeLimit: (limit: DataPerPage) => void;
+  };
+  optionsMenu?: MenuOption<T>[] | null;
   openModal: ((s: ModalState) => void) | null;
   selectRowID?: Dispatch<SetStateAction<number | undefined>>;
   withButtonCreate?: boolean;
@@ -74,6 +90,7 @@ function TableWork<T extends TableNode>({
   error,
   searchInput,
   data,
+  pagination,
   withButtonCreate = true,
 }: TableProps<T>) {
   const table = useRef(null);
@@ -83,6 +100,7 @@ function TableWork<T extends TableNode>({
     y: 0,
     visible: false,
   });
+  const [selectedItem, setSelectedItem] = useState<T>();
   const columnsLength = columns.length - 1;
 
   let percentageNumber = "";
@@ -129,6 +147,33 @@ function TableWork<T extends TableNode>({
     },
   );
 
+  const paginate = usePagination(
+    { nodes: data || [] },
+    {
+      state: {
+        page: pagination?.page ? pagination?.page - 1 : 0, /// only work if page is 0
+        size: pagination?.total,
+      },
+      onChange: undefined,
+    },
+  );
+
+  const limitPerPage = pagination?.limit ?? 0;
+
+  const startIndex =
+    (paginate.state.page + 1) * limitPerPage - limitPerPage + 1;
+  const endIndex = (paginate.state.page + 1 - 1) * limitPerPage + limitPerPage;
+
+  const nextPage = () => {
+    paginate.fns.onSetPage(++paginate.state.page);
+
+    pagination?.nextPage(++paginate.state.page);
+  };
+  const prevPage = () => {
+    paginate.fns.onSetPage(--paginate.state.page);
+    pagination?.nextPage(paginate.state.page);
+  };
+
   if (loading) {
     return <TableLoading />;
   }
@@ -172,6 +217,7 @@ function TableWork<T extends TableNode>({
       {data?.length !== 0 && (
         <>
           <Table
+            paginate={paginate}
             ref={table}
             id="table-container"
             layout={
@@ -224,24 +270,8 @@ function TableWork<T extends TableNode>({
 
                         if (enableMenu || !hasEnableMenu) {
                           selectRowID && selectRowID(Number(item.id));
+                          setSelectedItem(item);
                           openContextMenuHandler(e, setContextMenu);
-                        }
-                      }}
-                      onDoubleClick={(item) => {
-                        const hasEnableMenu = columns.some(
-                          (column) => column.enabledContextMenu,
-                        );
-
-                        const enableMenu = columns.some((column) =>
-                          column.enabledContextMenu
-                            ? column.enabledContextMenu(item)
-                            : false,
-                        );
-
-                        if (enableMenu || !hasEnableMenu) {
-                          closeContextMenuHandler(setContextMenu);
-                          selectRowID && selectRowID(Number(item.id));
-                          openModal && openModal("editar");
                         }
                       }}
                       key={item.id}
@@ -252,8 +282,8 @@ function TableWork<T extends TableNode>({
                           className={cn(
                             index === tableList.length - 1 &&
                               "first:rounded-bl-md last:rounded-br-md",
+                            column.wrapContent ?? "min-h-12",
                             "border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
-                            column.className,
                           )}
                           key={`${item.id}-${column.key}`}
                         >
@@ -268,7 +298,6 @@ function TableWork<T extends TableNode>({
               </>
             )}
           </Table>
-
           {contextMenu.show && openModal && optionsMenu && (
             <ContextMenu
               x={contextMenu.x}
@@ -277,9 +306,79 @@ function TableWork<T extends TableNode>({
               onCloseContextMenu={() => closeContextMenuHandler(setContextMenu)}
               options={optionsMenu}
               parentRef={table}
+              selectedItem={selectedItem}
             />
           )}
         </>
+      )}
+
+      {/* Pagination */}
+      {!!pagination && data?.length && (
+        <div className="flex min-h-12 w-full items-center justify-end gap-2">
+          <div className="text-xs transition-all">
+            <span className="flex items-center justify-center text-center text-sm text-slate-400">
+              {startIndex}-
+              {pagination.total && endIndex < pagination.total
+                ? endIndex
+                : pagination.total}{" "}
+              de {pagination.total}
+            </span>
+          </div>
+          <div className="flex w-auto gap-1 transition-all">
+            <Button
+              type="button"
+              disabled={paginate.state.page === 0}
+              onClick={prevPage}
+              variant="success"
+              className="size-7 min-w-7"
+            >
+              <ChevronLeftIcon className="size-4 min-w-4" />
+            </Button>
+            <Button
+              variant="success"
+              type="button"
+              disabled={endIndex >= pagination.total}
+              onClick={nextPage}
+              className="size-7 min-w-7"
+            >
+              <ChevronRightIcon className="size-4 min-w-4" />
+            </Button>
+          </div>
+
+          <Select
+            aria-label="Limite"
+            onSelectionChange={(e) => {
+              if (e.currentKey)
+                pagination.changeLimit(+e?.currentKey as DataPerPage);
+            }}
+            defaultSelectedKeys={[`${pagination.limit}`]}
+            selectedKeys={[`${pagination.limit}`]}
+            className="min-h-9 max-w-44 rounded-md text-xs outline-none"
+            classNames={{
+              innerWrapper: "rounded-md !text-xs",
+              mainWrapper: "rounded-md",
+              popoverContent: "rounded-md text-slate-400 font-normals",
+              trigger:
+                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300",
+              listbox: "!text-xs ",
+              value: "!text-slate-400 !text-xs",
+            }}
+            renderValue={(items) => {
+              const selected = Array.from(items)[0]?.key;
+              return selected ? `${selected} por página` : "Seleccionar";
+            }}
+          >
+            {dataPerPage.map((page) => (
+              <SelectItem
+                className="transition-colors data-[hover=true]:!bg-primary/5 data-[hover=true]:!text-primary/70"
+                textValue={`${page}`}
+                key={page}
+              >
+                {page} por página
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
       )}
     </>
   );
@@ -290,78 +389,14 @@ export function TableLoading() {
     <div className="h-80 w-full">
       <div className="h-10 rounded-md border border-slate-200 !bg-slate-200/40"></div>
       <div className="grid grid-cols-6 gap-4 bg-white pt-2">
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
-        <div className="flex items-center justify-center p-1 px-2">
-          <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
-        </div>
+        {Array.from({ length: 24 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-center p-1 px-2"
+          >
+            <div className="h-8 w-full animate-skeletonTable rounded-md bg-slate-200/80"></div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -428,19 +463,21 @@ function TableError({ error }: { error: ServerError }) {
 
 export { TableWork };
 
-function ContextMenu({
+function ContextMenu<T>({
   x,
   y,
   onCloseContextMenu,
   options,
   isOpen,
+  selectedItem,
 }: {
   x: number;
   y: number;
   onCloseContextMenu: any;
   parentRef: any;
-  options: MenuOption[];
+  options: MenuOption<T>[];
   isOpen: boolean;
+  selectedItem: any;
 }) {
   // const router = useRouter();
   const menuStyle = {
@@ -480,8 +517,8 @@ function ContextMenu({
     };
   }, []);
 
-  const handleMenuClick = (option: MenuOption) => {
-    option.onAction();
+  const handleMenuClick = (option: MenuOption<T>) => {
+    option.onAction(selectedItem);
 
     onCloseContextMenu();
     // router.push(`${option.route}`);
@@ -506,21 +543,16 @@ function ContextMenu({
           isOpen && "pointer-events-auto opacity-100 transition-opacity",
         )}
       >
-        <span className="select-none pl-2 text-[0.65rem] font-medium text-slate-500">
-          Acciones
-        </span>
-        <ul className="flex h-full w-full flex-col gap-0.5 px-1 pt-2 text-slate-400">
-          {options.map((option: any) => (
+        <ul className="flex h-full w-full flex-col gap-0.5 px-1 text-slate-400">
+          {options.map((option: MenuOption<T>) => (
             <li
               onClick={() => {
                 handleMenuClick(option);
               }}
               className={cn(
-                "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs hover:bg-slate-200/40",
-                (option.name.toLowerCase() === "eliminar" ||
-                  option?.state === "danger") &&
-                  "hover:bg-red-200/40",
-                option?.state === "success" && "hover:bg-green-200/30",
+                "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs transition-all hover:bg-slate-200/40",
+                option.name.toLowerCase() === "eliminar" &&
+                  "hover:bg-danger/10",
               )}
               key={option.name}
             >
@@ -528,17 +560,14 @@ function ContextMenu({
                 <option.icon
                   className={cn(
                     "size-4 min-w-4 text-slate-400",
-                    option.name.toLowerCase() === "eliminar" && "text-red-400",
+                    option.name.toLowerCase() === "eliminar" && "text-danger",
                   )}
                 />
               )}
               <p
                 className={cn(
                   "tracking-wide",
-                  (option.name.toLowerCase() === "eliminar" ||
-                    option?.state === "danger") &&
-                    "text-red-400",
-                  option?.state === "success" && "text-secondary-green",
+                  option.name.toLowerCase() === "eliminar" && "text-danger",
                 )}
               >
                 {option.name}
