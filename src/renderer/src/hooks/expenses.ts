@@ -12,7 +12,11 @@ export const expenseSchema = z.object({
   date: z.string(),
 });
 
-export async function getExpenses() {
-  const { data } = await AxiosFetch("/api/v1/expenses");
+export async function getExpenses(from?: Date, to?: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch("/api/v1/expenses", { params });
   return expenseSchema.array().parse(data.data);
 }

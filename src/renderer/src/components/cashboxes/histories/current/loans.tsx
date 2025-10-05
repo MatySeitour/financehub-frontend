@@ -1,4 +1,9 @@
-import { cn, strNormalize } from "@renderer/utils";
+import {
+  cn,
+  getDaysRemaingStatusSyles,
+  getInstallmentStatusSyles,
+  strNormalize,
+} from "@renderer/utils";
 import { useQuery } from "react-query";
 import { BaseResponseServer } from "@renderer/utils/types";
 import { Progress, Tooltip } from "@heroui/react";
@@ -9,41 +14,6 @@ import { getCashboxCurrentHistoryLoans } from "@renderer/hooks/cashboxes";
 import { TableWork } from "@renderer/components/Table";
 import { differenceInDays, format } from "date-fns";
 import { Loan, paymentFrequencies } from "@renderer/hooks/loans";
-
-const getDaysRemaingStatusSyles = (days) => {
-  if (days > 20) {
-    return {
-      circleClass: "bg-primary shadow-primary text-primary",
-      tooltipClass: "text-primary",
-    };
-  } else if (days > 5 && days < 19) {
-    return {
-      circleClass: "bg-warning shadow-warning ext-warning",
-      tooltipClass: "text-warning",
-    };
-  } else if (days > 0 && days < 5) {
-    return {
-      circleClass: "bg-danger shadow-danger text-danger",
-      tooltipClass: "text-danger",
-    };
-  }
-  return {
-    circleClass: "bg-purple-500 shadow-purple-500 text-purple-500",
-    tooltipClass: "text-purple-500",
-  };
-};
-
-const getInstallmentStatusSyles = (
-  currentInstallment: number,
-  numberOfInstallments: number,
-) => {
-  const quarterInstallment = numberOfInstallments / 4;
-
-  if (currentInstallment > quarterInstallment * 3) return "text-warning";
-
-  if (currentInstallment > quarterInstallment) return "text-orange-500";
-  return "text-danger";
-};
 
 export function CurrentLoansHistoryCashbox({
   cashboxID,

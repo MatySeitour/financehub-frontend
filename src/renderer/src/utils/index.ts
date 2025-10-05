@@ -165,6 +165,41 @@ export function dynamicSort(array: any[], key: string, order: "asc" | "desc") {
   });
 }
 
+export const getDaysRemaingStatusSyles = (days) => {
+  if (days > 20) {
+    return {
+      circleClass: "bg-primary shadow-primary text-primary",
+      tooltipClass: "text-primary",
+    };
+  } else if (days > 5 && days < 19) {
+    return {
+      circleClass: "bg-warning shadow-warning ext-warning",
+      tooltipClass: "text-warning",
+    };
+  } else if (days > 0 && days < 5) {
+    return {
+      circleClass: "bg-danger shadow-danger text-danger",
+      tooltipClass: "text-danger",
+    };
+  }
+  return {
+    circleClass: "bg-purple-500 shadow-purple-500 text-purple-500",
+    tooltipClass: "text-purple-500",
+  };
+};
+
+export const getInstallmentStatusSyles = (
+  currentInstallment: number,
+  numberOfInstallments: number,
+) => {
+  const quarterInstallment = numberOfInstallments / 4;
+
+  if (currentInstallment > quarterInstallment * 3) return "text-warning";
+
+  if (currentInstallment > quarterInstallment) return "text-orange-500";
+  return "text-danger";
+};
+
 /* Sections navigate */
 export const navItems: NavItem[] = [
   {
