@@ -146,3 +146,9 @@ export async function getCashboxCurrentHistoryInstallments(cashboxID: number) {
   );
   return installmentHistorySchema.array().parse(data.data);
 }
+////////////////////////////////////////////////////////////
+////////////// Cashboxes active //////////////
+export async function getCashboxesActive() {
+  const { data } = await AxiosFetch("/api/v1/cashboxes/active");
+  return cashboxSchema.array().parse(data.data);
+}

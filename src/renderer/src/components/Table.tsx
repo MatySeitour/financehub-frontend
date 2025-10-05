@@ -1,4 +1,8 @@
-import { ContextMenuState, MenuOption } from "@renderer/utils/types";
+import {
+  ContextMenuState,
+  MenuOption,
+  ServerError,
+} from "@renderer/utils/types";
 import {
   closeContextMenuHandler,
   cn,
@@ -26,10 +30,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { ErrorResponse, ModalState } from "@renderer/utils/types";
+import { ModalState } from "@renderer/utils/types";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme } from "@table-library/react-table-library/baseline";
-import { Button } from "@heroui/react";
 import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
@@ -40,6 +43,7 @@ import {
   PlusIcon,
   SearchXIcon,
 } from "lucide-react";
+import { Button } from "./Button";
 
 type Column<T> = {
   label: string | ReactNode;
@@ -58,6 +62,7 @@ type TableProps<T extends TableNode> = {
   optionsMenu?: MenuOption[] | null;
   openModal: ((s: ModalState) => void) | null;
   selectRowID?: Dispatch<SetStateAction<number | undefined>>;
+  withButtonCreate?: boolean;
 };
 
 function TableWork<T extends TableNode>({
@@ -69,6 +74,7 @@ function TableWork<T extends TableNode>({
   error,
   searchInput,
   data,
+  withButtonCreate = true,
 }: TableProps<T>) {
   const table = useRef(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
@@ -94,6 +100,7 @@ function TableWork<T extends TableNode>({
         Table: `
           --data-table-library_grid-template-columns:  ${percentageNumber} minmax(150px, 1fr);
             overflow-y: auto;
+            width: 100%;
         `,
       },
     ]);
@@ -132,25 +139,28 @@ function TableWork<T extends TableNode>({
 
   if (data?.length === 0 && searchInput === "") {
     return (
-      <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <Grid2x2PlusIcon className="size-24 text-slate-500" />
-        <p className="text-lg text-slate-500">No hay datos cargados aún</p>
-        <Button
-          className="flex w-64 items-center gap-1"
-          onClick={() => openModal && openModal("agregar")}
-        >
-          <PlusIcon className="h-4 w-4" />
-          Agregar
-        </Button>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3">
+        <Grid2x2PlusIcon className="size-16 min-w-16 text-slate-400" />
+        <span className="text-slate-400">No hay datos cargados aún</span>
+        {withButtonCreate && (
+          <Button
+            variant="success"
+            className="flex w-64 items-center gap-1"
+            onClick={() => openModal && openModal("agregar")}
+          >
+            <PlusIcon className="h-4 w-4" />
+            Agregar
+          </Button>
+        )}
       </div>
     );
   }
 
   if (data?.length === 0 && searchInput !== "") {
     return (
-      <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-        <SearchXIcon className="size-20 text-slate-600" />
-        <p className="text-slate-600">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3">
+        <SearchXIcon className="size-16 min-w-16 text-slate-400" />
+        <p className="text-slate-400">
           No hay resultados para <b> {searchInput}</b>...
         </p>
       </div>
@@ -242,7 +252,7 @@ function TableWork<T extends TableNode>({
                           className={cn(
                             index === tableList.length - 1 &&
                               "first:rounded-bl-md last:rounded-br-md",
-                            "!h-12 min-h-12 border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
+                            "border-b !border-slate-300/70 text-xs text-slate-400 first:!border-l last:!border-r",
                             column.className,
                           )}
                           key={`${item.id}-${column.key}`}
@@ -357,7 +367,9 @@ export function TableLoading() {
   );
 }
 
-function TableError({ error }: { error: ErrorResponse }) {
+function TableError({ error }: { error: ServerError }) {
+  const isZod = error.name === "ZodError";
+
   if (error.code === "connection-error") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
@@ -369,9 +381,9 @@ function TableError({ error }: { error: ErrorResponse }) {
     );
   }
 
-  if (error.code === "zod_validation") {
+  if (isZod) {
     return (
-      <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4">
         <CircleAlertIcon className="h-20 w-20 text-red-500" />
         <h4 className="text-xl text-red-500">{error?.message}</h4>
       </div>
@@ -386,7 +398,7 @@ function TableError({ error }: { error: ErrorResponse }) {
   //           <FaUserLargeSlash className="size-12 min-w-12 text-red-500" />
   //         </div>
   //         <div className="flex flex-col items-center justify-center gap-2">
-  //           <p className="text-2xl font-semibold text-slate-600">
+  //           <p className="text-2xl font-semibold text-slate-400">
   //             Parece que tu sesión ha expirado
   //           </p>
   //           <p className="text-sm font-medium text-slate-500">
@@ -407,11 +419,9 @@ function TableError({ error }: { error: ErrorResponse }) {
   // }
 
   return (
-    <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <CircleAlertIcon className="h-20 w-20 text-red-500" />
-      <h4 className="text-xl text-red-500">
-        Ha ocurrido un error en el servidor
-      </h4>
+      <h4 className="text-xl text-red-500">{error.message}</h4>
     </div>
   );
 }

@@ -1,4 +1,7 @@
 import { z } from "zod";
+import axios from "./axios";
+
+const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
 export type PaymentFrequency = (typeof PAYMENT_FREQUENCY)[number];
 export const PAYMENT_FREQUENCY = [
@@ -38,3 +41,12 @@ export const loanSchema = z.object({
   }),
   paymentFrequency: z.enum(PAYMENT_FREQUENCY),
 });
+
+export async function getLoans(from?: Date, to?: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch("/api/v1/loans", { params });
+  return loanSchema.array().parse(data.data);
+}
