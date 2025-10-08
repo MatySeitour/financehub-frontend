@@ -201,8 +201,8 @@ export function Login() {
 
       {/* Hero */}
       <div className="relative flex h-full w-full items-center justify-center p-4">
-        <span className="absolute top-0 z-0 h-72 w-0.5 bg-gradient-to-b from-primary/70 to-transparent 2xl:h-96" />
-        <span className="absolute bottom-0 h-72 w-0.5 bg-gradient-to-t from-primary/70 to-transparent 2xl:h-96" />
+        <span className="absolute top-0 z-0 h-1/3 w-0.5 bg-gradient-to-b from-primary/70 to-transparent 2xl:h-2/5" />
+        <span className="absolute bottom-0 h-1/3 w-0.5 bg-gradient-to-t from-primary/70 to-transparent 2xl:h-2/5" />
 
         <div className="flex h-auto min-h-32 translate-x-12 flex-col justify-center overflow-hidden">
           <div className="flex items-center">

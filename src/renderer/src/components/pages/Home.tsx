@@ -5,10 +5,10 @@ import {
   getInstallmentStatusSyles,
   strNormalize,
 } from "@renderer/utils";
-import { ServerError, User } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 
 import { useQuery } from "react-query";
-import { useNavigate, useOutletContext } from "react-router";
+import { useNavigate } from "react-router";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -20,7 +20,6 @@ import {
   CalendarDaysIcon,
   CalendarX2Icon,
   CheckIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
@@ -36,7 +35,6 @@ import {
   LandmarkIcon,
   LucideIcon,
   PackageIcon,
-  PackageOpenIcon,
   SearchIcon,
   SquareArrowOutUpRight,
   TrendingDownIcon,
@@ -54,7 +52,6 @@ import {
   differenceInMinutes,
   format,
   parse,
-  setHours,
   startOfDay,
   subDays,
 } from "date-fns";
@@ -201,8 +198,6 @@ const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
   },
 ] as const;
 export function Home() {
-  const user: User = useOutletContext();
-
   const navigate = useNavigate();
 
   const [from, setFrom] = useState(subDays(new Date(), 7));
@@ -269,7 +264,7 @@ export function Home() {
     ServerError
   >({
     queryFn: () => getInstallments(now, tomorrow),
-    // queryFn: () => getInstallments(new Date("2025-08-06"), tomorrow),
+    // queryFn: () => getInstallments(new Date("2025-05-06"), tomorrow),
     queryKey: ["installments", "all"],
     enabled: tabActive === "installments",
   });
@@ -613,11 +608,12 @@ export function Home() {
       {
         label: "Número de cuota",
         key: "number_of_installments",
+        wrapContent: true,
         render: (item: TInstallment) => (
-          <ul className="flex h-full w-full flex-wrap items-center gap-0.5 py-1">
+          <ul className="flex w-full flex-wrap items-center gap-0.5 py-1">
             {Array.from({ length: item.number_of_installments }).map(
               (_, index) => (
-                <span
+                <li
                   key={index}
                   className={cn(
                     index + 1 === item.number
@@ -633,7 +629,7 @@ export function Home() {
                   ) : (
                     index + 1
                   )}
-                </span>
+                </li>
               ),
             )}
           </ul>
@@ -716,7 +712,7 @@ export function Home() {
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return operationsQuery?.data?.filter((operation) => {
+    return operationsQuery?.data?.operations.filter((operation) => {
       let searched = `${operation.amount}${operation.clientName}${operation.sellerName}${operation.cashboxDecrement.name}${operation.cashboxIncrement.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
