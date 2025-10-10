@@ -16,6 +16,10 @@ body {
   outline: none !important;
 }
 
+input {
+  background-color: transparent;
+}
+
 .onboarding-title::after {
   opacity: 0.35;
   background-image: radial-gradient(#17c964 1.35px, transparent 1.35px);

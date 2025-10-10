@@ -261,7 +261,7 @@ export function CashBoxSection() {
             <div
               className={cn(
                 cashboxesQuery.isFetching && "opacity-60",
-                "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
+                "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary peer-disabled:opacity-60",
               )}
             >
               <SearchIcon className="size-4 min-w-4 text-slate-400" />
@@ -293,7 +293,7 @@ export function CashBoxSection() {
               {Array.from({ length: 9 }).map((_, index) => (
                 <li
                   key={index}
-                  className="flex h-44 w-full animate-pulse flex-col gap-4 rounded-md bg-slate-100 p-4"
+                  className="flex h-64 w-full animate-pulse flex-col gap-4 rounded-md bg-slate-100 p-4"
                 />
               ))}
             </ul>
@@ -326,7 +326,7 @@ export function CashBoxSection() {
                       key={cashbox.id}
                       className={cn(
                         !cashbox.disabled && "cursor-pointer",
-                        "flex h-fit flex-col gap-4 rounded-md border border-slate-300/50 bg-[#fdfdfd] px-5 py-4 transition-all hover:shadow-md",
+                        "flex h-64 flex-col gap-4 rounded-md border border-slate-300/50 bg-[#fdfdfd] px-5 py-4 transition-all hover:shadow-md",
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -350,23 +350,16 @@ export function CashBoxSection() {
                                   setCashboxToChangeState(cashbox);
                                 }
                               }}
-                              className={cn(
-                                cashbox.disabled
-                                  ? "bg-danger/5"
-                                  : cashbox.state
-                                    ? "cursor-pointer bg-primary/5 transition-all hover:bg-primary/10"
-                                    : "cursor-pointer bg-slate-400/5 transition-all hover:bg-slate-400/10",
-                                "flex items-center gap-1 rounded-full px-2 py-1",
-                              )}
+                              className="flex items-center gap-1 rounded-full px-2 py-1"
                             >
                               <div
                                 className={cn(
                                   cashbox.disabled
-                                    ? "bg-amber-400/20"
+                                    ? "bg-amber-400/15"
                                     : cashbox.state
-                                      ? "bg-primary/20"
-                                      : "bg-slate-400/20",
-                                  "flex size-3 items-center justify-center rounded-full p-0.5",
+                                      ? "bg-primary/15"
+                                      : "bg-slate-400/15",
+                                  "flex size-4 items-center justify-center rounded-full p-1",
                                 )}
                               >
                                 <div
@@ -380,7 +373,7 @@ export function CashBoxSection() {
                                   )}
                                 />
                               </div>
-                              <p
+                              <span
                                 className={cn(
                                   cashbox.disabled
                                     ? "text-danger"
@@ -395,7 +388,7 @@ export function CashBoxSection() {
                                   : cashbox.state
                                     ? "Abierta"
                                     : "Cerrada"}
-                              </p>
+                              </span>
                             </div>
                           </Tooltip>
                         </div>
@@ -428,7 +421,7 @@ export function CashBoxSection() {
                                 className="cursor-pointer p-2 font-medium text-slate-400 transition-all hover:rounded-md hover:bg-slate-100 hover:text-slate-500"
                               >
                                 <ClipboardClockIcon className="size-3.5 min-w-3.5" />
-                                <p className="text-xs">History</p>
+                                <span className="text-xs">Historial</span>
                               </DropdownItem>
 
                               {/* Change state cashbox option */}
@@ -576,10 +569,10 @@ export function CashBoxSection() {
                                     : cashbox.profit === 0
                                       ? "text-slate-400"
                                       : "text-primary",
-                                  "font-mono text-xl font-semibold",
+                                  "text-xl font-medium",
                                 )}
                               >
-                                $ {cashbox.state ? cashbox.value : "-- --"}
+                                {cashbox.state ? `$${cashbox.value}` : "-- --"}
                               </p>
                             </div>
 
@@ -599,7 +592,7 @@ export function CashBoxSection() {
                                     : cashbox.profit === 0
                                       ? "text-slate-400"
                                       : "text-primary",
-                                  "text-right font-mono text-xl font-semibold",
+                                  "text-right text-xl font-semibold",
                                 )}
                               >
                                 {cashbox.state
@@ -637,7 +630,7 @@ export function CashBoxSection() {
                                   Valor de apertura
                                 </p>
                               </div>
-                              <p className="font-mono text-sm text-slate-400">
+                              <p className="text-sm text-slate-400">
                                 {cashbox.state
                                   ? `$ ${cashbox.openingValue}`
                                   : "-- --"}
@@ -652,7 +645,7 @@ export function CashBoxSection() {
                                   Divisa
                                 </p>
                               </div>
-                              <p className="font-mono text-sm text-slate-400">
+                              <p className="text-sm text-slate-400">
                                 {cashbox.currency.name} (
                                 {cashbox.currency.nomenclature})
                               </p>

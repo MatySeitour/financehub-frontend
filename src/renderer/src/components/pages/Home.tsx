@@ -12,7 +12,9 @@ import { useNavigate } from "react-router";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
+  ArrowDownRightIcon,
   ArrowUpIcon,
+  ArrowUpRightIcon,
   BanknoteArrowUpIcon,
   BanknoteIcon,
   CalendarCheck2Icon,
@@ -1037,7 +1039,7 @@ export function Home() {
                   return (
                     <li
                       onClick={() => navigate(`/cajas/${cashbox.id}/history`)}
-                      className="flex h-auto w-full cursor-pointer flex-col gap-4 rounded-md border border-slate-200/80 bg-gradient-to-br from-white via-transparent to-slate-200/20 p-3 transition-all hover:border-slate-300"
+                      className="flex h-auto w-full cursor-pointer flex-col gap-4 rounded-md border border-b-4 border-r-4 border-slate-200/80 bg-gradient-to-br from-white via-transparent to-slate-200/20 p-3 transition-all hover:border-slate-300"
                       key={cashbox.id}
                     >
                       <div className="flex items-center justify-between">
@@ -1091,7 +1093,7 @@ export function Home() {
                           {cashbox.profit < 0 ? (
                             <div className="flex items-center justify-center rounded-full bg-red-500/10 px-2 py-0.5">
                               <span className="flex items-center gap-0.5 text-[0.65rem] text-red-500">
-                                <ArrowDownIcon className="size-3 min-w-3" />{" "}
+                                <ArrowDownRightIcon className="size-3 min-w-3" />{" "}
                                 {cashbox.profit.toFixed(2)}%
                               </span>
                             </div>
@@ -1104,8 +1106,8 @@ export function Home() {
                           ) : (
                             <div className="flex items-center justify-center rounded-full bg-primary/5 px-2 py-0.5">
                               <span className="flex items-center gap-0.5 text-[0.65rem] text-primary/70">
-                                <ArrowUpIcon className="size-3 min-w-3" /> +
-                                {cashbox.profit.toFixed(2)}%
+                                <ArrowUpRightIcon className="size-3 min-w-3" />{" "}
+                                +{cashbox.profit.toFixed(2)}%
                               </span>
                             </div>
                           )}

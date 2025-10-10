@@ -77,7 +77,7 @@ export function Login() {
                       "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 data-[focus=true]:!outline-none  data-[focus=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0 data-[focus=true]:!border-green-500",
                     ),
                     label: "text-slate-400",
-                    input: "focus:outline-none focus:ring-0",
+                    input: "focus:outline-none focus:ring-0 !text-slate-500",
                   }}
                   label={
                     <label
@@ -149,7 +149,7 @@ export function Login() {
                       "border !bg-slate-100 rounded-md hover:!bg-transparent data-[hover=true]:!bg-slate-100 data-[focus=true]:!border-primary/60 data-[focus=true]:!outline-none  data-[focus=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0 data-[focus=true]:!border-green-500",
                     ),
                     label: "text-slate-400",
-                    input: "focus:outline-none focus:ring-0",
+                    input: "focus:outline-none focus:ring-0 !text-slate-500",
                   }}
                   label={
                     <label

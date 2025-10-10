@@ -134,7 +134,7 @@ export default function ProtectedLayout() {
             </div>
 
             {/* Navigation items */}
-            <div className="flex h-full w-full flex-col justify-between p-4">
+            <div className="flex h-full w-full flex-col justify-between py-4 pl-4">
               <ul className="flex flex-col gap-2">
                 {navItems.map((navItem) => (
                   <li key={navItem.name} className="h-auto w-full">
@@ -142,13 +142,19 @@ export default function ProtectedLayout() {
                       className={({ isActive }) =>
                         cn(
                           isActive
-                            ? "rounded-md border-slate-300/30 bg-slate-300/10 font-medium text-slate-500/80"
-                            : "border-transparent text-slate-400 hover:text-slate-500/80",
-                          "flex h-auto w-full items-center border px-2 py-1 font-medium transition-all",
+                            ? "relative rounded-md font-medium text-primary after:bg-primary/60"
+                            : "border-transparent text-slate-400 after:bg-transparent hover:text-slate-500/80",
+                          "flex h-full min-h-10 w-full items-center pl-2 font-medium transition-all after:absolute after:left-0 after:top-0 after:h-full after:w-0.5 after:rounded-sm",
                         )
                       }
                       to={navItem.linkTo}
                     >
+                      {/* <span
+                        className={cn(
+                          isActive ? "bg-primary/60" : "bg-transparent",
+                          "mr-2 h-full w-0.5 rounded-sm",
+                        )}
+                      /> */}
                       <navItem.icon className="size-5 min-w-5" />
                       <p className="rounded-lg p-2 text-sm">{navItem.name}</p>
                     </NavLink>
