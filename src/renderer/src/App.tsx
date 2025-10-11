@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
+
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
@@ -9,6 +10,8 @@ import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
 import { HistoryCurrentSection } from "./components/pages/cashboxes/history/current";
 import { OperationsSection } from "./components/pages/Operations";
+import { ClientDetailsSection } from "./components/pages/clients/details";
+import { ClientSection } from "./components/pages/clients";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -43,13 +46,12 @@ function App() {
             <Route path="/home" element={<Home />} />
 
             {/* Clients */}
+            <Route path="/clientes" element={<ClientSection />} />
+
+            {/* Clients Details */}
             <Route
-              path="/clientes"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en clientes
-                </main>
-              }
+              path="/clientes/:id/detalles"
+              element={<ClientDetailsSection />}
             />
 
             {/* Sellers */}

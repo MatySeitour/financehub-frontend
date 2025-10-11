@@ -3,6 +3,7 @@ import { z } from "zod";
 import axios from "./axios";
 
 import { DataPerPage } from "@renderer/components/Table";
+import { loanSchema } from "./loans";
 
 /* UTILS */
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
@@ -73,4 +74,30 @@ export async function getOperationsCount(from: Date, to: Date) {
   };
   const { data } = await AxiosFetch("/api/v1/operations-count", { params });
   return operationCountSchema.array().parse(data.data);
+}
+
+export async function getClientOperations(
+  clientID: number,
+  from?: Date,
+  to?: Date,
+) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch(`/api/v1/clients/${clientID}/operations`, {
+    params,
+  });
+  return operationSchema.array().parse(data.data);
+}
+
+export async function getClientLoans(clientID: number, from?: Date, to?: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch(`/api/v1/clients/${clientID}/loans`, {
+    params,
+  });
+  return loanSchema.array().parse(data.data);
 }

@@ -31,8 +31,6 @@ import { Operation } from "@renderer/hooks/operations";
 //create operation structure
 export type OperationForm = z.infer<ReturnType<typeof operationFormSchema>>;
 
-/* INTERFACES */
-
 /* UTILS */
 //axios
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
