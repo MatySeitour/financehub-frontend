@@ -194,7 +194,7 @@ const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
     name: "installments",
   },
   {
-    label: "Gastos",
+    label: "Otros",
     icon: HandCoinsIcon,
     name: "expenses",
   },
@@ -367,7 +367,7 @@ export function Home() {
               "font-mono",
             )}
           >
-            ${item.amount.toFixed(2)}
+            ${item.amount.toLocaleString("es-AR")}
           </span>
         ),
       },
@@ -376,7 +376,7 @@ export function Home() {
         key: "price",
         render: (item: Operation) => (
           <span className="font-mono font-medium text-slate-500">
-            ${item.price.toFixed(2)}
+            ${item.price.toLocaleString("es-AR")}
           </span>
         ),
       },
@@ -384,7 +384,9 @@ export function Home() {
         label: "Precio de mercado",
         key: "marketPrice",
         render: (item: Operation) => (
-          <span className="font-mono">${item.marketPrice.toFixed(2)}</span>
+          <span className="font-mono">
+            ${item.marketPrice.toLocaleString("es-AR")}
+          </span>
         ),
       },
       {
@@ -395,7 +397,11 @@ export function Home() {
             <div className="flex items-center gap-2 font-mono font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-success/10 px-1.5 py-0.5 text-xs text-success">
-                {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
+                {(
+                  (item.profit / (item.amount * item.price)) *
+                  100
+                ).toLocaleString("es-AR")}
+                %
                 <TrendingUpIcon className="size-3 min-w-3" />
               </div>
             </div>
@@ -403,7 +409,11 @@ export function Home() {
             <div className="flex items-center gap-2 font-mono font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-danger/10 px-1.5 py-0.5 text-xs text-danger">
-                {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
+                {(
+                  (item.profit / (item.amount * item.price)) *
+                  100
+                ).toLocaleString("es-AR")}
+                %
                 <TrendingDownIcon className="size-3 min-w-3" />
               </div>
             </div>
@@ -418,7 +428,9 @@ export function Home() {
         label: "Comisión",
         key: "commission",
         render: (item: Operation) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
+          <span className="font-mono">
+            ${item.commission.toLocaleString("es-AR")}
+          </span>
         ),
       },
     ];
@@ -559,7 +571,9 @@ export function Home() {
         label: "Comisión",
         key: "commission",
         render: (item: Loan) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
+          <span className="font-mono">
+            ${item.commission.toLocaleString("es-AR")}
+          </span>
         ),
       },
     ];
@@ -821,11 +835,11 @@ export function Home() {
                     {currency?.name}
                   </p>
                   <p className="text-sm font-light text-slate-400">
-                    ${currency?.buy_value.toFixed(2)}
+                    ${currency?.buy_value.toLocaleString("es-AR")}
                   </p>
                   <ChevronUpIcon className="size-3 min-w-3 text-green-500" />
                   <p className="text-sm font-light text-slate-400">
-                    ${currency?.sale_value.toFixed(2)}
+                    ${currency?.sale_value.toLocaleString("es-AR")}
                   </p>
                   <p
                     className={cn(
@@ -999,7 +1013,7 @@ export function Home() {
             </div>
           </div>
 
-          <div className="h-full w-full overflow-y-auto">
+          <div className="h-full w-full overflow-y-auto pr-3">
             {cashboxesQuery.isFetching ? (
               <div className="flex flex-col gap-4">
                 {Array.from({ length: 2 }).map((_, index) => (
@@ -1087,14 +1101,14 @@ export function Home() {
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-semibold text-slate-500">
-                            ${cashbox.value}
+                            ${cashbox.value.toLocaleString("es-AR")}
                           </span>
 
                           {cashbox.profit < 0 ? (
                             <div className="flex items-center justify-center rounded-full bg-red-500/10 px-2 py-0.5">
                               <span className="flex items-center gap-0.5 text-[0.65rem] text-red-500">
                                 <ArrowDownRightIcon className="size-3 min-w-3" />{" "}
-                                {cashbox.profit.toFixed(2)}%
+                                {cashbox.profit.toLocaleString("es-AR")}%
                               </span>
                             </div>
                           ) : cashbox.profit === 0 ? (
@@ -1107,7 +1121,7 @@ export function Home() {
                             <div className="flex items-center justify-center rounded-full bg-primary/5 px-2 py-0.5">
                               <span className="flex items-center gap-0.5 text-[0.65rem] text-primary/70">
                                 <ArrowUpRightIcon className="size-3 min-w-3" />{" "}
-                                +{cashbox.profit.toFixed(2)}%
+                                +{cashbox.profit.toLocaleString("es-AR")}%
                               </span>
                             </div>
                           )}

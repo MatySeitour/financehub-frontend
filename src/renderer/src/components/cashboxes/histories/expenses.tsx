@@ -41,7 +41,9 @@ export function ExpensesHistoryCashbox({
         label: "Monto",
         key: "amount",
         render: (item: Expense) => (
-          <span className="font-medium text-danger">-${item.amount}</span>
+          <span className="font-medium text-danger">
+            -${item.amount.toLocaleString("es-AR")}
+          </span>
         ),
       },
       {

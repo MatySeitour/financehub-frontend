@@ -200,7 +200,7 @@ export function LoansHistoryCashbox({
         label: "Comisión",
         key: "commission",
         render: (item: Loan) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
+          <span>${item.commission.toLocaleString("es-AR")}</span>
         ),
       },
     ];

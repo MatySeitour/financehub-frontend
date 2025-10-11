@@ -572,7 +572,9 @@ export function CashBoxSection() {
                                   "text-xl font-medium",
                                 )}
                               >
-                                {cashbox.state ? `$${cashbox.value}` : "-- --"}
+                                {cashbox.state
+                                  ? `$${cashbox.value.toLocaleString("es-AR")}`
+                                  : "-- --"}
                               </p>
                             </div>
 
@@ -632,7 +634,7 @@ export function CashBoxSection() {
                               </div>
                               <p className="text-sm text-slate-400">
                                 {cashbox.state
-                                  ? `$ ${cashbox.openingValue}`
+                                  ? `$ ${cashbox.openingValue.toLocaleString("es-AR")}`
                                   : "-- --"}
                               </p>
                             </div>

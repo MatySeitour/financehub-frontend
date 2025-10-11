@@ -279,10 +279,10 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-primary">
+                        <p className="text-xl font-medium text-primary">
                           $
-                          {cashboxHistoryQuery.data?.current.openingValue.toFixed(
-                            2,
+                          {cashboxHistoryQuery.data?.current.openingValue.toLocaleString(
+                            "es-AR",
                           )}
                         </p>
                         <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500/70" />
@@ -296,10 +296,10 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-primary">
+                        <p className="text-xl font-medium text-primary">
                           $
-                          {cashboxHistoryQuery.data?.current.lastValue.toFixed(
-                            2,
+                          {cashboxHistoryQuery.data?.current.lastValue.toLocaleString(
+                            "es-AR",
                           )}
                         </p>
                         <BanknoteArrowDownIcon className="size-8 min-w-8 text-slate-500/70" />
@@ -313,7 +313,7 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-slate-500">
+                        <p className="text-xl font-medium text-slate-500">
                           {cashboxHistoryQuery.data?.current.movementsCount}
                         </p>
                         <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
@@ -339,7 +339,9 @@ export function CashBoxHistorySection() {
                           {cashboxHistoryQuery.data?.current.profit > 0 && (
                             <span className="pb-0.5">+</span>
                           )}
-                          {cashboxHistoryQuery.data?.current.profit.toFixed(2)}
+                          {cashboxHistoryQuery.data?.current.profit.toLocaleString(
+                            "es-AR",
+                          )}
                           <span className="pb-0.5 text-[0.55rem]">%</span>
                         </div>
                       </div>
@@ -353,7 +355,7 @@ export function CashBoxHistorySection() {
                                 : cashboxHistoryQuery.data?.current.profit === 0
                                   ? "text-slate-500"
                                   : "text-danger",
-                              "font-mono text-xl font-medium",
+                              "text-xl font-medium",
                             )}
                           >
                             $
@@ -362,7 +364,7 @@ export function CashBoxHistorySection() {
                                 cashboxHistoryQuery.data?.current
                                   .openingValue) /
                               100
-                            ).toFixed(2)}
+                            ).toLocaleString("es-AR")}
                           </p>
                         </div>
                         {cashboxHistoryQuery.data?.current.profit > 0 ? (
@@ -422,8 +424,8 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-primary">
-                          ${history.openingValue.toFixed(2)}
+                        <p className="text-xl font-medium text-slate-500">
+                          ${history.openingValue.toLocaleString("es-AR")}
                         </p>
                         <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -438,8 +440,8 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-primary">
-                          ${history.lastValue.toFixed(2)}
+                        <p className="text-xl font-medium text-slate-500">
+                          ${history.lastValue.toLocaleString("es-AR")}
                         </p>
                         <BanknoteArrowDownIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -454,7 +456,7 @@ export function CashBoxHistorySection() {
                       </div>
 
                       <div className="flex w-full items-center justify-between">
-                        <p className="font-mono text-xl font-medium text-slate-500">
+                        <p className="text-xl font-medium text-slate-500">
                           {history.movementsCount}
                         </p>
                         <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
@@ -481,7 +483,7 @@ export function CashBoxHistorySection() {
                           {history.profit > 0 && (
                             <span className="pb-0.5">+</span>
                           )}
-                          {history.profit.toFixed(2)}
+                          {history.profit.toLocaleString("es-AR")}
                           <span className="pb-0.5 text-[0.55rem]">%</span>
                         </div>
                       </div>
@@ -495,14 +497,14 @@ export function CashBoxHistorySection() {
                                 : history.profit === 0
                                   ? "text-slate-500"
                                   : "text-danger",
-                              "font-mono text-xl font-medium",
+                              "text-xl font-medium",
                             )}
                           >
                             $
                             {(
                               (history.profit * history.openingValue) /
                               100
-                            ).toFixed(2)}
+                            ).toLocaleString("es-AR")}
                           </p>
                         </div>
                         {history.profit > 0 ? (

@@ -57,25 +57,29 @@ export function InstallmentsHistoryCashbox({
         label: "Monto",
         key: "amount",
         render: (item: InstallmentHistory) => (
-          <span className="font-medium text-primary">+${item.amount}</span>
+          <span className="font-medium text-primary">
+            +${item.amount?.toLocaleString("es-AR")}
+          </span>
         ),
       },
       {
         label: "Número de cuota",
         key: "number",
-        render: (item: InstallmentHistory) => item.number,
+        render: (item: InstallmentHistory) =>
+          item.number.toLocaleString("es-AR"),
       },
       {
         label: "Valor de cuota",
         key: "value",
-        render: (item: InstallmentHistory) => `$${item.value}`,
+        render: (item: InstallmentHistory) =>
+          `$${item.value.toLocaleString("es-AR")}`,
       },
       {
         label: "Estado de cuota",
         key: "payment_amount",
         render: (item: InstallmentHistory) => (
           <div className="flex items-center gap-2">
-            {item.payment_amount === item.value ? (
+            {item.paymentAmount === item.value ? (
               <>
                 <CircleCheckBigIcon className="size-4 min-w-4 text-primary" />
                 <span className="text-primary">Pagada</span>
@@ -94,18 +98,18 @@ export function InstallmentsHistoryCashbox({
         key: "payment_date",
         render: (item: InstallmentHistory) => {
           const remainingDate = differenceInDays(
-            item.due_date,
-            item.payment_date,
+            item.dueDate,
+            item.paymentDate,
           );
 
           return (
             <div className="flex items-center gap-2">
-              {item.payment_amount === item.value && remainingDate > 0 ? (
+              {item.paymentAmount === item.value && remainingDate > 0 ? (
                 <>
                   <CalendarCheck2Icon className="size-4 min-w-4 text-primary" />
                   <span className="text-primary">A tiempo</span>
                 </>
-              ) : item.payment_amount !== item.value && remainingDate > 0 ? (
+              ) : item.paymentAmount !== item.value && remainingDate > 0 ? (
                 <>
                   <CalendarClockIcon className="size-4 min-w-4 text-warning" />
                   <span className="text-warning">
