@@ -75,7 +75,9 @@ export async function getOperationsCount(from: Date, to: Date) {
   const { data } = await AxiosFetch("/api/v1/operations-count", { params });
   return operationCountSchema.array().parse(data.data);
 }
+////////////////////////////////////////////////////////////
 
+////////////// Client //////////////
 export async function getClientOperations(
   clientID: number,
   from?: Date,
@@ -91,13 +93,20 @@ export async function getClientOperations(
   return operationSchema.array().parse(data.data);
 }
 
-export async function getClientLoans(clientID: number, from?: Date, to?: Date) {
+////////////////////////////////////////////////////////////
+
+////////////// Seller //////////////
+export async function getSellerOperations(
+  sellerID: number,
+  from?: Date,
+  to?: Date,
+) {
   const params = {
     from,
     to,
   };
-  const { data } = await AxiosFetch(`/api/v1/clients/${clientID}/loans`, {
+  const { data } = await AxiosFetch(`/api/v1/sellers/${sellerID}/operations`, {
     params,
   });
-  return loanSchema.array().parse(data.data);
+  return operationSchema.array().parse(data.data);
 }

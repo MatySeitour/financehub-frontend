@@ -12,7 +12,8 @@ import { HistoryCurrentSection } from "./components/pages/cashboxes/history/curr
 import { OperationsSection } from "./components/pages/Operations";
 import { ClientDetailsSection } from "./components/pages/clients/details";
 import { ClientSection } from "./components/pages/clients";
-import { SellersSection } from "./components/pages/SellersSection";
+import { SellersSection } from "./components/pages/sellers";
+import { SellerDetailsSection } from "./components/pages/sellers/details";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -54,7 +55,17 @@ function App() {
               path="/clientes/:id/detalles"
               element={<ClientDetailsSection />}
             />
+
+            {/* Sellers */}
             <Route path="/vendedores" element={<SellersSection />} />
+
+            {/* Sellers Details*/}
+            <Route
+              path="/vendedores/:id/detalles"
+              element={<SellerDetailsSection />}
+            />
+
+            {/* Loans*/}
             <Route
               path="/prestamos"
               element={

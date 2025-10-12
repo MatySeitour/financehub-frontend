@@ -541,11 +541,11 @@ function ContextMenu<T>({
         onClick={(e) => closeMenuWhenSelectOption(e)}
         id="menuOptions"
         className={cn(
-          "pointer-events-none absolute top-0 z-[999999] h-auto w-auto min-w-40 translate-x-2 overflow-hidden rounded-md border border-slate-200 bg-white p-1 opacity-0 shadow-xl",
+          "pointer-events-none absolute top-0 z-[999999] h-auto w-auto min-w-40 translate-x-2 overflow-hidden rounded-md border border-slate-200 bg-white opacity-0 shadow-xl",
           isOpen && "pointer-events-auto opacity-100 transition-opacity",
         )}
       >
-        <ul className="flex h-full w-full flex-col gap-0.5 px-1 text-slate-400">
+        <ul className="flex h-full w-full flex-col gap-0.5 p-1 text-slate-400">
           {options.map((option: MenuOption<T>) => (
             <li
               onClick={() => {

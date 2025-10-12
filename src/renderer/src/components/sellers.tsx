@@ -17,30 +17,31 @@ import {
   getInstallmentStatusSyles,
   strNormalize,
 } from "@renderer/utils";
+
 import { TableWork } from "@renderer/components/Table";
-import { getClientOperations, Operation } from "@renderer/hooks/operations";
+import { getSellerOperations, Operation } from "@renderer/hooks/operations";
 import { differenceInDays, format, parseISO } from "date-fns";
 import {
-  getClientLoans,
+  getSellerLoans,
   Loan,
   paymentFrequencies,
 } from "@renderer/hooks/loans";
 import { Progress, Tooltip } from "@heroui/react";
 
-export function ClientDetailsOperation({ clientID }: { clientID: number }) {
+export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
   const [to, setTo] = useState<Date>();
 
-  const operationsClientQuery = useQuery<
-    Awaited<ReturnType<typeof getClientOperations>>,
+  const operationsSellerQuery = useQuery<
+    Awaited<ReturnType<typeof getSellerOperations>>,
     ServerError
   >({
-    queryFn: () => getClientOperations(clientID ?? -1, from, to),
-    queryKey: ["operations-client", clientID, { from, to }],
-    enabled: !!clientID,
+    queryFn: () => getSellerOperations(sellerID ?? -1, from, to),
+    queryKey: ["operations-seller", sellerID, { from, to }],
+    enabled: !!sellerID,
   });
 
   /// Focus search with Ctrl + f
@@ -141,9 +142,9 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
           ),
       },
       {
-        label: "Vendedor",
-        key: "sellerName",
-        render: (item: Operation) => item.sellerName,
+        label: "Cliente",
+        key: "clientName",
+        render: (item: Operation) => item.clientName,
       },
       {
         label: "Comisión",
@@ -153,42 +154,42 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
         ),
       },
     ];
-  }, [operationsClientQuery.data]);
+  }, [operationsSellerQuery.data]);
 
   const filteredOperations = useMemo(() => {
-    if (!operationsClientQuery?.data) return [];
+    if (!operationsSellerQuery?.data) return [];
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return operationsClientQuery?.data?.filter((operation) => {
-      let searched = `${operation.amount}${operation.sellerName}${operation.cashboxDecrement.name}${operation.cashboxIncrement.name}`;
+    return operationsSellerQuery?.data?.filter((operation) => {
+      let searched = `${operation.amount}${operation.sellerName}${operation.cashboxDecrement.name}${operation.cashboxIncrement.name}${operation.commission}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
-  }, [operationsClientQuery.data, search]);
+  }, [operationsSellerQuery.data, search]);
 
   const totalAmount = useMemo(() => {
-    if (!operationsClientQuery.data) return 0;
+    if (!operationsSellerQuery.data) return 0;
 
-    return operationsClientQuery.data.reduce((acc, curr) => {
-      return acc + curr.amount;
+    return operationsSellerQuery.data.reduce((acc, curr) => {
+      return acc + curr.commission;
     }, 0);
-  }, [operationsClientQuery.data]);
+  }, [operationsSellerQuery.data]);
 
   return (
-    <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
+    <div className="flex h-full w-full flex-col gap-6 overflow-hidden px-6">
       <div className="flex items-end justify-between gap-4">
         <div className="flex items-end gap-2">
           <div
             className={cn(
-              operationsClientQuery.isFetching && "opacity-60",
+              operationsSellerQuery.isFetching && "opacity-60",
               "flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
             )}
           >
             <SearchIcon className="size-4 min-w-4 text-slate-400" />
             <input
               ref={searchRef}
-              disabled={operationsClientQuery.isFetching}
+              disabled={operationsSellerQuery.isFetching}
               onChange={(e) => setSearch(e.target.value)}
               className="h-full w-full text-sm text-slate-500 outline-none disabled:opacity-60"
               type="text"
@@ -210,7 +211,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
             <div className="flex w-1/2 flex-col gap-0.5">
               <label className="text-xs text-slate-400">Desde</label>
               <input
-                disabled={operationsClientQuery.isFetching}
+                disabled={operationsSellerQuery.isFetching}
                 onChange={(e) => setFrom(parseISO(e.target.value))}
                 type="date"
                 className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
@@ -220,7 +221,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
             <div className="flex w-1/2 flex-col gap-0.5">
               <label className="text-xs text-slate-400">Hasta</label>
               <input
-                disabled={operationsClientQuery.isFetching}
+                disabled={operationsSellerQuery.isFetching}
                 onChange={(e) => setTo(parseISO(e.target.value))}
                 type="date"
                 className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
@@ -229,7 +230,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
           </div>
         </div>
 
-        {operationsClientQuery.data && (
+        {operationsSellerQuery.data && (
           <div className="flex h-full items-end gap-4">
             <div className="flex flex-col items-center">
               <span className="flex items-center gap-1 text-nowrap text-xs text-slate-400/80">
@@ -244,20 +245,41 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
             <div className="flex flex-col items-center">
               <span className="flex items-center gap-1 text-nowrap text-xs text-slate-400/80">
                 <WalletCardsIcon className="size-4 min-w-4" />
-                Cantidad de operaciones
+                Cantidad operaciones
               </span>
               <span className="text-right text-lg font-medium text-slate-500">
-                {operationsClientQuery.data?.length ?? 0}
+                {operationsSellerQuery.data?.length ?? 0}
               </span>
             </div>
           </div>
         )}
       </div>
 
+      {/* {operationsSellerQuery.data && (
+        <div className="flex items-center gap-10">
+          <div className="flex flex-col items-start border-l-3 border-primary pl-2">
+            <span className="text-nowrap text-xs text-slate-400/80">
+              Total operaciones
+            </span>
+            <span className="font-medium text-slate-500">
+              ${totalAmount.toLocaleString("es")}
+            </span>
+          </div>
+          <div className="flex flex-col items-start border-l-3 border-primary pl-2">
+            <span className="text-nowrap text-xs text-slate-400/80">
+              Cantidad de operaciones
+            </span>
+            <span className="font-medium text-slate-500">
+              {operationsSellerQuery.data?.length ?? 0}
+            </span>
+          </div>
+        </div>
+      )} */}
+
       <TableWork
         columns={COLUMNS_OPERATIONS}
-        loading={operationsClientQuery.isFetching}
-        error={operationsClientQuery.error}
+        loading={operationsSellerQuery.isFetching}
+        error={operationsSellerQuery.error}
         searchInput={search}
         data={filteredOperations}
         openModal={() => console.log()}
@@ -266,20 +288,20 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
   );
 }
 
-export function ClientDetailsLoan({ clientID }: { clientID: number }) {
+export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
   const [to, setTo] = useState<Date>();
 
-  const loansClientQuery = useQuery<
-    Awaited<ReturnType<typeof getClientLoans>>,
+  const loansSellerQuery = useQuery<
+    Awaited<ReturnType<typeof getSellerLoans>>,
     ServerError
   >({
-    queryFn: () => getClientLoans(clientID ?? -1, from, to),
-    queryKey: ["loans-client", clientID, { from, to }],
-    enabled: !!clientID,
+    queryFn: () => getSellerLoans(sellerID ?? -1, from, to),
+    queryKey: ["loans-seller", sellerID, { from, to }],
+    enabled: !!sellerID,
   });
 
   /// Focus search with Ctrl + f
@@ -433,24 +455,24 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
   }, []);
 
   const filteredLoans = useMemo(() => {
-    if (!loansClientQuery?.data) return [];
+    if (!loansSellerQuery?.data) return [];
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return loansClientQuery?.data?.filter((loan) => {
-      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller.name}`;
+    return loansSellerQuery?.data?.filter((loan) => {
+      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller.name}${loan.commission}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
-  }, [loansClientQuery.data, search]);
+  }, [loansSellerQuery.data, search]);
 
   const totalAmount = useMemo(() => {
-    if (!loansClientQuery.data) return 0;
+    if (!loansSellerQuery.data) return 0;
 
-    return loansClientQuery.data.reduce((acc, curr) => {
-      return acc + curr.principal;
+    return loansSellerQuery.data.reduce((acc, curr) => {
+      return acc + curr.commission;
     }, 0);
-  }, [loansClientQuery.data]);
+  }, [loansSellerQuery.data]);
 
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
@@ -458,14 +480,14 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
         <div className="flex items-end gap-2">
           <div
             className={cn(
-              loansClientQuery.isFetching && "opacity-60",
+              loansSellerQuery.isFetching && "opacity-60",
               "flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
             )}
           >
             <SearchIcon className="size-4 min-w-4 text-slate-400" />
             <input
               ref={searchRef}
-              disabled={loansClientQuery.isFetching}
+              disabled={loansSellerQuery.isFetching}
               onChange={(e) => setSearch(e.target.value)}
               className="h-full w-full text-sm text-slate-500 outline-none"
               type="text"
@@ -488,7 +510,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
             <div className="flex w-1/2 flex-col gap-0.5">
               <label className="text-xs text-slate-400">Desde</label>
               <input
-                disabled={loansClientQuery.isFetching}
+                disabled={loansSellerQuery.isFetching}
                 onChange={(e) => setFrom(parseISO(e.target.value))}
                 type="date"
                 className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
@@ -498,7 +520,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
             <div className="flex w-1/2 flex-col gap-0.5">
               <label className="text-xs text-slate-400">Hasta</label>
               <input
-                disabled={loansClientQuery.isFetching}
+                disabled={loansSellerQuery.isFetching}
                 onChange={(e) => setTo(parseISO(e.target.value))}
                 type="date"
                 className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
@@ -507,7 +529,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
           </div>
         </div>
 
-        {loansClientQuery.data && (
+        {loansSellerQuery.data && (
           <div className="flex h-full items-end gap-4">
             <div className="flex flex-col items-center">
               <span className="flex items-center gap-1 text-nowrap text-xs text-slate-400/80">
@@ -525,13 +547,13 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
                 Cantidad de préstamos
               </span>
               <span className="text-right text-lg font-medium text-slate-500">
-                {loansClientQuery.data?.length ?? 0}
+                {loansSellerQuery.data?.length ?? 0}
               </span>
             </div>
           </div>
         )}
 
-        {/* {loansClientQuery.data && (
+        {/* {loansSellerQuery.data && (
           <div className="flex items-center gap-10">
             <div className="flex flex-col items-start border-l-3 border-primary pl-2">
               <span className="text-nowrap text-xs text-slate-400/80">
@@ -546,7 +568,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
                 Cantidad de préstamos
               </span>
               <span className="font-medium text-slate-500">
-                {loansClientQuery.data?.length ?? 0}
+                {loansSellerQuery.data?.length ?? 0}
               </span>
             </div>
           </div>
@@ -555,8 +577,8 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
 
       <TableWork
         columns={COLUMNS_LOANS}
-        loading={loansClientQuery.isFetching}
-        error={loansClientQuery.error}
+        loading={loansSellerQuery.isFetching}
+        error={loansSellerQuery.error}
         searchInput={search}
         data={filteredLoans}
         openModal={() => console.log()}

@@ -12,21 +12,25 @@ export type Seller = z.infer<typeof sellerSchema>;
 //Sellers's base structure
 export const sellerSchema = z.object({
   id: z.number(),
-  //org_id: z.number(),
   name: z.string().max(50),
   info: z.string().nullable(),
   phone: z.string().max(20),
-  /* LA API NO DEVUELVE ESTO TODAVIA, TIENE QUE DEVOLVERLO */
-  // referredBy: z.object({
-  //   id: z.number(),
-  //   name: z.string(),
-  // }),
+  referred_to: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+    })
+    .optional(),
 });
 
 /* GETS */
 //return all sellers
 export async function getSellers() {
   const { data } = await AxiosFetch(`/api/v1/sellers`);
-
   return sellerSchema.array().parse(data?.data);
+}
+
+export async function getSeller(sellerID: number) {
+  const { data } = await AxiosFetch(`/api/v1/sellers/${sellerID}`);
+  return sellerSchema.parse(data?.data);
 }
