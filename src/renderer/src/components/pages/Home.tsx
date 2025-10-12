@@ -796,6 +796,12 @@ export function Home() {
 
   const placeholder = tabs.find((tab) => tab.name === tabActive)?.label;
 
+  const allLoadingsMovimentsPerDay =
+    operationsQuery.isFetching ||
+    loansQuery.isFetching ||
+    installmentsQuery.isFetching ||
+    expensesQuery.isFetching;
+
   return (
     <section className="flex h-screen w-full flex-col bg-[#FEFEFE]">
       {/* Slider prices */}
@@ -1150,6 +1156,7 @@ export function Home() {
 
             <div
               className={cn(
+                allLoadingsMovimentsPerDay && "opacity-60",
                 "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
               )}
             >
@@ -1160,12 +1167,7 @@ export function Home() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="h-full w-full text-sm text-slate-500 outline-none"
                 type="text"
-                disabled={
-                  operationsQuery.isFetching ||
-                  loansQuery.isFetching ||
-                  installmentsQuery.isFetching ||
-                  expensesQuery.isFetching
-                }
+                disabled={allLoadingsMovimentsPerDay}
                 placeholder={`Buscar ${placeholder}...`}
               />
 

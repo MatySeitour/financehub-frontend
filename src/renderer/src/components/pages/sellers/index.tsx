@@ -11,7 +11,7 @@ import {
   SquarePenIcon,
   Trash2Icon,
 } from "lucide-react";
-import { strNormalize } from "@renderer/utils";
+import { cn, strNormalize } from "@renderer/utils";
 import { Button } from "@renderer/components/Button";
 import { TableWork } from "@renderer/components/Table";
 import { useNavigate } from "react-router";
@@ -127,7 +127,10 @@ export function SellersSection() {
 
       <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         <div
-          className="flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+          className={cn(
+            sellersQuery.isFetching && "opacity-60",
+            "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
+          )}
         >
           <SearchIcon className="size-4 min-w-4 text-slate-400" />
           <input

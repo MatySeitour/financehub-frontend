@@ -2,7 +2,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { MenuOption, ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
-
 import {
   PaperclipIcon,
   PlusIcon,
@@ -11,7 +10,7 @@ import {
   Trash2Icon,
   UsersRoundIcon,
 } from "lucide-react";
-import { strNormalize } from "@renderer/utils";
+import { cn, strNormalize } from "@renderer/utils";
 import { Button } from "@renderer/components/Button";
 import {
   CreateClientModal,
@@ -139,7 +138,10 @@ export function ClientSection() {
 
       <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         <div
-          className="flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+          className={cn(
+            clientsQuery.isFetching && "opacity-60",
+            "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
+          )}
         >
           <SearchIcon className="size-4 min-w-4 text-slate-400" />
           <input

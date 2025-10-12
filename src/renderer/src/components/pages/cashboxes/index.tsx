@@ -158,7 +158,7 @@ export function CashBoxSection() {
   return (
     <section ref={sectionRef} className="flex h-full min-h-0 w-full flex-col">
       {/* Header */}
-      <div className="flex min-h-16 w-full items-center justify-between border-b border-slate-200 px-4 pb-3 pt-4">
+      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <DollarSignIcon className="size-5 min-w-5" />

@@ -126,9 +126,13 @@ export function CashBoxHistorySection() {
               <Undo2Icon className="size-5 min-w-5" />
             </div>
           </Tooltip>
-          <h1 className="text-xl font-semibold text-slate-500">
-            {cashboxQuery.data?.name}
-          </h1>
+          {cashboxHistoryQuery.isLoading ? (
+            <span className="size-8 w-44 min-w-8 animate-pulse rounded-md bg-slate-100" />
+          ) : (
+            <h1 className="text-xl font-semibold text-slate-500">
+              {cashboxQuery.data?.name}
+            </h1>
+          )}
         </div>
       </div>
 

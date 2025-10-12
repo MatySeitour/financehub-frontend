@@ -54,13 +54,17 @@ export function SellerDetailsSection() {
   return (
     <section className="flex h-full w-full flex-col gap-2">
       {/* TOP OPTION'S CONTAINER */}
-      <div className="flex h-16 w-full items-center gap-2 border-b border-slate-200 p-6">
+      <div className="flex h-16 w-full items-center gap-2 border-b border-slate-200 p-4">
         <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
           <HandCoinsIcon className="size-5 min-w-5" />
         </div>
-        <h1 className="text-xl font-semibold text-slate-500">
-          {sellerQuery?.data?.name ?? ""}
-        </h1>
+        {sellerQuery.isLoading ? (
+          <span className="size-8 w-44 min-w-8 animate-pulse rounded-md bg-slate-100" />
+        ) : (
+          <h1 className="text-xl font-semibold text-slate-500">
+            {sellerQuery?.data?.name ?? ""}
+          </h1>
+        )}
       </div>
 
       <ul className="flex items-center gap-2 border-b pl-4">

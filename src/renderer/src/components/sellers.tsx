@@ -179,13 +179,13 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
   return (
     <div className="flex h-full w-full flex-col gap-6 overflow-hidden px-6">
       <div className="flex items-end justify-between gap-4">
-        <div className="flex items-end gap-2">
-          <div
-            className={cn(
-              operationsSellerQuery.isFetching && "opacity-60",
-              "flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
-            )}
-          >
+        <div
+          className={cn(
+            operationsSellerQuery.isFetching && "opacity-60",
+            "flex items-end gap-2",
+          )}
+        >
+          <div className="flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary">
             <SearchIcon className="size-4 min-w-4 text-slate-400" />
             <input
               ref={searchRef}
@@ -477,13 +477,13 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
       <div className="flex items-end justify-between gap-4">
-        <div className="flex items-end gap-2">
-          <div
-            className={cn(
-              loansSellerQuery.isFetching && "opacity-60",
-              "flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
-            )}
-          >
+        <div
+          className={cn(
+            loansSellerQuery.isFetching && "opacity-60",
+            "flex items-end gap-2",
+          )}
+        >
+          <div className="flex h-9 min-h-8 w-full max-w-72 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary">
             <SearchIcon className="size-4 min-w-4 text-slate-400" />
             <input
               ref={searchRef}

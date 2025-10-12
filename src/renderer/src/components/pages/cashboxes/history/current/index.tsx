@@ -56,9 +56,13 @@ export function HistoryCurrentSection() {
             </div>
           </Tooltip>
 
-          <h1 className="text-xl font-semibold text-slate-500">
-            Historial actual de {cashboxQuery.data?.name}
-          </h1>
+          {cashboxQuery.isLoading ? (
+            <span className="size-8 w-44 min-w-8 animate-pulse rounded-md bg-slate-100" />
+          ) : (
+            <h1 className="text-xl font-semibold text-slate-500">
+              Historial actual de {cashboxQuery.data?.name}
+            </h1>
+          )}
         </div>
       </div>
 

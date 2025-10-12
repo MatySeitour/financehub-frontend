@@ -1,7 +1,6 @@
 import { useQuery } from "react-query";
 import { BaseResponseServer } from "@renderer/utils/types";
 import { Select, SelectItem, Tooltip } from "@heroui/react";
-
 import { useState } from "react";
 import { Undo2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
@@ -60,9 +59,13 @@ export function HistorySection() {
             </div>
           </Tooltip>
 
-          <h1 className="text-xl font-semibold text-slate-500">
-            History #{historyID} de {cashboxQuery.data?.name}
-          </h1>
+          {cashboxQuery.isLoading ? (
+            <span className="size-8 w-44 min-w-8 animate-pulse rounded-md bg-slate-100" />
+          ) : (
+            <h1 className="text-xl font-semibold text-slate-500">
+              Historial #{historyID} de {cashboxQuery.data?.name}
+            </h1>
+          )}
         </div>
       </div>
 

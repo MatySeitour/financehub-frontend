@@ -251,7 +251,12 @@ export function OperationsSection() {
       {/* OPERATIONS'S SECTION CONTAINER */}
       <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         {/* SEARCH FILTER CONTAINER */}
-        <div className="flex w-full gap-16">
+        <div
+          className={cn(
+            operationsQuery.isFetching && "opacity-60",
+            "flex w-full gap-16",
+          )}
+        >
           <div
             className="flex h-9 min-h-8 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
           >
