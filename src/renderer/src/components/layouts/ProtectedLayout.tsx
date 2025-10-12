@@ -97,7 +97,7 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <div className="flex h-screen w-screen bg-white">
+    <div className="flex h-dvh w-screen bg-white">
       {sessionQuery.isError ? (
         <div className="flex h-full w-full items-center justify-center">
           <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
@@ -134,7 +134,7 @@ export default function ProtectedLayout() {
             </div>
 
             {/* Navigation items */}
-            <div className="flex h-full w-full flex-col justify-between py-4 pl-4">
+            <div className="flex h-full w-full flex-col justify-between pb-2 pl-4">
               <ul className="flex flex-col gap-2">
                 {navItems.map((navItem) => (
                   <li key={navItem.name} className="h-auto w-full">

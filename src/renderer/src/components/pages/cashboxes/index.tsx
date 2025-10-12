@@ -158,7 +158,7 @@ export function CashBoxSection() {
   return (
     <section ref={sectionRef} className="flex h-full min-h-0 w-full flex-col">
       {/* Header */}
-      <div className="flex min-h-16 w-full items-center justify-between border-b border-slate-200 px-6 py-2">
+      <div className="flex min-h-16 w-full items-center justify-between border-b border-slate-200 px-4 pb-3 pt-4">
         <div className="flex items-center gap-2">
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <DollarSignIcon className="size-5 min-w-5" />
@@ -189,7 +189,7 @@ export function CashBoxSection() {
           <p className="text-lg text-slate-400">No hay cajas creadas aún</p>
         </div>
       ) : (
-        <article className="flex min-h-0 flex-1 flex-col gap-6 p-6">
+        <article className="flex min-h-0 flex-1 flex-col gap-6 px-4 pb-4 pt-3.5">
           <div className="flex min-h-10 items-center gap-2">
             {/* Filter */}
             <Select
@@ -407,7 +407,7 @@ export function CashBoxSection() {
                                 key="history-cashbox"
                                 textValue="History de caja"
                                 onClick={() =>
-                                  navigate(`/cajas/${cashbox.id}/history`)
+                                  navigate(`/boxes/${cashbox.id}/history`)
                                 }
                                 classNames={{
                                   title: "!flex !items-center gap-1",

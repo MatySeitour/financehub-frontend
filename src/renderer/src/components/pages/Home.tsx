@@ -1000,7 +1000,7 @@ export function Home() {
               <div className="flex w-full items-center justify-between pr-2">
                 <span className="text-lg text-slate-400">Cajas abiertas</span>
                 <div
-                  onClick={() => navigate(`/cajas`)}
+                  onClick={() => navigate(`/boxes`)}
                   className="flex w-fit cursor-pointer items-center gap-1 p-2 text-slate-300 underline underline-offset-2 transition-all hover:text-slate-500"
                 >
                   <SquareArrowOutUpRight className="size-3.5 min-w-3.5" />
@@ -1052,7 +1052,7 @@ export function Home() {
                   );
                   return (
                     <li
-                      onClick={() => navigate(`/cajas/${cashbox.id}/history`)}
+                      onClick={() => navigate(`/boxes/${cashbox.id}/history`)}
                       className="flex h-auto w-full cursor-pointer flex-col gap-4 rounded-md border border-b-4 border-r-4 border-slate-200/80 bg-gradient-to-br from-white via-transparent to-slate-200/20 p-3 transition-all hover:border-slate-300"
                       key={cashbox.id}
                     >
@@ -1136,7 +1136,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="relative flex h-full min-h-0 w-full items-center px-4 pb-4">
+      <div className="relative flex h-full min-h-0 w-full items-center p-4">
         <div className="flex h-full w-full flex-col rounded-md border border-slate-200 bg-white">
           <div className="flex w-full justify-between px-4 pt-4">
             <div className="flex items-center gap-2">

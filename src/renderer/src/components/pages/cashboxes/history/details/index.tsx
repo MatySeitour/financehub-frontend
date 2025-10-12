@@ -1,9 +1,5 @@
 import { useQuery } from "react-query";
-import {
-  BaseResponseServer,
-  MenuOption,
-  ServerError,
-} from "@renderer/utils/types";
+import { BaseResponseServer } from "@renderer/utils/types";
 import { Select, SelectItem, Tooltip } from "@heroui/react";
 
 import { useState } from "react";
@@ -49,7 +45,7 @@ export function HistorySection() {
   return (
     <section className="flex h-full w-full flex-col">
       {/* Header */}
-      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-6">
+      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <Tooltip
             closeDelay={0}
@@ -70,8 +66,8 @@ export function HistorySection() {
         </div>
       </div>
 
-      <div className="flex h-auto w-full flex-col gap-6 overflow-hidden p-6">
-        <div className="flex min-h-10 items-center gap-2">
+      <div className="flex h-auto w-full flex-col gap-4 overflow-hidden p-4">
+        <div className="flex items-center gap-2">
           {/* Filter */}
           <Select
             aria-label="filters"

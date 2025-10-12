@@ -5,7 +5,6 @@ import { ServerError } from "@renderer/utils/types";
 import { format, isWithinInterval, min, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { DatePicker, Tooltip } from "@heroui/react";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRightIcon,
@@ -113,7 +112,7 @@ export function CashBoxHistorySection() {
   return (
     <section ref={sectionRef} className="flex h-full w-full flex-col">
       {/* Header */}
-      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-6">
+      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <Tooltip
             closeDelay={0}
@@ -133,7 +132,7 @@ export function CashBoxHistorySection() {
         </div>
       </div>
 
-      <article className="flex h-full w-full flex-col gap-6 overflow-hidden p-6">
+      <article className="flex h-full w-full flex-col gap-6 overflow-hidden p-4">
         <div className="flex min-h-10 items-center gap-2">
           {/* Search */}
           <div className="flex items-center gap-3">
@@ -248,7 +247,7 @@ export function CashBoxHistorySection() {
                   {/* Dates */}
                   <div
                     onClick={() =>
-                      navigate(`/cajas/${cashboxID}/history/current`)
+                      navigate(`/boxes/${cashboxID}/history/current`)
                     }
                     className="flex w-full items-center gap-4 rounded-t-md p-4"
                   >
@@ -387,7 +386,7 @@ export function CashBoxHistorySection() {
                   {/* Dates */}
                   <div
                     onClick={() =>
-                      navigate(`/cajas/${cashboxID}/history/${history.id}`)
+                      navigate(`/boxes/${cashboxID}/history/${history.id}`)
                     }
                     className="flex w-full items-center justify-between rounded-t-md p-4"
                   >

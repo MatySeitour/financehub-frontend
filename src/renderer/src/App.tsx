@@ -47,57 +47,66 @@ function App() {
             {/* Home */}
             <Route path="/home" element={<Home />} />
 
+            {/* ------------ Clients ------------ */}
             {/* Clients */}
-            <Route path="/clientes" element={<ClientSection />} />
+            <Route path="/clients" element={<ClientSection />} />
 
             {/* Clients Details */}
             <Route
-              path="/clientes/:id/detalles"
+              path="/clients/:id/details"
               element={<ClientDetailsSection />}
             />
+            {/* -------------------------------- */}
 
-            {/* Sellers */}
-            <Route path="/vendedores" element={<SellersSection />} />
+            {/* ------------ Sellers ------------ */}
+            <Route path="/sellers" element={<SellersSection />} />
 
             {/* Sellers Details*/}
             <Route
-              path="/vendedores/:id/detalles"
+              path="/sellers/:id/details"
               element={<SellerDetailsSection />}
             />
+            {/* -------------------------------- */}
 
-            {/* Loans*/}
+            {/* ------------ Loans ------------ */}
             <Route
-              path="/prestamos"
+              path="/loans"
               element={
                 <main className="h-full w-full bg-green-200">
                   Estamos en prestamos
                 </main>
               }
             />
+            {/* -------------------------------- */}
 
+            {/* ------------ Cashboxes ------------ */}
             {/* Cashboxes */}
-            <Route path="/cajas" element={<CashBoxSection />} />
+            <Route path="/boxes" element={<CashBoxSection />} />
 
             {/* Cashboxes history */}
             <Route
-              path="/cajas/:id/history"
+              path="/boxes/:id/history"
               element={<CashBoxHistorySection />}
             />
 
             {/* Cashboxes current history */}
             <Route
-              path="/cajas/:id/history/current"
+              path="/boxes/:id/history/current"
               element={<HistoryCurrentSection />}
             />
 
             {/* Cashbox history */}
             <Route
-              path="/cajas/:id/history/:historyID"
+              path="/boxes/:id/history/:historyID"
               element={<HistorySection />}
             />
-            <Route path="/operaciones" element={<OperationsSection />} />
+
+            {/* Operations */}
+            <Route path="/operations" element={<OperationsSection />} />
+
+            {/* Settings */}
             <Route
-              path="/configuracion"
+              path="/settings"
               element={
                 <main className="h-full w-full bg-green-200">
                   Estamos en configuracion

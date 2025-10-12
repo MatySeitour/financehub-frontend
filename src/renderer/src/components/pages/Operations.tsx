@@ -230,7 +230,7 @@ export function OperationsSection() {
   return (
     <section className="flex h-full w-full flex-col">
       {/* TOP OPTION'S CONTAINER */}
-      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-6">
+      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <BanknoteArrowUpIcon className="size-5 min-w-5" />
@@ -249,53 +249,58 @@ export function OperationsSection() {
       </div>
 
       {/* OPERATIONS'S SECTION CONTAINER */}
-      <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6 pt-4">
-        <div className="mt-[2px] flex w-[568px] flex-col gap-6 py-2">
-          {/* SEARCH FILTER CONTAINER */}
-          <div className="flex w-full gap-16">
-            <div
-              className="flex h-9 min-h-8 w-full items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
-            >
-              <SearchIcon className="size-4 min-w-4 text-slate-400" />
-              <input
-                ref={searchRef}
-                disabled={operationsQuery.isFetching}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-full w-full text-sm text-slate-500 outline-none"
-                type="text"
-                placeholder="Buscar cliente o vendedor..."
-              />
-              <div className="flex items-center gap-1">
-                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                  Ctrl
-                </div>
-                <p className="text-xs text-slate-500">+</p>
-                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                  F
-                </div>
+      <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
+        {/* SEARCH FILTER CONTAINER */}
+        <div className="flex w-full gap-16">
+          <div
+            className="flex h-9 min-h-8 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+          >
+            <SearchIcon className="size-4 min-w-4 text-slate-400" />
+            <input
+              ref={searchRef}
+              disabled={operationsQuery.isFetching}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-full w-full text-sm text-slate-500 outline-none"
+              type="text"
+              placeholder="Buscar cliente o vendedor..."
+            />
+            <div className="flex items-center gap-1">
+              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                Ctrl
+              </div>
+              <p className="text-xs text-slate-500">+</p>
+              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                F
               </div>
             </div>
           </div>
           {/* DATE CONTAINER */}
-          <div className="flex h-9 w-full items-center gap-3">
+          <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Desde</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Desde
+              </span>
+
               <input
+                disabled={operationsQuery.isFetching}
                 onChange={(e) => setFrom(parseISO(e.target.value))}
                 type="date"
-                className="rounded-md border p-2 text-sm text-slate-400"
               />
-            </div>
+            </label>
+
             {/* To date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Hasta</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Hasta
+              </span>
+
               <input
+                disabled={operationsQuery.isFetching}
                 onChange={(e) => setTo(parseISO(e.target.value))}
                 type="date"
-                className="rounded-md border p-2 text-sm text-slate-400"
               />
-            </div>
+            </label>
           </div>
         </div>
 

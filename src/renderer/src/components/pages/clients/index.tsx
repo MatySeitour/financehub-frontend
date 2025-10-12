@@ -102,7 +102,7 @@ export function ClientSection() {
     {
       name: "Detalles",
       icon: PaperclipIcon,
-      onAction: (client) => navigate(`/clientes/${client?.id}/detalles`),
+      onAction: (client) => navigate(`/clients/${client?.id}/details`),
     },
     {
       name: "Editar",
@@ -119,7 +119,7 @@ export function ClientSection() {
   return (
     <section className="flex h-full w-full flex-col">
       {/* TOP OPTION'S CONTAINER */}
-      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-6">
+      <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <UsersRoundIcon className="size-5 min-w-5" />
@@ -137,7 +137,7 @@ export function ClientSection() {
         </Button>
       </div>
 
-      <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6 pt-4">
+      <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         <div
           className="flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
         >

@@ -210,32 +210,32 @@ export const navItems: NavItem[] = [
   },
   {
     name: "Clientes",
-    linkTo: "/clientes",
+    linkTo: "/clients",
     icon: UsersIcon,
   },
   {
     name: "Vendedores",
-    linkTo: "/vendedores",
+    linkTo: "/sellers",
     icon: HandCoinsIcon,
   },
   {
     name: "Operaciones",
-    linkTo: "/operaciones",
+    linkTo: "/operations",
     icon: BanknoteArrowUpIcon,
   },
   {
     name: "Cajas",
-    linkTo: "/cajas",
+    linkTo: "/boxes",
     icon: DollarSignIcon,
   },
   {
     name: "Prestamos",
-    linkTo: "/prestamos",
+    linkTo: "/loans",
     icon: LandmarkIcon,
   },
   {
     name: "Configuraciones",
-    linkTo: "/configuracion",
+    linkTo: "/settings",
     icon: CogIcon,
   },
 ];
