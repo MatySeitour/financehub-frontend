@@ -50,3 +50,30 @@ export async function getLoans(from?: Date, to?: Date) {
   const { data } = await AxiosFetch("/api/v1/loans", { params });
   return loanSchema.array().parse(data.data);
 }
+////////////////////////////////////////////////////////////
+
+////////////// Client //////////////
+export async function getClientLoans(clientID: number, from?: Date, to?: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch(`/api/v1/clients/${clientID}/loans`, {
+    params,
+  });
+  return loanSchema.array().parse(data.data);
+}
+
+////////////////////////////////////////////////////////////
+
+////////////// Seller //////////////
+export async function getSellerLoans(sellerID: number, from?: Date, to?: Date) {
+  const params = {
+    from,
+    to,
+  };
+  const { data } = await AxiosFetch(`/api/v1/sellers/${sellerID}/loans`, {
+    params,
+  });
+  return loanSchema.array().parse(data.data);
+}
