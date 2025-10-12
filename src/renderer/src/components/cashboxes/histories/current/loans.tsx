@@ -240,7 +240,7 @@ export function CurrentLoansHistoryCashbox({
         <TableWork
           columns={COLUMNS}
           loading={historyLoansQuery.isLoading}
-          error={historyLoansQuery.isError}
+          error={historyLoansQuery.error}
           searchInput={search}
           data={filteredLoans}
           openModal={() => console.log()}

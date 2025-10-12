@@ -227,7 +227,7 @@ export function CurrentOperationsHistoryCashbox({
         <TableWork
           columns={COLUMNS}
           loading={historyOperationsQuery.isLoading}
-          error={historyOperationsQuery.isError}
+          error={historyOperationsQuery.error}
           searchInput={search}
           data={filteredOperations}
           openModal={() => console.log()}

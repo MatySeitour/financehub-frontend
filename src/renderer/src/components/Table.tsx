@@ -405,6 +405,8 @@ export function TableLoading() {
 function TableError({ error }: { error: ServerError }) {
   const isZod = error.name === "ZodError";
 
+  console.log("error en table", error);
+
   if (error.code === "connection-error") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">

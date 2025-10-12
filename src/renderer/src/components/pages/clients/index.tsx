@@ -2,7 +2,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { MenuOption, ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
-import { Client, getClients } from "@renderer/hooks/client";
 
 import {
   PaperclipIcon,
@@ -21,6 +20,7 @@ import {
 } from "@renderer/components/modals/clients";
 import { TableWork } from "@renderer/components/Table";
 import { useNavigate } from "react-router";
+import { Client, getClients } from "@renderer/hooks/clients";
 
 /* UTILS*/
 //Clients table's columns
@@ -29,33 +29,26 @@ const COLUMNS = [
     label: "Nombre",
     key: "name",
     render: (item: Client) => item.name,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Direccion",
     key: "address",
     render: (item: Client) => item.address,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
   {
     label: "Numero de telefono",
     key: "phone",
     render: (item: Client) => item.phone,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
-  /*
   {
     label: "Referido por",
-    key: "referredBy",
-    render: (item: Client) => item.referredBy,
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
+    key: "referred_to",
+    render: (item: Client) => item.referred_to?.name ?? "-",
   },
-  */
   {
     label: "Informacion adicional",
     key: "info",
     render: (item: Client) => item.info ?? "-",
-    // enabledContextMenu: () => (dataExcel.length === 0 ? true : false),
   },
 ];
 
@@ -172,7 +165,7 @@ export function ClientSection() {
         <TableWork
           columns={COLUMNS}
           loading={clientsQuery.isFetching}
-          error={clientsQuery.isError}
+          error={clientsQuery.error}
           searchInput={search}
           data={filteredClients}
           openModal={() => setIsClientCreateOpen(true)}

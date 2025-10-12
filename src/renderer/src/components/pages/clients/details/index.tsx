@@ -1,42 +1,21 @@
 /* IMPORTS */
-import { useRef, useState, useEffect, useMemo } from "react";
-import { MenuOption, ServerError } from "@renderer/utils/types";
+import { useState } from "react";
+import { ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
-import { Client, getClient, getClients } from "@renderer/hooks/client";
-
 import {
   BanknoteArrowUpIcon,
   LandmarkIcon,
   LucideIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SearchIcon,
-  SquarePenIcon,
-  Trash2Icon,
-  TrendingDownIcon,
-  TrendingUpIcon,
   UserRoundIcon,
-  UsersRoundIcon,
 } from "lucide-react";
-import { cn, strNormalize } from "@renderer/utils";
-import { Button } from "@renderer/components/Button";
-import {
-  CreateClientModal,
-  DeleteClientModal,
-  UpdateClientModal,
-} from "@renderer/components/modals/clients";
-import { TableWork } from "@renderer/components/Table";
-import { useNavigate, useParams } from "react-router";
+import { cn } from "@renderer/utils";
+import { useParams } from "react-router";
 import { z } from "zod";
-import { getClientOperations, Operation } from "@renderer/hooks/operations";
-import { format } from "date-fns";
-import { I18nProvider } from "@react-aria/i18n";
-import { DatePicker } from "@heroui/react";
-import { now } from "@internationalized/date";
 import {
   ClientDetailsLoan,
   ClientDetailsOperation,
 } from "@renderer/components/clients";
+import { getClient } from "@renderer/hooks/clients";
 
 type TabNames = "operations" | "loans" | "installments" | "expenses";
 
@@ -56,14 +35,10 @@ const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
 //Component starts here
 export function ClientDetailsSection() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const isValidClientID = z.string().catch("").parse(id);
   const clientID = +isValidClientID;
 
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  const [search, setSearch] = useState("");
   const [tabActive, setTabActive] = useState<TabNames>("operations");
 
   /* QUERIES */

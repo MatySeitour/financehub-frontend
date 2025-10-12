@@ -5,48 +5,28 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "@renderer/hooks/axios";
-import { Client } from "@renderer/hooks/client";
-import { cn, errorsResponse } from "@renderer/utils";
+import { cn } from "@renderer/utils";
 import { ModalProps, ServerError } from "@renderer/utils/types";
 import {
   AlertCircleIcon,
   CircleAlertIcon,
-  Trash2Icon,
   TriangleAlertIcon,
   UserPlusIcon,
-  XIcon,
 } from "lucide-react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "react-query";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import z from "zod";
 import { Button } from "../Button";
 import { Mandatory } from "../Mandatory";
+import { getSellers } from "@renderer/hooks/sellers";
+import { Client } from "@renderer/hooks/clients";
 
-/* DATA TYPES */
-
-interface DeleteClientModalProps {
-  clientID: number;
-  clientName: string;
-  dialogRef: React.RefObject<HTMLDialogElement>;
-  closeModal: () => void;
-}
-//edit client parameters structure
-interface EditClientModalProps {
-  client: Client;
-  dialogRef: React.RefObject<HTMLDialogElement>;
-  closeModal: () => void;
-}
-
-/* UTILS */
-//axios
-const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
-
-/* SCHEMAS */
-//create and edit client data validation
 export type Input = z.infer<typeof inputSchema>;
 export const inputSchema = z.object({
   name: z
@@ -62,6 +42,7 @@ export const inputSchema = z.object({
     .min(1, "Este campo es requerido.")
     .max(200, "La direccion no puede contener mas de 200 caracteres."),
   info: z.string(),
+  referred_to_id: z.number().nullable(),
 });
 //delete client data validation
 export const deleteClientSchema = z.object({
@@ -78,14 +59,26 @@ export function CreateClientModal({ isOpen, onClose }: ModalProps) {
     formState: { errors },
     handleSubmit,
     watch,
+    control,
     register,
   } = useForm<Input>({
     resolver: zodResolver(inputSchema),
   });
 
+  const sellersQuery = useQuery<
+    Awaited<ReturnType<typeof getSellers>>,
+    ServerError
+  >({
+    queryFn: () => getSellers(),
+    queryKey: ["sellers", "all"],
+  });
+
   const mutation = useMutation<Input, ServerError, Input>({
     mutationFn: async (body) => {
-      const { data } = await AxiosFetch.post(`/api/v1/clients`, body);
+      const { data } = await AxiosFetch.post(`/api/v1/clients`, {
+        ...body,
+        referred_to_id: body.referred_to_id ? body.referred_to_id : null,
+      });
       return data;
     },
     onSuccess: () => {
@@ -164,8 +157,81 @@ export function CreateClientModal({ isOpen, onClose }: ModalProps) {
                     )}
                   </div>
 
+                  {/* referred */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label className="text-sm text-slate-500">Referente</label>
+
+                    <Controller
+                      name="referred_to_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={field.value ? [`${field.value}`] : []}
+                          placeholder="Selecciona un referente"
+                          endContent={
+                            sellersQuery.isLoading ? (
+                              <div className="flex w-full items-center justify-end">
+                                <span className="relative inline-block size-4 animate-rotateFull rounded-[50%] border-2 border-primary border-b-primary/20 after:absolute after:left-1/2 after:top-1/2 after:h-6 after:w-6 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-2 after:border-transparent"></span>
+                              </div>
+                            ) : null
+                          }
+                          aria-label="filters"
+                          disabled={sellersQuery.isLoading}
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                          }}
+                          className={cn(
+                            errors.referred_to_id?.message && "!border-red-500",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none focus-within:border-primary",
+                          )}
+                          onSelectionChange={(key) => {
+                            const selectedKey = key.currentKey;
+
+                            if (!selectedKey || selectedKey === "null") {
+                              field.onChange(null);
+                            } else {
+                              field.onChange(+selectedKey);
+                            }
+                          }}
+                        >
+                          <>
+                            <SelectItem
+                              aria-hidden="true"
+                              tabIndex={-1}
+                              textValue="Sin referente"
+                              className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              key={null}
+                            >
+                              <span className="text-sm">Sin referente</span>{" "}
+                            </SelectItem>
+
+                            {sellersQuery.data?.map((filter) => (
+                              <SelectItem
+                                textValue={`${filter.name}`}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                key={filter.id}
+                              >
+                                <span className="text-sm">{filter.name}</span>{" "}
+                              </SelectItem>
+                            ))}
+                          </>
+                        </Select>
+                      )}
+                    />
+                    {errors.referred_to_id && (
+                      <p className="text-xs font-medium text-red-500">
+                        {errors.referred_to_id.message}
+                      </p>
+                    )}
+                  </div>
+
                   {/* address */}
-                  <div className="col-span-2 flex w-full flex-col gap-1">
+                  <div className="flex w-full flex-col gap-1">
                     <label htmlFor="address" className="text-sm text-slate-500">
                       Dirección <Mandatory />
                     </label>
@@ -340,6 +406,7 @@ export function UpdateClientModal({
     formState: { errors },
     handleSubmit,
     watch,
+    control,
     register,
   } = useForm<Input>({
     resolver: zodResolver(inputSchema),
@@ -348,15 +415,24 @@ export function UpdateClientModal({
       info: client.info ?? "",
       name: client.name,
       phone: client.phone,
+      referred_to_id: client.referred_to?.id ?? undefined,
     },
+  });
+
+  const sellersQuery = useQuery<
+    Awaited<ReturnType<typeof getSellers>>,
+    ServerError
+  >({
+    queryFn: () => getSellers(),
+    queryKey: ["sellers", "all"],
   });
 
   const mutation = useMutation<Input, ServerError, Input>({
     mutationFn: async (body) => {
-      const { data } = await AxiosFetch.put(
-        `/api/v1/clients/${client.id}`,
-        body,
-      );
+      const { data } = await AxiosFetch.put(`/api/v1/clients/${client.id}`, {
+        ...body,
+        referred_to_id: body.referred_to_id ? body.referred_to_id : null,
+      });
       return data;
     },
     onSuccess: () => {
@@ -437,8 +513,81 @@ export function UpdateClientModal({
                     )}
                   </div>
 
+                  {/* referred */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label className="text-sm text-slate-500">Referente</label>
+
+                    <Controller
+                      name="referred_to_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={field.value ? [`${field.value}`] : []}
+                          placeholder="Selecciona un referente"
+                          endContent={
+                            sellersQuery.isLoading ? (
+                              <div className="flex w-full items-center justify-end">
+                                <span className="relative inline-block size-4 animate-rotateFull rounded-[50%] border-2 border-primary border-b-primary/20 after:absolute after:left-1/2 after:top-1/2 after:h-6 after:w-6 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-2 after:border-transparent"></span>
+                              </div>
+                            ) : null
+                          }
+                          aria-label="filters"
+                          disabled={sellersQuery.isLoading}
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                          }}
+                          className={cn(
+                            errors.referred_to_id?.message && "!border-red-500",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none focus-within:border-primary",
+                          )}
+                          onSelectionChange={(key) => {
+                            const selectedKey = key.currentKey;
+
+                            if (!selectedKey || selectedKey === "null") {
+                              field.onChange(null);
+                            } else {
+                              field.onChange(+selectedKey);
+                            }
+                          }}
+                        >
+                          <>
+                            <SelectItem
+                              aria-hidden="true"
+                              tabIndex={-1}
+                              textValue="Sin referente"
+                              className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              key={null}
+                            >
+                              <span className="text-sm">Sin referente</span>{" "}
+                            </SelectItem>
+
+                            {sellersQuery.data?.map((filter) => (
+                              <SelectItem
+                                textValue={`${filter.name}`}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                key={filter.id}
+                              >
+                                <span className="text-sm">{filter.name}</span>{" "}
+                              </SelectItem>
+                            ))}
+                          </>
+                        </Select>
+                      )}
+                    />
+                    {errors.referred_to_id && (
+                      <p className="text-xs font-medium text-red-500">
+                        {errors.referred_to_id.message}
+                      </p>
+                    )}
+                  </div>
+
                   {/* address */}
-                  <div className="col-span-2 flex w-full flex-col gap-1">
+                  <div className="flex w-full flex-col gap-1">
                     <label htmlFor="address" className="text-sm text-slate-500">
                       Dirección <Mandatory />
                     </label>

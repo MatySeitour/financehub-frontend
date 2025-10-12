@@ -253,7 +253,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
       <TableWork
         columns={COLUMNS_OPERATIONS}
         loading={operationsClientQuery.isFetching}
-        error={operationsClientQuery.isError}
+        error={operationsClientQuery.error}
         searchInput={search}
         data={filteredOperations}
         openModal={() => console.log()}
@@ -528,7 +528,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
       <TableWork
         columns={COLUMNS_LOANS}
         loading={loansClientQuery.isFetching}
-        error={loansClientQuery.isError}
+        error={loansClientQuery.error}
         searchInput={search}
         data={filteredLoans}
         openModal={() => console.log()}

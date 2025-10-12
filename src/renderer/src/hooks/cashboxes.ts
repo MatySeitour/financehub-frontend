@@ -9,9 +9,6 @@ import { installmentHistorySchema } from "./installments";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
-type Moviments = (typeof moviments)[number];
-const moviments = ["operations", "installments", "loans", "expenses"] as const;
-
 export type Cashbox = z.infer<typeof cashboxSchema>;
 export const cashboxSchema = z.object({
   id: z.number(),

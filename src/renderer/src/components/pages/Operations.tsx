@@ -303,8 +303,8 @@ export function OperationsSection() {
         <TableWork
           columns={COLUMNS}
           loading={operationsQuery.isFetching}
-          error={operationsQuery.isError}
-          searchInput={""}
+          error={operationsQuery.error}
+          searchInput={search}
           data={filteredOperations}
           openModal={onOpenCreateOperationModal}
           optionsMenu={options}
