@@ -983,7 +983,7 @@ export function Home() {
           ) : (
             <div className="relative h-full w-full px-3 pb-3 2xl:h-full">
               {emptyOpearationsPerWeek && (
-                <div className="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center gap-2 text-slate-400 backdrop-blur-[3px]">
+                <div className="absolute left-0 top-0 z-40 flex h-full w-full items-center justify-center gap-2 text-slate-400 backdrop-blur-[3px]">
                   <InfoIcon className="size-6 min-w-6" />
                   <span className="text-lg">
                     No hubo operaciones durante esta semana
