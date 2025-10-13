@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 import { BaseResponseServer } from "@renderer/utils/types";
-import { Select, SelectItem, Tooltip } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
 import { useState } from "react";
 import { Undo2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
@@ -10,14 +10,7 @@ import { CurrentOperationsHistoryCashbox } from "@renderer/components/cashboxes/
 import { CurrentLoansHistoryCashbox } from "@renderer/components/cashboxes/histories/current/loans";
 import { CurrentExpensesHistoryCashbox } from "@renderer/components/cashboxes/histories/current/expenses";
 import { CurrentInstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/current/installments";
-
-const filters = [
-  { label: "Operaciones", name: "operations" },
-  { label: "Préstamos", name: "loans" },
-  { label: "Gastos", name: "expenses" },
-  { label: "Cuotas", name: "installments" },
-] as const;
-type CashboxFilters = (typeof filters)[number];
+import { cn, TabMovimentsNames, tabsMoviments } from "@renderer/utils";
 
 export function HistoryCurrentSection() {
   const params = useParams();
@@ -26,7 +19,7 @@ export function HistoryCurrentSection() {
   const isValidCashbox = z.string().catch("").parse(params.id);
   const cashboxID = +isValidCashbox;
 
-  const [selected, setSelected] = useState<CashboxFilters>(filters[0]);
+  const [tabActive, setTabActive] = useState<TabMovimentsNames>("operations");
 
   const cashboxQuery = useQuery<
     Awaited<ReturnType<typeof getCashbox>>,
@@ -67,58 +60,45 @@ export function HistoryCurrentSection() {
       </div>
 
       <article className="flex h-auto w-full flex-col gap-4 overflow-hidden p-4">
-        <div className="flex min-h-10 items-center gap-2">
-          {/* Filter */}
-          <Select
-            aria-label="filters"
-            defaultSelectedKeys={selected.name}
-            classNames={{
-              innerWrapper: "rounded-md",
-              mainWrapper: "rounded-md",
-              popoverContent: "rounded-md text-slate-400 font-normal",
-              trigger:
-                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300/70",
-              listbox: "text-slate-400",
-              value: "!text-slate-400",
-            }}
-            className="min-h-9 max-w-64 rounded-md outline-none"
-            selectedKeys={new Set([selected.name])}
-            onSelectionChange={(e) => {
-              const key = typeof e === "string" ? e : e?.currentKey;
-              const filter = filters.find((f) => f.name === key);
-              if (filter) setSelected(filter);
-            }}
-          >
-            {filters.map((filter) => (
-              <SelectItem
-                classNames={{
-                  base: "hover:!bg-black/5 rounded-md hover:!text-slate-500 data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2",
-                }}
-                className="flex items-center gap-1"
-                onSelect={() => setSelected(filter)}
-                key={filter.name}
-              >
-                {filter.label}
-              </SelectItem>
-            ))}
-          </Select>
+        <ul className="flex items-center gap-2 border-b pl-4">
+          {tabsMoviments.map((tab) => (
+            <li
+              onClick={() => setTabActive(tab.name)}
+              className={cn(
+                tabActive === tab.name
+                  ? "text-primary"
+                  : "text-slate-400/70 hover:text-slate-400",
+                "relative flex cursor-pointer items-center gap-1.5 p-2 text-sm transition-all",
+              )}
+              key={tab.label}
+            >
+              <tab.icon className="size-3.5 min-w-3.5" />
+              {tab.label}
+
+              {tabActive === tab.name && (
+                <span className="absolute -bottom-px left-0 h-0.5 w-full rounded-lg bg-primary/50" />
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex h-auto min-h-0 flex-col gap-4 px-4">
+          {tabActive === "operations" && (
+            <CurrentOperationsHistoryCashbox cashboxID={cashboxID} />
+          )}
+
+          {tabActive === "loans" && (
+            <CurrentLoansHistoryCashbox cashboxID={cashboxID} />
+          )}
+
+          {tabActive === "expenses" && (
+            <CurrentExpensesHistoryCashbox cashboxID={cashboxID} />
+          )}
+
+          {tabActive === "installments" && (
+            <CurrentInstallmentsHistoryCashbox cashboxID={cashboxID} />
+          )}
         </div>
-
-        {selected.name === "operations" && (
-          <CurrentOperationsHistoryCashbox cashboxID={cashboxID} />
-        )}
-
-        {selected.name === "loans" && (
-          <CurrentLoansHistoryCashbox cashboxID={cashboxID} />
-        )}
-
-        {selected.name === "expenses" && (
-          <CurrentExpensesHistoryCashbox cashboxID={cashboxID} />
-        )}
-
-        {selected.name === "installments" && (
-          <CurrentInstallmentsHistoryCashbox cashboxID={cashboxID} />
-        )}
       </article>
     </section>
   );

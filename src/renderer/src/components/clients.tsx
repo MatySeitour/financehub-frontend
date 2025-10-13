@@ -95,7 +95,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
           <span
             className={cn(
               item.type === "buys" ? "text-blue-500" : "text-primary",
-              "font-mono",
+              "",
             )}
           >
             ${item.amount.toFixed(2)}
@@ -106,7 +106,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
         label: "Precio",
         key: "price",
         render: (item: Operation) => (
-          <span className="font-mono font-medium text-slate-500">
+          <span className="font-medium text-slate-500">
             ${item.price.toFixed(2)}
           </span>
         ),
@@ -115,7 +115,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
         label: "Precio de mercado",
         key: "marketPrice",
         render: (item: Operation) => (
-          <span className="font-mono">${item.marketPrice.toFixed(2)}</span>
+          <span>${item.marketPrice.toFixed(2)}</span>
         ),
       },
       {
@@ -123,7 +123,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
         key: "profit",
         render: (item: Operation) =>
           item.profit > 0 ? (
-            <div className="flex items-center gap-2 font-mono font-medium">
+            <div className="flex items-center gap-2 font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-success/10 px-1.5 py-0.5 text-xs text-success">
                 {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
@@ -131,7 +131,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 font-mono font-medium">
+            <div className="flex items-center gap-2 font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-danger/10 px-1.5 py-0.5 text-xs text-danger">
                 {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
@@ -148,9 +148,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Operation) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
-        ),
+        render: (item: Operation) => <span>${item.commission.toFixed(2)}</span>,
       },
     ];
   }, [operationsClientQuery.data]);
@@ -425,9 +423,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
-        ),
+        render: (item: Loan) => <span>${item.commission.toFixed(2)}</span>,
       },
     ];
   }, []);

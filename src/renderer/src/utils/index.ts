@@ -16,6 +16,7 @@ import {
   LandmarkIcon,
   LucideIcon,
   UsersIcon,
+  WalletCardsIcon,
 } from "lucide-react";
 import { sessionSchema, TSession } from "@renderer/hooks/user";
 
@@ -283,3 +284,36 @@ export const withCbk = <S, E>(options: {
     }
   };
 };
+
+export type TabMovimentsNames =
+  | "operations"
+  | "loans"
+  | "installments"
+  | "expenses";
+
+export const tabsMoviments: {
+  label: string;
+  icon: LucideIcon;
+  name: TabMovimentsNames;
+}[] = [
+  {
+    label: "Operaciones",
+    icon: BanknoteArrowUpIcon,
+    name: "operations",
+  },
+  {
+    label: "Préstamos",
+    icon: LandmarkIcon,
+    name: "loans",
+  },
+  {
+    label: "Cuotas",
+    icon: WalletCardsIcon,
+    name: "installments",
+  },
+  {
+    label: "Otros",
+    icon: HandCoinsIcon,
+    name: "expenses",
+  },
+] as const;

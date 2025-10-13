@@ -4,6 +4,8 @@ import {
   getDaysRemaingStatusSyles,
   getInstallmentStatusSyles,
   strNormalize,
+  TabMovimentsNames,
+  tabsMoviments,
 } from "@renderer/utils";
 import { ServerError } from "@renderer/utils/types";
 
@@ -15,7 +17,6 @@ import {
   ArrowDownRightIcon,
   ArrowUpIcon,
   ArrowUpRightIcon,
-  BanknoteArrowUpIcon,
   BanknoteIcon,
   CalendarCheck2Icon,
   CalendarClockIcon,
@@ -34,15 +35,12 @@ import {
   DollarSignIcon,
   HandCoinsIcon,
   InfoIcon,
-  LandmarkIcon,
-  LucideIcon,
   PackageIcon,
   SearchIcon,
   SquareArrowOutUpRight,
   TrendingDownIcon,
   TrendingUpIcon,
   TriangleAlert,
-  WalletCardsIcon,
 } from "lucide-react";
 import { getCronistaCurrencies } from "@renderer/hooks/currencies";
 import { Button } from "../Button";
@@ -175,36 +173,12 @@ const PeaksChart: React.FC<Props> = ({ data }) => {
   );
 };
 
-type TabNames = "operations" | "loans" | "installments" | "expenses";
-
-const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
-  {
-    label: "Operaciones",
-    icon: BanknoteArrowUpIcon,
-    name: "operations",
-  },
-  {
-    label: "Préstamos",
-    icon: LandmarkIcon,
-    name: "loans",
-  },
-  {
-    label: "Cuotas",
-    icon: WalletCardsIcon,
-    name: "installments",
-  },
-  {
-    label: "Otros",
-    icon: HandCoinsIcon,
-    name: "expenses",
-  },
-] as const;
 export function Home() {
   const navigate = useNavigate();
 
   const [from, setFrom] = useState(subDays(new Date(), 7));
   const [to, setTo] = useState(new Date());
-  const [tabActive, setTabActive] = useState<TabNames>("operations");
+  const [tabActive, setTabActive] = useState<TabMovimentsNames>("operations");
   const [search, setSearch] = useState("");
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -794,7 +768,9 @@ export function Home() {
     setTo((prev) => addDays(prev, 7));
   };
 
-  const placeholder = tabs.find((tab) => tab.name === tabActive)?.label;
+  const placeholder = tabsMoviments.find(
+    (tab) => tab.name === tabActive,
+  )?.label;
 
   const allLoadingsMovimentsPerDay =
     operationsQuery.isFetching ||
@@ -1080,7 +1056,7 @@ export function Home() {
                             <>
                               <ClockIcon className="size-3 min-w-3 text-success/70" />
                               <span className="text-success/70">
-                                Hace{hours} hora(s)
+                                Hace {hours} hora(s)
                               </span>
                             </>
                           ) : (
@@ -1118,8 +1094,8 @@ export function Home() {
                               </span>
                             </div>
                           ) : cashbox.profit === 0 ? (
-                            <div className="flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5">
-                              <span className="text-[0.65rem] text-slate-300">
+                            <div className="flex items-center justify-center rounded-full bg-slate-100/60 px-2 py-0.5">
+                              <span className="text-[0.65rem] text-slate-400">
                                 Sin movimientos
                               </span>
                             </div>
@@ -1184,7 +1160,7 @@ export function Home() {
           </div>
 
           <ul className="flex items-center gap-2 border-b pl-4">
-            {tabs.map((tab) => (
+            {tabsMoviments.map((tab) => (
               <li
                 onClick={() => setTabActive(tab.name)}
                 className={cn(

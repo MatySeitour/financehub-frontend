@@ -2,13 +2,8 @@
 import { useState } from "react";
 import { ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
-import {
-  BanknoteArrowUpIcon,
-  LandmarkIcon,
-  LucideIcon,
-  UserRoundIcon,
-} from "lucide-react";
-import { cn } from "@renderer/utils";
+import { UserRoundIcon } from "lucide-react";
+import { cn, tabsMoviments } from "@renderer/utils";
 import { useParams } from "react-router";
 import { z } from "zod";
 import {
@@ -18,19 +13,6 @@ import {
 import { getClient } from "@renderer/hooks/clients";
 
 type TabNames = "operations" | "loans" | "installments" | "expenses";
-
-const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
-  {
-    label: "Operaciones",
-    icon: BanknoteArrowUpIcon,
-    name: "operations",
-  },
-  {
-    label: "Préstamos",
-    icon: LandmarkIcon,
-    name: "loans",
-  },
-] as const;
 
 //Component starts here
 export function ClientDetailsSection() {
@@ -69,7 +51,7 @@ export function ClientDetailsSection() {
       </div>
 
       <ul className="flex items-center gap-2 border-b pl-4">
-        {tabs.map((tab) => (
+        {tabsMoviments.slice(0, 2).map((tab) => (
           <li
             onClick={() => setTabActive(tab.name)}
             className={cn(

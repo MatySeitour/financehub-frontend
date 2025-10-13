@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 import { BaseResponseServer } from "@renderer/utils/types";
-import { Select, SelectItem, Tooltip } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
 import { useState } from "react";
 import { Undo2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
@@ -10,14 +10,7 @@ import { OperationsHistoryCashbox } from "@renderer/components/cashboxes/histori
 import { LoansHistoryCashbox } from "@renderer/components/cashboxes/histories/loans";
 import { ExpensesHistoryCashbox } from "@renderer/components/cashboxes/histories/expenses";
 import { InstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/installments";
-
-const filters = [
-  { label: "Operaciones", name: "operations" },
-  { label: "Préstamos", name: "loans" },
-  { label: "Gastos", name: "expenses" },
-  { label: "Cuotas", name: "installments" },
-] as const;
-type CashboxFilters = (typeof filters)[number];
+import { cn, TabMovimentsNames, tabsMoviments } from "@renderer/utils";
 
 export function HistorySection() {
   const params = useParams();
@@ -29,7 +22,7 @@ export function HistorySection() {
   const isValidHistory = z.string().catch("").parse(params.historyID);
   const historyID = +isValidHistory;
 
-  const [selected, setSelected] = useState<CashboxFilters>(filters[0]);
+  const [tabActive, setTabActive] = useState<TabMovimentsNames>("operations");
 
   const cashboxQuery = useQuery<
     Awaited<ReturnType<typeof getCashbox>>,
@@ -69,93 +62,55 @@ export function HistorySection() {
         </div>
       </div>
 
-      <div className="flex h-auto w-full flex-col gap-4 overflow-hidden p-4">
-        <div className="flex items-center gap-2">
-          {/* Filter */}
-          <Select
-            aria-label="filters"
-            defaultSelectedKeys={selected.name}
-            classNames={{
-              innerWrapper: "rounded-md",
-              mainWrapper: "rounded-md",
-              popoverContent: "rounded-md text-slate-400 font-normal",
-              trigger:
-                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7 border border-slate-300/70",
-              listbox: "text-slate-400",
-              value: "!text-slate-400",
-            }}
-            className="min-h-9 max-w-64 rounded-md outline-none"
-            selectedKeys={new Set([selected.name])}
-            onSelectionChange={(e) => {
-              const key = typeof e === "string" ? e : e?.currentKey;
-              const filter = filters.find((f) => f.name === key);
-              if (filter) setSelected(filter);
-            }}
-          >
-            {filters.map((filter) => (
-              <SelectItem
-                classNames={{
-                  base: "hover:!bg-black/5 rounded-md hover:!text-slate-500 data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2",
-                }}
-                className="flex items-center gap-1"
-                onSelect={() => setSelected(filter)}
-                key={filter.name}
-              >
-                {filter.label}
-              </SelectItem>
-            ))}
-          </Select>
+      <div className="flex h-full w-full flex-col gap-4 overflow-hidden py-2">
+        <ul className="flex items-center gap-2 border-b pl-4">
+          {tabsMoviments.map((tab) => (
+            <li
+              onClick={() => setTabActive(tab.name)}
+              className={cn(
+                tabActive === tab.name
+                  ? "text-primary"
+                  : "text-slate-400/70 hover:text-slate-400",
+                "relative flex cursor-pointer items-center gap-1.5 p-2 text-sm transition-all",
+              )}
+              key={tab.label}
+            >
+              <tab.icon className="size-3.5 min-w-3.5" />
+              {tab.label}
 
-          {/* Search */}
-          {/* <div
-            className={cn(
-              "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
-            )}
-          >
-            <SearchIcon className="size-4 min-w-4 text-slate-400" />
+              {tabActive === tab.name && (
+                <span className="absolute -bottom-px left-0 h-0.5 w-full rounded-lg bg-primary/50" />
+              )}
+            </li>
+          ))}
+        </ul>
 
-            <input
-              ref={searchRef}
-              disabled={historyOperationsQuery.isFetching}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-full w-full text-sm text-slate-500 outline-none"
-              type="text"
-              placeholder="Buscar caja..."
+        <div className="flex h-auto min-h-0 flex-col gap-4 px-4">
+          {tabActive === "operations" && (
+            <OperationsHistoryCashbox
+              cashboxID={cashboxID}
+              historyID={historyID}
             />
+          )}
 
-            <div className="flex items-center gap-1">
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                Ctrl
-              </div>
-              <p className="text-xs text-slate-500">+</p>
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                F
-              </div>
-            </div>
-          </div> */}
+          {tabActive === "loans" && (
+            <LoansHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
+          )}
+
+          {tabActive === "expenses" && (
+            <ExpensesHistoryCashbox
+              cashboxID={cashboxID}
+              historyID={historyID}
+            />
+          )}
+
+          {tabActive === "installments" && (
+            <InstallmentsHistoryCashbox
+              cashboxID={cashboxID}
+              historyID={historyID}
+            />
+          )}
         </div>
-
-        {selected.name === "operations" && (
-          <OperationsHistoryCashbox
-            cashboxID={cashboxID}
-            historyID={historyID}
-          />
-        )}
-
-        {selected.name === "loans" && (
-          <LoansHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
-        )}
-
-        {selected.name === "expenses" && (
-          <ExpensesHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
-        )}
-
-        {selected.name === "installments" && (
-          <InstallmentsHistoryCashbox
-            cashboxID={cashboxID}
-            historyID={historyID}
-          />
-        )}
       </div>
     </section>
   );
