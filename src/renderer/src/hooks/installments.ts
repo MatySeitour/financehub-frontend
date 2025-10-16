@@ -11,7 +11,7 @@ export const installmentSchema = z.object({
   value: z.coerce.number(),
   amount: z.coerce.number().nullable(),
   paymentAmount: z.coerce.number(),
-  paymentDate: z.string(),
+  paymentDate: z.string().nullable(),
   dueDate: z.string(),
   currency: z.string(),
   number_of_installments: z.number(),

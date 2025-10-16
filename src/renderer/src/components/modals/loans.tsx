@@ -1,499 +1,836 @@
 /* IMPORTS */
 
 import axios from "@renderer/hooks/axios";
-import { ServerError } from "@renderer/utils/types";
-import React, { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { ModalProps, ServerError } from "@renderer/utils/types";
+import { useMutation, useQueryClient } from "react-query";
 import z from "zod";
-import { errorsResponse } from "@renderer/utils";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { cn } from "@renderer/utils";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@heroui/react";
-import { LandmarkIcon } from "lucide-react";
+import { Button } from "../Button";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@heroui/react";
+import {
+  AlertCircleIcon,
+  PackagePlusIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
+import { Client } from "@renderer/hooks/clients";
+import { Seller } from "@renderer/hooks/sellers";
+import { Cashbox } from "@renderer/hooks/cashboxes";
+import { Mandatory } from "../Mandatory";
+import { Loan, PaymentFrequency } from "@renderer/hooks/loans";
+import { toast } from "sonner";
+import { ErrorForm } from "../ErrorMessage";
+import { format, parseISO } from "date-fns";
 
 /* ENUMS */
-const paymentFrecuency = ["daily", "weekly", "biweekly", "monthly"] as const;
+const paymentFrequency = ["daily", "weekly", "biweekly", "monthly"] as const;
 
 /* DATA TYPES */
 //create loan structure
-export type LoanForm = z.infer<typeof loanFormSchema>;
+export type LoanForm = z.infer<ReturnType<typeof loanFormSchema>>;
 //
-export type LoanPayload = z.infer<typeof loanPayloadSchema>;
-/* --- ESTO SE BORRA XQ YA ESTA EN CLIENTES */
-export type Client = z.infer<typeof clientSchema>;
-export const clientSchema = z.object({
-  id: z.number(),
-  //org_id: z.number(),
-  name: z.string().max(50),
-  phone: z.string().max(20),
-  address: z.string().max(200),
-  info: z.string().nullable(),
-  /* LA API NO DEVUELVE ESTO TODAVIA, TIENE QUE DEVOLVERLO */
-  // referredBy: z.object({
-  //   id: z.number(),
-  //   name: z.string(),
-  // }),
-});
-export type Seller = z.infer<typeof sellerSchema>;
-export const sellerSchema = z.object({
-  id: z.number(),
-  name: z.string().max(50),
-  phone: z.string().max(20),
-  info: z.string().nullable(),
-});
-/* --------------- */
-
-/* INTERFACES */
-//create loan parameters structure
-interface CreateLoanModalProps {
-  dialogRef: React.RefObject<HTMLDialogElement>;
-  closeModal: () => void;
-}
+export type addPayInstallment = z.infer<
+  ReturnType<typeof addPayInstallmentSchema>
+>;
 
 /* UTILS */
 //axios
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
+const paymentFrequencyLabels: Record<
+  (typeof paymentFrequency)[number],
+  string
+> = {
+  daily: "Diario",
+  weekly: "Semanal",
+  biweekly: "Quincenal",
+  monthly: "Mensual",
+};
+
 /* SCHEMAS */
 //create and edit loan data validation
-export const loanFormSchema = z.object({
-  principal: z.preprocess(
-    (val) => Number(val),
-    z.number().min(1, "El capital prestado no puede estar vacio"),
-  ),
-  installment_value: z.preprocess(
-    (val) => Number(val),
-    z.number().min(1, "El valor de las cuotas no puede estar vacio"),
-  ),
-  number_of_installments: z.preprocess(
-    (val) => Number(val),
-    z.number().min(1, "La cantidad de cuotas no puede estar vacia"),
-  ),
-  payment_frequency: z.enum(paymentFrecuency),
-  first_due_date: z.string().min(1, "La fecha no puede estar vacia"),
-  commission: z.preprocess((val) => Number(val), z.number().optional()),
-  clientName: z.string().min(1, "El cliente no puede estar vacio"),
-  sellerName: z.string().min(1, "El vendedor no puede estar vacio"),
-});
+export function loanFormSchema(clients: Client[], sellers: Seller[]) {
+  return z.object({
+    client_id: z
+      .string()
+      .transform((val) => {
+        const matchedClient = clients.find((c) => c.name === val);
 
-export const loanPayloadSchema = z.object({
-  client_id: z.number(),
-  seller_id: z.number(),
-  principal: z.number(),
-  cashboxID: z.number(),
-  number_of_installments: z.number(),
-  payment_frequency: z.enum(paymentFrecuency),
-  commission: z.number().optional(),
-  total_paid: z.number(),
-  first_due_date: z.string(),
-  installment_value: z.number(),
-});
+        return matchedClient?.id;
+      })
+      .refine((val) => val, {
+        message: "El Cliente no existe.",
+      }),
+    seller_id: z
+      .string()
+      .transform((val) => {
+        const matchedSeller = sellers.find((s) => s.name === val);
+
+        return matchedSeller?.id;
+      })
+      .refine((val) => val, {
+        message: "El Vendedor no existe.",
+      }),
+    principal: z
+      .number({ message: "Este campo es requerido." })
+      .gt(0, "La cantidad debe ser mayor a 0."),
+    cashboxID: z.number({ message: "Este campo es requerido." }),
+    number_of_installments: z
+      .number({ message: "Este campo es requerido." })
+      .gt(0, "La cantidad debe ser mayor a 0."),
+    payment_frequency: z.enum(paymentFrequency, {
+      message: "Este campo es requerido.",
+    }),
+    commission: z.number({ message: "Este campo es requerido." }),
+    first_due_date: z.date(),
+    installment_value: z
+      .number({ message: "Este campo es requerido" })
+      .gt(0, "La cantidad debe ser mayor a 0."),
+  });
+}
+//
+export function addPayInstallmentSchema() {
+  return z.object({
+    payment_amount: z.number({ message: "Este campo  es requerido." }),
+    payment_date: z.date().nullable(),
+  });
+}
 
 /* MODALS */
 //create loan modal
 export function CreateLoanModal({
-  dialogRef,
-  closeModal,
-}: CreateLoanModalProps) {
+  isOpen,
+  onClose,
+  clients,
+  sellers,
+  cashboxes,
+}: ModalProps & {
+  clients: Client[];
+  sellers: Seller[];
+  cashboxes: Cashbox[];
+}) {
   /* STATES */
-  //list of clients
-  const [clients, setClients] = useState<Client[]>([]);
-  const [sellers, setSellers] = useState<Seller[]>([]);
 
   /* UTILS */
-  //get the query client instance to interact with the cache
+  //
   const queryClient = useQueryClient();
 
   /* QUERIES */
-  //get all clients
-  /* --- ESTO SE BORRA XQ YA ESTA EN CLIENTES --- */
-  async function getClients() {
-    try {
-      const { data } = await AxiosFetch(`/api/v1/clients`);
-
-      console.log("Respuesta completa:", data);
-
-      return clientSchema.array().parse(data?.data);
-    } catch (error) {
-      console.error(error);
-
-      return errorsResponse(error);
-    }
-  }
-  async function getSellers() {
-    try {
-      const { data } = await AxiosFetch(`/api/v1/sellers`);
-
-      return sellerSchema.array().parse(data?.data);
-    } catch (error) {
-      console.error(error);
-
-      return errorsResponse(error);
-    }
-  }
-  const sellersQuery = useQuery<
-    Awaited<ReturnType<typeof getSellers>>,
-    ServerError
-  >({
-    queryFn: () => getSellers(),
-    queryKey: ["sellers", "all"],
-    onSuccess: (data) => {
-      if (data && Array.isArray(data)) {
-        setSellers(data);
-      }
-    },
-  });
-  /* ---------- */
-  const clientsQuery = useQuery<
-    Awaited<ReturnType<typeof getClients>>,
-    ServerError
-  >({
-    queryFn: () => getClients(),
-    queryKey: ["clients", "all"],
-    onSuccess: (data) => {
-      if (data && Array.isArray(data)) {
-        setClients(data);
-      }
-    },
-  });
 
   /* MUTATIONS */
-  //mutation to create loans
-  const mutation = useMutation<LoanPayload, ServerError, LoanPayload>({
+  //mutation to create operations
+  const mutation = useMutation<LoanForm, ServerError, LoanForm>({
     mutationFn: async (body) => {
-      try {
-        //send new loan to backend
-        const { data } = await AxiosFetch.post(`/api/v1/loans`, body);
-
-        //return data for the toast
-        return data;
-      } catch (error) {
-        console.error(error);
-
-        return errorsResponse(error);
-      }
+      //send new client to backend
+      const { data } = await AxiosFetch.post(`/api/v1/loans`, {
+        ...body,
+        first_due_date: format(body.first_due_date, "yyyy-MM-dd"),
+      });
+      //return data for the toast
+      return data;
     },
-    onSuccess: (data) => {
-      //forces a refetch
+    onSuccess: () => {
+      //Forces a refetch
       queryClient.invalidateQueries(["loans", "all"]);
 
-      console.log("El prestamo se ha creado correctamente", data);
-
-      //close modal once the loan was successfully added
-      closeModal();
-      //reset all fiell¿ds in the form
-      reset();
-      /* PENDING TOAST */
+      toast.success("Se ha creado un nuevo préstamo.", {
+        className: "!border-primary/70",
+      });
+      onClose();
     },
   });
 
   /* HOOKS */
-  //manipulate and validate the data from the form
+  //
   const {
     register,
+    setValue,
+    control,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<LoanForm>({
-    resolver: zodResolver(loanFormSchema),
+    resolver: zodResolver(loanFormSchema(clients, sellers)),
+    defaultValues: {},
   });
 
   /* EVENT HANDLERS */
-  //executes the mutation when the form is submitted
   const onSubmit: SubmitHandler<LoanForm> = (data) => {
-    try {
-      console.log("me ejecute con exito");
-      const matchedClient = clients.find((c) => c.name === data.clientName);
-
-      if (!matchedClient) {
-        alert("Cliente no válido");
-        return;
-      }
-
-      const matchedSeller = sellers.find((c) => c.name === data.sellerName);
-
-      if (!matchedSeller) {
-        alert("Vendedor no válido");
-        return;
-      }
-
-      const { clientName, sellerName, ...rest } = data;
-
-      const enrichedData: LoanPayload = {
-        ...rest,
-        client_id: matchedClient.id,
-        seller_id: matchedSeller.id,
-        total_paid: 0,
-        cashboxID: 1,
-      };
-
-      mutation.mutate(enrichedData);
-    } catch (error) {
-      console.error(error);
-
-      return errorsResponse(error);
-    }
+    mutation.mutate(data);
   };
 
   return (
     <>
-      <dialog
-        ref={dialogRef}
-        className="h-fit w-1/2 rounded-lg shadow-lg outline-none"
+      <Modal
+        backdrop="opaque"
+        radius="sm"
+        size="3xl"
+        isOpen={isOpen}
+        onOpenChange={onClose}
       >
-        {clientsQuery.isLoading ||
-        clientsQuery.isFetching ||
-        sellersQuery.isLoading ||
-        sellersQuery.isFetching ? (
-          <LoadingSkeletonFormAddLoan />
-        ) : (
-          <>
-            {/* FORM'S CONTAINER */}
-            <form
-              className="flex h-full w-full flex-col px-8 py-4 text-slate-500 outline-none"
-              onSubmit={handleSubmit(onSubmit)}
-            >
-              {/* TITLE'S CONTAINER */}
-              <div className="flex gap-4 border-b pb-4">
-                <LandmarkIcon className="size-7" />
-                <h3 className="w-full text-xl font-semibold">
-                  Crear un nuevo prestamo
-                </h3>
-              </div>
-              {/* FIELD'S CONTAINER 1 */}
-              <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-                {/* CLIENT NAME INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Cliente
-                  <input
-                    {...register("clientName")}
-                    placeholder="Nombre del cliente.."
-                    list="clientsList"
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.clientName
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.clientName && (
-                    <span className="text-sm text-red-500">
-                      {errors.clientName.message}
-                    </span>
+        <ModalContent className="flex flex-col gap-2">
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex h-auto items-center gap-3">
+                <PackagePlusIcon className="size-8 min-w-8 text-slate-500" />
+                <div className="flex w-fit flex-col justify-center">
+                  <p className="text-lg text-slate-500">Crear préstamo</p>
+                </div>
+              </ModalHeader>
+              <form
+                className="flex flex-col gap-4"
+                onSubmit={handleSubmit(onSubmit)}
+              >
+                <ModalBody className="py-0">
+                  {/* Client & seller */}
+                  <div className="flex w-full items-start gap-4">
+                    {/* client name */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Cliente <Mandatory />
+                      </div>
+                      <input
+                        {...register("client_id")}
+                        className={cn(
+                          errors.client_id
+                            ? "border-danger"
+                            : "border-slate-300",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                        type="text"
+                        autoComplete="off"
+                        list="clientsList"
+                      />
+                      {errors.client_id && (
+                        <span className="text-xs text-danger">
+                          {errors.client_id?.message}
+                        </span>
+                      )}
+                    </label>
+                    {/* seller name */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Vendedor <Mandatory />
+                      </div>
+                      <input
+                        {...register("seller_id")}
+                        className={cn(
+                          errors.seller_id
+                            ? "border-danger"
+                            : "border-slate-300",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                        type="text"
+                        list="sellersList"
+                      />
+                      {errors.seller_id && (
+                        <span className="text-xs text-danger">
+                          {errors.seller_id?.message}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                  {/* Decrease cashbox & principal */}
+                  <div className="flex w-full items-start gap-4">
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Divisa <Mandatory />
+                      </div>
+                      <select
+                        onChange={(v) => setValue("cashboxID", +v.target.value)}
+                        className={cn(
+                          errors.cashboxID
+                            ? "border-danger"
+                            : "border-slate-300",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        <option value={undefined}>Selecciona una divisa</option>
+                        {cashboxes?.map((cashbox) => (
+                          <option key={cashbox.id} value={cashbox.id}>
+                            {cashbox.currency.name} - {cashbox.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.cashboxID && (
+                        <span className="text-xs text-danger">
+                          {errors.cashboxID?.message}
+                        </span>
+                      )}
+                    </label>
+                    {/* Principal */}
+                    <Controller
+                      defaultValue={0}
+                      name="principal"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Capital <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.principal
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            $
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
+
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.principal && (
+                            <span className="text-xs text-danger">
+                              {errors.principal?.message}
+                            </span>
+                          )}
+                        </label>
+                      )}
+                      control={control}
+                    />
+                  </div>
+                  {/* installment value & commission */}
+                  <div className="flex w-full items-start gap-4">
+                    {/* increase cashbox */}
+                    <Controller
+                      defaultValue={0}
+                      name="installment_value"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Valor de las cuotas <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.installment_value
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            $
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
+
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.installment_value && (
+                            <span className="text-xs text-danger">
+                              {errors.installment_value?.message}
+                            </span>
+                          )}
+                        </label>
+                      )}
+                      control={control}
+                    />
+                    {/*  */}
+                    <Controller
+                      defaultValue={0}
+                      name="commission"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Comisión <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.commission
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            $
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
+
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.commission && (
+                            <span className="text-xs text-danger">
+                              {errors.commission?.message}
+                            </span>
+                          )}
+                        </label>
+                      )}
+                      control={control}
+                    />
+                  </div>
+                  {/* Payment frequency & first due date & number of installments */}
+                  <div className="flex w-full items-start gap-4">
+                    {/* Payment frequency */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Frecuencia de cobro <Mandatory />
+                      </div>
+                      <select
+                        onChange={(v) =>
+                          setValue(
+                            "payment_frequency",
+                            v.target.value as PaymentFrequency,
+                          )
+                        }
+                        className={cn(
+                          errors.payment_frequency
+                            ? "border-danger"
+                            : "border-slate-300",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        {paymentFrequency?.map((frequency) => (
+                          <option key={frequency} value={frequency}>
+                            {paymentFrequencyLabels[frequency]}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.payment_frequency && (
+                        <span className="text-xs text-danger">
+                          {errors.payment_frequency?.message}
+                        </span>
+                      )}
+                    </label>
+                    {/* First due date */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Primer vencimiento <Mandatory />
+                      </div>
+                      <Controller
+                        control={control}
+                        name="first_due_date"
+                        render={({ field }) => (
+                          <input
+                            onChange={(v) =>
+                              field.onChange(parseISO(v.target.value))
+                            }
+                            className={cn(
+                              "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            )}
+                            type="date"
+                          />
+                        )}
+                      />
+                    </label>
+                    {/*  */}
+                    <Controller
+                      defaultValue={0}
+                      name="number_of_installments"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Cantidad de cuotas <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.number_of_installments
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
+
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.number_of_installments && (
+                            <span className="text-xs text-danger">
+                              {errors.number_of_installments?.message}
+                            </span>
+                          )}
+                        </label>
+                      )}
+                      control={control}
+                    />
+                  </div>
+                  {mutation.isError && (
+                    <ErrorForm errorMessage={mutation.error} />
                   )}
-                </label>
-                {/* SELLER NAME INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Vendedor
-                  <input
-                    {...register("sellerName")}
-                    list="sellersList"
-                    placeholder="Nombre del vendedor.."
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.sellerName
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.sellerName && (
-                    <span className="text-sm text-red-500">
-                      {errors.sellerName.message}
-                    </span>
-                  )}
-                </label>
-              </div>
-              {/* FIELD'S CONTAINER 2 */}
-              <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-                {/* PRINCIPAL INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Capital
-                  <input
-                    {...register("principal")}
-                    type="number"
-                    placeholder="Ej: 150000"
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.principal
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.principal && (
-                    <span className="text-sm text-red-500">
-                      {errors.principal.message}
-                    </span>
-                  )}
-                </label>
-                {/* COMMISSION INPUT */}
-                <label className="flex w-full flex-col gap-1 pt-4 text-sm focus-within:text-green-600">
-                  Comision
-                  <input
-                    {...register("commission")}
-                    type="number"
-                    placeholder="Ej: 150000"
-                    className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
-                  />
-                </label>
-              </div>
-              {/* FIELD'S CONTAINER 3 */}
-              <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-                {/* INSTALLMENT VALUE INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Valor de las cuotas
-                  <input
-                    {...register("installment_value")}
-                    type="number"
-                    placeholder="Ej: 20000"
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.installment_value
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.installment_value && (
-                    <span className="text-sm text-red-500">
-                      {errors.installment_value.message}
-                    </span>
-                  )}
-                </label>
-                {/* NUMBER OF INSTALLMENTS VALUE */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Cantidad de cuotas
-                  <input
-                    {...register("number_of_installments")}
-                    type="number"
-                    placeholder="Ej: 12"
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.number_of_installments
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.number_of_installments && (
-                    <span className="text-sm text-red-500">
-                      {errors.number_of_installments.message}
-                    </span>
-                  )}
-                </label>
-              </div>
-              {/* FIELD'S CONTAINER 4 */}
-              <div className="flex w-full flex-row items-center justify-center gap-2 pt-4">
-                {/* PAYMENT FREQUENCY INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Frecuencia de cobro
-                  <select
-                    {...register("payment_frequency")}
-                    className="rounded-lg border p-3 shadow-sm outline-none focus:border-green-400"
+                </ModalBody>
+                <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
+                  <Button
+                    type="submit"
+                    isLoading={mutation.isLoading}
+                    variant="success"
+                    className="w-full"
                   >
-                    <option className="text-slate-500" value="daily">
-                      Diario
-                    </option>
-                    <option className="text-slate-500" value="weekly">
-                      Semanal
-                    </option>
-                    <option className="text-slate-500" value="biweekly">
-                      Quincenal
-                    </option>
-                    <option className="text-slate-500" value="monthly">
-                      Mensual
-                    </option>
-                  </select>
-                </label>
-                {/* FIRST DUE DATE INPUT */}
-                <label className="flex basis-1/2 flex-col gap-1 text-sm focus-within:text-green-600">
-                  Primer vencimiento
-                  <input
-                    {...register("first_due_date")}
-                    type="date"
-                    className={`rounded-lg border p-3 shadow-sm outline-none ${
-                      errors.first_due_date
-                        ? "border-red-500 focus:border-red-500"
-                        : "focus:border-green-400"
-                    }`}
-                  />
-                  {errors.first_due_date && (
-                    <span className="text-sm text-red-500">
-                      {errors.first_due_date.message}
-                    </span>
-                  )}
-                </label>
-              </div>
-              {/* END MODAL CONTAINER */}
-              <div className="flex w-full gap-2 pt-4 text-center">
-                {/* CONFIRM BUTTON */}
-                <Button
-                  isLoading={mutation.isLoading}
-                  type="submit"
-                  color="success"
-                  className="w-full rounded-md text-white"
-                >
-                  Aceptar
-                </Button>
-                <Button
-                  type="button"
-                  onPress={closeModal}
-                  color="danger"
-                  className="w-full rounded-md text-white"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </>
-        )}
-      </dialog>
-      {/* DATALIST FOR SEARCH CLIENTS INPUT */}
+                    Confirmar
+                  </Button>
+                  <Button variant="error" className="w-full" onClick={onClose}>
+                    Cancelar
+                  </Button>
+                </ModalFooter>
+              </form>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      {/* DATALIST FOR SEARCH SELLERS INPUT */}
       <datalist id="clientsList">
-        {clients.map((client) => (
-          <option key={client.id} value={client.name} />
+        {clients?.map((client) => (
+          <option key={client.id} value={client.name}></option>
         ))}
       </datalist>
-      {/* DATALIST FOR SEARCH SELLERS INPUT */}
       <datalist id="sellersList">
-        {sellers.map((seller) => (
-          <option key={seller.id} value={seller.name} />
+        {sellers?.map((seller) => (
+          <option key={seller.id} value={seller.name}></option>
         ))}
       </datalist>
     </>
   );
 }
+//add pay to loan modal
+export function AddPayModal({
+  isOpen,
+  onClose,
+  loanId,
+}: ModalProps & { loanId: number }) {
+  /* UTILS */
+  //
+  const queryClient = useQueryClient();
 
-/* LOADINGS */
-//loading skeleton for the add loan form
-export function LoadingSkeletonFormAddLoan() {
+  /* MUTATIONS */
+  //mutation to create operations
+  const mutation = useMutation<
+    addPayInstallment,
+    ServerError,
+    addPayInstallment
+  >({
+    mutationFn: async (body) => {
+      //send new client to backend
+      const { data } = await AxiosFetch.put(
+        `/api/v1/loans/${loanId}/installments`,
+        body,
+      );
+      //return data for the toast
+      return data;
+    },
+    onSuccess: () => {
+      //Forces a refetch
+      queryClient.invalidateQueries(["loans", loanId]);
+
+      toast.success("Se ha actualizado el préstamo.", {
+        className: "!border-primary/70",
+      });
+      onClose();
+    },
+  });
+
+  /* HOOKS */
+  //
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<addPayInstallment>({
+    resolver: zodResolver(addPayInstallmentSchema()),
+    defaultValues: {},
+  });
+
+  /* EVENT HANDLERS */
+  const onSubmit: SubmitHandler<addPayInstallment> = (data) => {
+    mutation.mutate(data);
+  };
+
   return (
-    <div className="flex h-full w-full animate-pulse flex-col px-8 py-4 text-slate-500">
-      {/* TITLE'S CONTAINER */}
-      <div className="flex gap-4 border-b pb-4">
-        <LandmarkIcon className="size-7" />
-        <h3 className="w-full text-xl font-semibold">
-          Crear un nuevo prestamo
-        </h3>
-      </div>
+    <Modal
+      backdrop="opaque"
+      radius="sm"
+      size="3xl"
+      isOpen={isOpen}
+      onOpenChange={onClose}
+    >
+      <ModalContent className="flex flex-col gap-2">
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex h-auto items-center gap-3">
+              <PackagePlusIcon className="size-8 min-w-8 text-slate-500" />
+              <div className="flex w-fit flex-col justify-center">
+                <p className="text-lg text-slate-500">Agregar pago</p>
+              </div>
+            </ModalHeader>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleSubmit(onSubmit)}
+            >
+              <ModalBody className="py-0">
+                {/* Payment amount & payment date */}
+                <div className="flex w-full items-start gap-4">
+                  {/* Payment amount */}
+                  <Controller
+                    defaultValue={0}
+                    name="payment_amount"
+                    render={({ field }) => (
+                      <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                        <div className="flex items-center gap-0.5">
+                          Monto <Mandatory />
+                        </div>
+                        <div
+                          className={cn(
+                            errors.payment_amount
+                              ? "border-danger"
+                              : "border-slate-300",
+                            "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                          )}
+                        >
+                          $
+                          <input
+                            onChange={(e) => {
+                              const input = e.target.value;
 
-      {/* FIELD GROUPS */}
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="flex w-full gap-2 pt-4">
-          <div className="flex basis-1/2 flex-col gap-2">
-            <div className="h-4 w-1/3 rounded bg-slate-300" />
-            <div className="h-10 w-full rounded bg-slate-300" />
-          </div>
-          <div className="flex basis-1/2 flex-col gap-2">
-            <div className="h-4 w-1/3 rounded bg-slate-300" />
-            <div className="h-10 w-full rounded bg-slate-300" />
-          </div>
-        </div>
-      ))}
+                              const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                              if (!isValid) return;
 
-      {/* COMMISSION */}
-      <div className="flex flex-col gap-2 pt-4">
-        <div className="h-4 w-1/3 rounded bg-slate-300" />
-        <div className="h-10 w-full rounded bg-slate-300" />
-      </div>
+                              if (
+                                `${field.value}` === "0" &&
+                                input.length === 2 &&
+                                !input.includes(".")
+                              ) {
+                                // if the field number is 0 and the input has 2 values, remove the 0
+                                field.onChange(+input[1]);
+                              } else {
+                                ////////////////////////////// if input has no values, set default 0
+                                field.onChange(
+                                  input[input.length - 1] === "."
+                                    ? input
+                                    : +input,
+                                );
+                              }
+                            }}
+                            value={field.value}
+                            type="text"
+                          />
+                        </div>
+                        {errors.payment_amount && (
+                          <span className="text-xs text-danger">
+                            {errors.payment_amount?.message}
+                          </span>
+                        )}
+                      </label>
+                    )}
+                    control={control}
+                  />
+                  {/* Payment date */}
+                  <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                    <div className="flex items-center gap-0.5">
+                      Fecha de pago <Mandatory />
+                    </div>
+                    <Controller
+                      control={control}
+                      name="payment_date"
+                      render={({ field }) => (
+                        <input
+                          onChange={(v) =>
+                            field.onChange(parseISO(v.target.value))
+                          }
+                          className={cn(
+                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                          )}
+                          type="date"
+                        />
+                      )}
+                    />
+                  </label>
+                </div>
+                {mutation.isError && (
+                  <ErrorForm errorMessage={mutation.error} />
+                )}
+              </ModalBody>
+              <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
+                <Button
+                  type="submit"
+                  isLoading={mutation.isLoading}
+                  variant="success"
+                  className="w-full"
+                >
+                  Confirmar
+                </Button>
+                <Button variant="error" className="w-full" onClick={onClose}>
+                  Cancelar
+                </Button>
+              </ModalFooter>
+            </form>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}
+//delete loan modal
+export function DeleteLoanModal({
+  isOpen,
+  onClose,
+  loan,
+}: ModalProps & { loan: Loan }) {
+  const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+  const queryClient = useQueryClient();
 
-      {/* BUTTONS */}
-      <div className="flex w-full gap-2 pt-4">
-        <div className="h-10 w-full rounded bg-slate-300" />
-        <div className="h-10 w-full rounded bg-slate-300" />
-      </div>
-    </div>
+  const mutation = useMutation<void, ServerError, void>({
+    mutationFn: async () => {
+      const { data } = await AxiosFetch.delete(`/api/v1/loans/${loan.id}`);
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans", "all"] });
+      toast.success("Se ha eliminado un préstamo", {
+        className: "!border-primary/70",
+      });
+      onClose && onClose();
+    },
+  });
+
+  console.log(loan);
+
+  return (
+    <Modal
+      backdrop="opaque"
+      radius="sm"
+      size="xl"
+      isOpen={isOpen}
+      className="!my-0 py-2"
+      onOpenChange={() => {
+        onClose();
+      }}
+    >
+      <ModalContent className="h-auto gap-2 bg-gradient-to-t from-red-200 via-white to-white">
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex h-auto items-center gap-3">
+              <div className="flex h-auto w-full flex-col items-center justify-center gap-2">
+                <div className="flex items-center rounded-full bg-red-200/30 p-4">
+                  <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
+                </div>
+                <span className="text-xl text-danger">Eliminar préstamo</span>
+                <span className="text-balance text-center text-sm font-normal text-red-400">
+                  ¿Estás seguro que quieres eliminar este préstamo?
+                </span>
+              </div>
+            </ModalHeader>
+            {mutation?.isError && (
+              <div className="flex items-center justify-center px-8">
+                <div className="flex h-12 w-full items-center gap-2 rounded-md border border-red-300 bg-gradient-to-b from-red-100/30 via-red-200/40 to-red-200/70 px-4">
+                  <AlertCircleIcon className="size-8 min-w-8 text-red-500" />
+                  <p className="text-sm font-medium text-red-500">
+                    {mutation?.error?.code === "connection-error"
+                      ? "Ha ocurrido un error de conexión"
+                      : "Ha ocurrido un error en el servidor"}
+                  </p>
+                </div>
+              </div>
+            )}
+            <ModalFooter className="flex h-auto w-full items-center justify-center gap-4 py-2">
+              <Button
+                isLoading={mutation?.isLoading}
+                disabled={mutation?.isLoading}
+                onClick={() => mutation.mutate()}
+                type="submit"
+                variant="error"
+              >
+                Confirmar
+              </Button>
+              <Button onClick={onClose} variant="outline">
+                Cerrar
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   );
 }
