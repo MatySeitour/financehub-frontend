@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
+import { LoansSection } from "./components/pages/loans";
 import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
@@ -14,6 +15,7 @@ import { ClientDetailsSection } from "./components/pages/clients/details";
 import { ClientSection } from "./components/pages/clients";
 import { SellersSection } from "./components/pages/sellers";
 import { SellerDetailsSection } from "./components/pages/sellers/details";
+import { LoanDetailsSection } from "./components/pages/loans/details";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -68,18 +70,12 @@ function App() {
             />
             {/* -------------------------------- */}
 
-            {/* ------------ Loans ------------ */}
-            <Route
-              path="/loans"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en prestamos
-                </main>
-              }
-            />
-            {/* -------------------------------- */}
+            {/* Loans */}
+            <Route path="/loans" element={<LoansSection />} />
 
-            {/* ------------ Cashboxes ------------ */}
+            {/* Loans Details */}
+            <Route path="/loans/:id/details" element={<LoanDetailsSection />} />
+
             {/* Cashboxes */}
             <Route path="/boxes" element={<CashBoxSection />} />
 

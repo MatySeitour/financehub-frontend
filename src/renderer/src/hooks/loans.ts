@@ -1,5 +1,7 @@
 import { z } from "zod";
 import axios from "./axios";
+import { DataPerPage } from "@renderer/components/Table";
+import { installmentSchema } from "./installments";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -42,13 +44,54 @@ export const loanSchema = z.object({
   paymentFrequency: z.enum(PAYMENT_FREQUENCY),
 });
 
-export async function getLoans(from?: Date, to?: Date) {
+export const loanWithInstallmentSchema = z.object({
+  id: z.number(),
+  principal: z.coerce.number(),
+  cashboxID: z.number(),
+  numberOfInstallments: z.number(),
+  firstDueDate: z.string(),
+  dateGenerated: z.string(),
+  installmentValue: z.coerce.number(),
+  totalPaid: z.coerce.number(),
+  commission: z.coerce.number(),
+  expected_profit: z.coerce.number(),
+  retainedEarnings: z.coerce.number().nullable(),
+  seller: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  client: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  paymentFrequency: z.enum(PAYMENT_FREQUENCY),
+  installments: z.array(installmentSchema),
+});
+
+export const loanWithTotalSchema = z.object({
+  total: z.number(),
+  loans: loanSchema.array(),
+});
+
+export async function getLoans(
+  from?: Date,
+  to?: Date,
+  page?: number,
+  limit?: DataPerPage,
+) {
   const params = {
     from,
     to,
+    page,
+    limit,
   };
   const { data } = await AxiosFetch("/api/v1/loans", { params });
-  return loanSchema.array().parse(data.data);
+  return loanWithTotalSchema.parse(data.data);
+}
+
+export async function getLoan(loanID: number) {
+  const { data } = await AxiosFetch(`/api/v1/loans/${loanID}`);
+  return loanWithInstallmentSchema.parse(data?.data);
 }
 ////////////////////////////////////////////////////////////
 

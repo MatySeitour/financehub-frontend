@@ -247,7 +247,6 @@ export function OperationsSection() {
           Agregar operación
         </Button>
       </div>
-
       {/* OPERATIONS'S SECTION CONTAINER */}
       <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         {/* SEARCH FILTER CONTAINER */}
