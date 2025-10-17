@@ -3,7 +3,6 @@ import { z } from "zod";
 import axios from "./axios";
 
 import { DataPerPage } from "@renderer/components/Table";
-import { loanSchema } from "./loans";
 
 /* UTILS */
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);

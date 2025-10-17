@@ -62,7 +62,7 @@ export function Navigation({ user }: { user: TSession }) {
         )}
       >
         {/* Logo */}
-        <div className="flex h-20 items-center justify-between overflow-hidden border-b border-slate-200 py-2 pl-3 xl:h-16 xl:min-h-16 xl:p-5">
+        <div className="flex h-20 items-center justify-between overflow-hidden border-b border-slate-200 py-1.5 pl-3 xl:h-16 xl:min-h-16 xl:p-5">
           <div className="flex items-center gap-3">
             <PanelLeftOpenIcon className="size-5 min-w-5 text-slate-400 xl:hidden" />
             <div

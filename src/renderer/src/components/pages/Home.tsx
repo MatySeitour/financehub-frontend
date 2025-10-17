@@ -210,6 +210,7 @@ export function Home() {
     Awaited<ReturnType<typeof getOperations>>,
     ServerError
   >({
+    // queryFn: () => getOperations(new Date("2025-10-17"), to),
     queryFn: () => getOperations(now, tomorrow),
     queryKey: ["operations", "all"],
     enabled: tabActive === "operations",
@@ -1119,8 +1120,8 @@ export function Home() {
       </div>
 
       <div className="relative flex h-full min-h-0 w-full items-center p-4">
-        <div className="flex h-full w-full flex-col rounded-md border border-slate-200 bg-white">
-          <div className="flex w-full justify-between px-4 pt-4">
+        <div className="flex h-full w-full flex-col rounded-md border border-slate-200 bg-white px-3">
+          <div className="flex w-full justify-between pt-4">
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center rounded-md border border-slate-200 bg-gradient-to-b from-slate-200/60 to-white p-2 shadow">
                 <ClipboardListIcon className="size-4 min-w-4 text-slate-400/80" />
@@ -1159,7 +1160,7 @@ export function Home() {
             </div>
           </div>
 
-          <ul className="flex items-center gap-2 border-b pl-4">
+          <ul className="mb-4 flex items-center gap-2 border-b">
             {tabsMoviments.map((tab) => (
               <li
                 onClick={() => setTabActive(tab.name)}
@@ -1181,49 +1182,47 @@ export function Home() {
             ))}
           </ul>
 
-          <div className="flex h-full w-full overflow-hidden p-3">
-            {tabActive === "operations" ? (
-              <TableWork
-                withButtonCreate={false}
-                columns={COLUMNS_OPERATIONS}
-                error={operationsQuery.error}
-                loading={operationsQuery.isFetching}
-                searchInput={search}
-                data={filteredOperations}
-                openModal={() => console.log()}
-              />
-            ) : tabActive === "expenses" ? (
-              <TableWork
-                withButtonCreate={false}
-                columns={COLUMNS_EXPENSES}
-                error={expensesQuery.error}
-                loading={expensesQuery.isFetching}
-                searchInput={search}
-                data={filteredExpenses}
-                openModal={() => console.log()}
-              />
-            ) : tabActive === "loans" ? (
-              <TableWork
-                withButtonCreate={false}
-                columns={COLUMNS_LOANS}
-                error={loansQuery.error}
-                loading={loansQuery.isFetching}
-                searchInput={search}
-                data={filteredLoans}
-                openModal={() => console.log()}
-              />
-            ) : (
-              <TableWork
-                withButtonCreate={false}
-                columns={COLUMNS_INSTALLMENTS}
-                error={installmentsQuery.error}
-                loading={installmentsQuery.isFetching}
-                searchInput={search}
-                data={filteredInstallments}
-                openModal={() => console.log()}
-              />
-            )}
-          </div>
+          {tabActive === "operations" ? (
+            <TableWork
+              withButtonCreate={false}
+              columns={COLUMNS_OPERATIONS}
+              error={operationsQuery.error}
+              loading={operationsQuery.isFetching}
+              searchInput={search}
+              data={filteredOperations}
+              openModal={() => console.log()}
+            />
+          ) : tabActive === "expenses" ? (
+            <TableWork
+              withButtonCreate={false}
+              columns={COLUMNS_EXPENSES}
+              error={expensesQuery.error}
+              loading={expensesQuery.isFetching}
+              searchInput={search}
+              data={filteredExpenses}
+              openModal={() => console.log()}
+            />
+          ) : tabActive === "loans" ? (
+            <TableWork
+              withButtonCreate={false}
+              columns={COLUMNS_LOANS}
+              error={loansQuery.error}
+              loading={loansQuery.isFetching}
+              searchInput={search}
+              data={filteredLoans}
+              openModal={() => console.log()}
+            />
+          ) : (
+            <TableWork
+              withButtonCreate={false}
+              columns={COLUMNS_INSTALLMENTS}
+              error={installmentsQuery.error}
+              loading={installmentsQuery.isFetching}
+              searchInput={search}
+              data={filteredInstallments}
+              openModal={() => console.log()}
+            />
+          )}
         </div>
       </div>
     </section>

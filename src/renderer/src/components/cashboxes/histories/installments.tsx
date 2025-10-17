@@ -99,7 +99,7 @@ export function InstallmentsHistoryCashbox({
         render: (item: InstallmentHistory) => {
           const remainingDate = differenceInDays(
             item.dueDate,
-            item.paymentDate,
+            item.paymentDate ?? "",
           );
 
           return (

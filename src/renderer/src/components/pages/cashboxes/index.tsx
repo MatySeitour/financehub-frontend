@@ -1,6 +1,6 @@
 import { cn, strNormalize } from "@renderer/utils";
 import { Cashbox, getCashboxes } from "@renderer/hooks/cashboxes";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ServerError } from "@renderer/utils/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -48,6 +48,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ErrorMessage } from "../../ErrorMessage";
 import { useNavigate } from "react-router";
 import { getCurrencies } from "@renderer/hooks/currencies";
+import axios from "@renderer/hooks/axios";
 
 const filters = [
   { label: "Todas", name: "all", color: "#0cf" },
@@ -59,6 +60,9 @@ const filters = [
 type CashboxFilters = (typeof filters)[number];
 
 export function CashBoxSection() {
+  const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+  const queryClient = useQueryClient();
+
   const navigate = useNavigate();
 
   const { isOpen: changeStateOpenModal, onOpenChange: closeChangeStateModal } =
@@ -154,6 +158,24 @@ export function CashBoxSection() {
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
   }, [cashboxesQuery.data, selected, search]);
+
+  const mutationEnableCashbox = useMutation<
+    void,
+    ServerError,
+    { cashboxID: number }
+  >({
+    mutationFn: async (body) => {
+      const { data } = await AxiosFetch.patch(
+        `/api/v1/cashboxes/${body.cashboxID}/enable`,
+        {},
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cashboxes", "all"] });
+      setSelected(filters[3]);
+    },
+  });
 
   return (
     <section ref={sectionRef} className="flex h-full min-h-0 w-full flex-col">
@@ -540,7 +562,13 @@ export function CashBoxSection() {
 
                           <div className="flex items-center justify-center">
                             <Button
-                              disabled
+                              onClick={() =>
+                                mutationEnableCashbox.mutate({
+                                  cashboxID: cashbox.id,
+                                })
+                              }
+                              // isLoading={mutationEnableCashbox.isLoading}
+                              // disabled={mutationEnableCashbox.isLoading}
                               variant="success"
                               className="h-8 max-w-32 gap-1"
                             >

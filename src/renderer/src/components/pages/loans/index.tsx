@@ -7,7 +7,6 @@ import {
   PaperclipIcon,
   PlusIcon,
   SearchIcon,
-  SquarePenIcon,
   Trash2Icon,
 } from "lucide-react";
 import { getLoans, Loan } from "@renderer/hooks/loans";
@@ -41,7 +40,7 @@ export function LoansSection() {
   //
   const [loanToDelete, setLoanToDelete] = useState<Loan>();
   //
-  const [clientToUpdate, setLoanToUpdate] = useState<Loan>();
+  // const [clientToUpdate, setLoanToUpdate] = useState<Loan>();
 
   /* HOOKS */
   //
@@ -179,11 +178,11 @@ export function LoansSection() {
       icon: PaperclipIcon,
       onAction: (loan) => navigate(`/loans/${loan?.id}/details`),
     },
-    {
-      name: "Editar",
-      icon: SquarePenIcon,
-      onAction: (loan) => setLoanToUpdate(loan),
-    },
+    // {
+    //   name: "Editar",
+    //   icon: SquarePenIcon,
+    //   onAction: (loan) => setLoanToUpdate(loan),
+    // },
     {
       name: "Eliminar",
       icon: Trash2Icon,

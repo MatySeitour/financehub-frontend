@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
+import { pathToFileURL } from "url";
 
 app.commandLine.appendSwitch("remote-debugging-port", "9222");
 app.commandLine.appendSwitch("remote-allow-origins", "http://localhost:9222");
@@ -20,6 +21,7 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
+      webSecurity: true,
     },
   });
 
@@ -40,8 +42,16 @@ function createWindow(): void {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    const indexPath = join(__dirname, "../renderer/index.html");
+    mainWindow.loadURL(pathToFileURL(indexPath).toString());
   }
+
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_, errorCode, errorDescription) => {
+      console.error("Failed to load:", errorCode, errorDescription);
+    },
+  );
 }
 
 // This method will be called when Electron has finished
