@@ -3,6 +3,7 @@ import { Button } from "../../Button";
 import { useDisclosure } from "@heroui/react";
 import { DataPerPage, TableWork } from "../../Table";
 import {
+  CalendarOffIcon,
   LandmarkIcon,
   PaperclipIcon,
   PlusIcon,
@@ -25,6 +26,8 @@ import { useNavigate } from "react-router";
 export function LoansSection() {
   /* REFs */
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   /* STATES */
   //
@@ -272,9 +275,22 @@ export function LoansSection() {
               </span>
 
               <input
+                ref={fromRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansQuery.isFetching) {
+                    fromRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setFrom(undefined);
+                  setFrom(parseISO(e.target.value));
+                }}
                 type="date"
+                className="w-full"
               />
             </label>
 
@@ -285,33 +301,59 @@ export function LoansSection() {
               </span>
 
               <input
+                ref={toRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansQuery.isFetching) {
+                    toRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setTo(undefined);
+                  setTo(parseISO(e.target.value));
+                }}
                 type="date"
+                className="w-full"
               />
             </label>
           </div>
         </div>
 
         {/* TABLE'S CONTAINER */}
-        <TableWork
-          columns={COLUMNS}
-          loading={loansQuery.isFetching}
-          error={loansQuery.isError}
-          searchInput={""}
-          data={filteredLoans}
-          openModal={onOpenCreateLoanModal}
-          optionsMenu={actionOptions}
-          pagination={{
-            page: page,
-            limit: limit,
-            total: loansQuery.data?.total ?? 0,
-            nextPage: setPage,
-            prevPage: setPage,
-            changeLimit: setLimit,
-          }}
-        />
+
+        {(from || to) &&
+        filteredLoans.length === 0 &&
+        !loansQuery.isFetching ? (
+          <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+            <CalendarOffIcon className="size-16 text-slate-400" />
+            <p className="text-slate-400">
+              No hay resultados de préstamos durante esa fecha
+            </p>
+          </div>
+        ) : (
+          <TableWork
+            columns={COLUMNS}
+            loading={loansQuery.isFetching}
+            error={loansQuery.isError}
+            searchInput={""}
+            data={filteredLoans}
+            openModal={onOpenCreateLoanModal}
+            optionsMenu={actionOptions}
+            pagination={{
+              page: page,
+              limit: limit,
+              total: loansQuery.data?.total ?? 0,
+              nextPage: setPage,
+              prevPage: setPage,
+              changeLimit: setLimit,
+            }}
+          />
+        )}
       </div>
+
       {isCreateLoanOpenModal &&
         loansQuery.data &&
         clientsQuery.data &&

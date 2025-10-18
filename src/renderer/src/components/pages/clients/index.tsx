@@ -91,7 +91,7 @@ export function ClientSection() {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return clientsQuery?.data?.filter((client) => {
-      let searched = `${client.name}${client.info}${client.address}${client.phone}`;
+      let searched = `${client.name}${client.info}${client.address}${client.phone}${client.referred_to?.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

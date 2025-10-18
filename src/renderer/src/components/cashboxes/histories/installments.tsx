@@ -206,6 +206,7 @@ export function InstallmentsHistoryCashbox({
         </div>
       ) : (
         <TableWork
+          withButtonCreate={false}
           columns={COLUMNS}
           error={historyInstallmentsQuery.error}
           loading={historyInstallmentsQuery.isFetching}

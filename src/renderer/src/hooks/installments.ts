@@ -31,9 +31,11 @@ export async function getInstallments(from?: Date, to?: Date) {
 
 ////////////// Installments history //////////////
 export type InstallmentHistory = z.infer<typeof installmentHistorySchema>;
-export const installmentHistorySchema = installmentSchema.extend({
-  installment_id: z.number(),
-  cashbox_id: z.number(),
-  movimentDateTime: z.string(),
-  loan_id: z.number(),
-});
+export const installmentHistorySchema = installmentSchema
+  .omit({ currency: true })
+  .extend({
+    installment_id: z.number(),
+    cashbox_id: z.number(),
+    movimentDateTime: z.string(),
+    loan_id: z.number(),
+  });

@@ -235,6 +235,7 @@ export function OperationsHistoryCashbox({
         </div>
       ) : (
         <TableWork
+          withButtonCreate={false}
           columns={COLUMNS}
           loading={historyOperationsQuery.isLoading}
           error={historyOperationsQuery.error}

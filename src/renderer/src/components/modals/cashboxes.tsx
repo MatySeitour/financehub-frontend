@@ -711,7 +711,7 @@ export function DeleteCashboxModal({
                   <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                 </div>
                 <p className="text-xl text-danger">Deshabilitar caja</p>
-                <p className="text-balance text-center text-sm font-normal text-red-400">
+                <p className="text-balance text-center text-sm font-normal text-red-500">
                   No podrás realizar <b>operaciones ni prestamos</b> en esta
                   caja si está deshabilitada, pero conservarás su History
                 </p>

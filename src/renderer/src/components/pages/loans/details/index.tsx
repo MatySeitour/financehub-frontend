@@ -2,15 +2,15 @@
 import { useMemo } from "react";
 import { ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
-import { LandmarkIcon, PlusIcon } from "lucide-react";
-import { useParams } from "react-router";
+import { LandmarkIcon, PlusIcon, Undo2Icon } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
 import { z } from "zod";
 import { TableWork } from "@renderer/components/Table";
 import { TInstallment } from "@renderer/hooks/installments";
 import { getLoan } from "@renderer/hooks/loans";
 import { Button } from "@renderer/components/Button";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
-import { useDisclosure } from "@heroui/react";
+import { Tooltip, useDisclosure } from "@heroui/react";
 import { AddPayModal } from "@renderer/components/modals/loans";
 import { format } from "date-fns";
 
@@ -20,6 +20,7 @@ export function LoanDetailsSection() {
 
   const isValidLoanID = z.string().catch("").parse(id);
   const loanID = +isValidLoanID;
+  const navigate = useNavigate();
 
   /* QUERIES */
   //
@@ -87,11 +88,28 @@ export function LoanDetailsSection() {
     return matchedCashbox?.currency.name;
   }
 
+  const installmentValue = loanQuery.data?.installmentValue;
+  const lastInstallmentPaid = loanQuery.data?.installments.find(
+    (installment) => installment.paymentDate === null,
+  );
+
   return (
     <section className="flex h-full w-full flex-col gap-2">
       {/* TOP OPTION'S CONTAINER */}
       <div className="flex h-16 w-full items-center justify-between border-b border-slate-200 p-4">
         <div className="flex items-center gap-2">
+          <Tooltip
+            closeDelay={0}
+            className="rounded-md border-slate-400 text-xs text-slate-400"
+            content="Volver"
+          >
+            <div
+              onClick={() => navigate(-1)}
+              className="cursor-pointer p-1.5 text-slate-300 transition-all hover:text-slate-400"
+            >
+              <Undo2Icon className="size-5 min-w-5" />
+            </div>
+          </Tooltip>
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <LandmarkIcon className="size-5 min-w-5" />
           </div>
@@ -101,15 +119,18 @@ export function LoanDetailsSection() {
             </h1>
           )}
         </div>
-        <Button
-          onClick={onOpenAddPaymentModal}
-          disabled={loanQuery.isLoading || loanQuery.isError}
-          variant="success"
-          className="flex h-8 items-center gap-1 pr-5"
-        >
-          <PlusIcon className="size-4 min-w-4" />
-          Agregar pago
-        </Button>
+
+        {lastInstallmentPaid && (
+          <Button
+            onClick={onOpenAddPaymentModal}
+            disabled={loanQuery.isFetching || loanQuery.isError}
+            variant="success"
+            className="flex h-8 items-center gap-1 pr-5"
+          >
+            <PlusIcon className="size-4 min-w-4" />
+            Agregar pago
+          </Button>
+        )}
       </div>
       {/* LOAN'S CONTAINER */}
       {loanQuery.data && (
@@ -198,13 +219,18 @@ export function LoanDetailsSection() {
           </div>
         </>
       )}
-      {isAddPaymentOpenModal && loanQuery.data && (
-        <AddPayModal
-          isOpen={isAddPaymentOpenModal}
-          onClose={onOpenAddPaymentModal}
-          loanId={loanID}
-        />
-      )}
+      {isAddPaymentOpenModal &&
+        loanQuery.data &&
+        lastInstallmentPaid !== undefined &&
+        installmentValue !== undefined && (
+          <AddPayModal
+            lastInstallmentPaid={lastInstallmentPaid}
+            installmentValue={installmentValue}
+            isOpen={isAddPaymentOpenModal}
+            onClose={onOpenAddPaymentModal}
+            loanId={loanID}
+          />
+        )}
       {!loanQuery.data && (
         <div className="flex h-full w-full items-center justify-center">
           <span className="relative inline-block h-12 w-12 animate-rotateFull rounded-[50%] border-4 border-primary border-b-primary/20 after:absolute after:left-1/2 after:top-1/2 after:h-14 after:w-14 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-4 after:border-transparent"></span>

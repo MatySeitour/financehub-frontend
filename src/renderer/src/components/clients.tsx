@@ -5,6 +5,7 @@ import { useQuery } from "react-query";
 
 import {
   BanknoteIcon,
+  CalendarOffIcon,
   CircleCheckIcon,
   SearchIcon,
   TrendingDownIcon,
@@ -29,6 +30,8 @@ import { Progress, Tooltip } from "@heroui/react";
 
 export function ClientDetailsOperation({ clientID }: { clientID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
@@ -175,7 +178,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
 
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex min-h-11 items-end justify-between gap-4">
         <div className="flex items-end gap-2">
           <div
             className={cn(
@@ -203,27 +206,58 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
             </div>
           </div>
 
-          <div className="flex min-h-14 w-full items-center gap-2 pt-1">
+          <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Desde</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Desde
+              </span>
+
               <input
+                ref={fromRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!operationsClientQuery.isFetching) {
+                    fromRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={operationsClientQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setFrom(undefined);
+                  setFrom(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
+
             {/* To date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Hasta</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Hasta
+              </span>
+
               <input
+                ref={toRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!operationsClientQuery.isFetching) {
+                    toRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={operationsClientQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setTo(undefined);
+                  setTo(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
           </div>
         </div>
 
@@ -252,20 +286,33 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
         )}
       </div>
 
-      <TableWork
-        columns={COLUMNS_OPERATIONS}
-        loading={operationsClientQuery.isFetching}
-        error={operationsClientQuery.error}
-        searchInput={search}
-        data={filteredOperations}
-        openModal={() => console.log()}
-      />
+      {(from || to) &&
+      filteredOperations.length === 0 &&
+      !operationsClientQuery.isFetching ? (
+        <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+          <CalendarOffIcon className="size-16 text-slate-400" />
+          <p className="text-slate-400">
+            No hay resultados de operaciones durante esa fecha
+          </p>
+        </div>
+      ) : (
+        <TableWork
+          columns={COLUMNS_OPERATIONS}
+          loading={operationsClientQuery.isFetching}
+          error={operationsClientQuery.error}
+          searchInput={search}
+          data={filteredOperations}
+          openModal={() => console.log()}
+        />
+      )}
     </div>
   );
 }
 
 export function ClientDetailsLoan({ clientID }: { clientID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
@@ -343,7 +390,10 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
                   value={currentInstallment}
                   maxValue={item.numberOfInstallments}
                 />
-                {currentInstallment}/{item.numberOfInstallments}
+                {currentInstallment > item.numberOfInstallments
+                  ? item.numberOfInstallments
+                  : currentInstallment}
+                /{item.numberOfInstallments}
               </div>
             </div>
           );
@@ -361,7 +411,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
             item.numberOfInstallments,
           );
 
-          if (currentInstallment === item.numberOfInstallments)
+          if (currentInstallment >= item.numberOfInstallments)
             return (
               <div className="flex items-center gap-1 text-primary">
                 <CircleCheckIcon className="size-4 min-w-4" />
@@ -386,7 +436,11 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
         render: (item: Loan) => {
           const remainingDate = differenceInDays(item.firstDueDate, new Date());
           const statusStyles = getDaysRemaingStatusSyles(remainingDate);
-
+          if (
+            item.totalPaid >=
+            item.numberOfInstallments * item.installmentValue
+          )
+            return "-";
           return (
             <div className="flex items-center gap-3 pl-1">
               <Tooltip
@@ -450,8 +504,9 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
 
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex min-h-11 items-end justify-between gap-4">
         <div className="flex items-end gap-2">
+          {/* Search */}
           <div
             className={cn(
               loansClientQuery.isFetching && "opacity-60",
@@ -478,28 +533,58 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="flex min-h-14 w-full items-center gap-2 pt-1">
+          <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Desde</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Desde
+              </span>
+
               <input
+                ref={fromRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansClientQuery.isFetching) {
+                    fromRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansClientQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setFrom(undefined);
+                  setFrom(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
+
             {/* To date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Hasta</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Hasta
+              </span>
+
               <input
+                ref={toRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansClientQuery.isFetching) {
+                    toRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansClientQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setTo(undefined);
+                  setTo(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
           </div>
         </div>
 
@@ -549,14 +634,25 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
         )} */}
       </div>
 
-      <TableWork
-        columns={COLUMNS_LOANS}
-        loading={loansClientQuery.isFetching}
-        error={loansClientQuery.error}
-        searchInput={search}
-        data={filteredLoans}
-        openModal={() => console.log()}
-      />
+      {(from || to) &&
+      filteredLoans.length === 0 &&
+      !loansClientQuery.isFetching ? (
+        <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+          <CalendarOffIcon className="size-16 text-slate-400" />
+          <p className="text-slate-400">
+            No hay resultados de préstamos durante esa fecha
+          </p>
+        </div>
+      ) : (
+        <TableWork
+          columns={COLUMNS_LOANS}
+          loading={loansClientQuery.isFetching}
+          error={loansClientQuery.error}
+          searchInput={search}
+          data={filteredLoans}
+          openModal={() => console.log()}
+        />
+      )}
     </div>
   );
 }

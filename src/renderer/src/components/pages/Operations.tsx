@@ -3,13 +3,24 @@ import { Button } from "../Button";
 import { MenuOption, ServerError } from "@renderer/utils/types";
 import {
   BanknoteArrowUpIcon,
+  CalendarDaysIcon,
+  CalendarOffIcon,
+  CheckIcon,
+  DownloadIcon,
+  FileSpreadsheetIcon,
+  ListFilterIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
   TrendingDownIcon,
   TrendingUpIcon,
 } from "lucide-react";
-import { useDisclosure } from "@heroui/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  useDisclosure,
+} from "@heroui/react";
 import {
   CreateOperationModal,
   DeleteOperationModal,
@@ -26,16 +37,47 @@ import { getCashboxes } from "@renderer/hooks/cashboxes";
 
 /* ENUMS */
 
+type FastFilters = (typeof fastFilters)[number];
+const fastFilters = [
+  {
+    value: "today",
+    label: "Hoy",
+  },
+  {
+    value: "yesterday",
+    label: "Ayer",
+  },
+  {
+    value: "week",
+    label: "Hace 7 días",
+  },
+  {
+    value: "biweek",
+    label: "Hace 15 días",
+  },
+  {
+    value: "month",
+    label: "Hace 30 días",
+  },
+] as const;
+
 //Component starts here
 export function OperationsSection() {
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState<number>(1);
   const [from, setFrom] = useState<Date>();
   const [to, setTo] = useState<Date>();
-  const [limit, setLimit] = useState<DataPerPage>(10);
+  const [limit, setLimit] = useState<DataPerPage>(20);
   const [operationToDelete, setOperationToDelete] = useState<Operation>();
+  const [filterFastSelected, setFilterFastSelected] =
+    useState<FastFilters["value"]>();
+
+  const [fromFilter, setFromFilter] = useState<Date>();
+  const [toFilter, setToFilter] = useState<Date>();
 
   const operationsQuery = useQuery<
     Awaited<ReturnType<typeof getOperations>>,
@@ -250,82 +292,216 @@ export function OperationsSection() {
       {/* OPERATIONS'S SECTION CONTAINER */}
       <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4">
         {/* SEARCH FILTER CONTAINER */}
-        <div
-          className={cn(
-            operationsQuery.isFetching && "opacity-60",
-            "flex w-full gap-16",
-          )}
-        >
+        <div className="flex items-center justify-between gap-2">
           <div
-            className="flex h-9 min-h-8 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+            className={cn(
+              operationsQuery.isFetching && "opacity-60",
+              "flex w-full gap-16",
+            )}
           >
-            <SearchIcon className="size-4 min-w-4 text-slate-400" />
-            <input
-              ref={searchRef}
-              disabled={operationsQuery.isFetching}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-full w-full text-sm text-slate-500 outline-none"
-              type="text"
-              placeholder="Buscar cliente o vendedor..."
-            />
-            <div className="flex items-center gap-1">
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                Ctrl
-              </div>
-              <p className="text-xs text-slate-500">+</p>
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                F
+            <div
+              className="flex h-9 min-h-8 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+            >
+              <SearchIcon className="size-4 min-w-4 text-slate-400" />
+              <input
+                ref={searchRef}
+                disabled={operationsQuery.isFetching}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-full w-full text-sm text-slate-500 outline-none"
+                type="text"
+                placeholder="Buscar cliente o vendedor..."
+              />
+              <div className="flex items-center gap-1">
+                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                  Ctrl
+                </div>
+                <p className="text-xs text-slate-500">+</p>
+                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                  F
+                </div>
               </div>
             </div>
+            {/* DATE CONTAINER */}
+            <div className="flex w-full items-center justify-end gap-2">
+              {/* From date */}
+              <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+                <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                  Desde
+                </span>
+
+                <input
+                  ref={fromRef}
+                  onFocus={() => {
+                    // if input disabled, dont show datepicker
+                    if (!operationsQuery.isFetching) {
+                      fromRef.current?.showPicker?.();
+                    }
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  disabled={operationsQuery.isFetching}
+                  onChange={(e) => {
+                    if (e.target.value === "") return setFrom(undefined);
+                    setFrom(parseISO(e.target.value));
+                  }}
+                  type="date"
+                  className="w-full"
+                />
+              </label>
+
+              {/* To date */}
+              <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+                <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                  Hasta
+                </span>
+
+                <input
+                  ref={toRef}
+                  onFocus={() => {
+                    // if input disabled, dont show datepicker
+                    if (!operationsQuery.isFetching) {
+                      toRef.current?.showPicker?.();
+                    }
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  disabled={operationsQuery.isFetching}
+                  onChange={(e) => {
+                    if (e.target.value === "") return setTo(undefined);
+                    setTo(parseISO(e.target.value));
+                  }}
+                  type="date"
+                  className="w-full"
+                />
+              </label>
+            </div>
           </div>
-          {/* DATE CONTAINER */}
-          <div className="flex w-full items-center justify-end gap-2">
-            {/* From date */}
-            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
-              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
-                Desde
-              </span>
 
-              <input
-                disabled={operationsQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
-                type="date"
-              />
-            </label>
+          <div className="flex items-center">
+            <Popover placement="left" showArrow={true}>
+              <PopoverTrigger>
+                <div>
+                  <Button variant="blue" className="w-fit gap-2 text-nowrap">
+                    <DownloadIcon className="size-3.5 min-w-3.5" />
+                    Exportar excel
+                  </Button>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="h-72 flex-col items-start rounded-md border border-slate-400/30 bg-slate-50 !p-0">
+                <span className="flex items-center gap-1 px-2 py-3 text-left text-sm font-medium text-slate-500">
+                  <FileSpreadsheetIcon className="size-4 min-w-4" />
+                  Exportar operaciones
+                </span>
 
-            {/* To date */}
-            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
-              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
-                Hasta
-              </span>
+                <div className="flex h-full w-full items-center border-b border-slate-400/30">
+                  {/* Manual filter */}
+                  <div className="flex h-full flex-col items-start gap-2">
+                    <span className="flex w-full gap-1 border-y border-slate-400/30 p-2 text-xs font-medium text-slate-500">
+                      <CalendarDaysIcon className="size-3.5 min-w-3.5" />
+                      Manual
+                    </span>
 
-              <input
-                disabled={operationsQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
-                type="date"
-              />
-            </label>
+                    <div className="flex flex-col gap-2 px-3">
+                      <label className="flex flex-col gap-px">
+                        <span className="text-xs text-slate-500">Desde</span>
+
+                        <input
+                          onChange={(e) =>
+                            setFromFilter(parseISO(e.target.value))
+                          }
+                          className="relative h-8 min-w-44 rounded-md border px-2 text-xs text-slate-400 transition-all focus-within:border-primary disabled:opacity-60"
+                          type="date"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex flex-col gap-2 px-3">
+                      <label className="flex flex-col gap-px">
+                        <span className="text-xs text-slate-500">Hasta</span>
+                        <input
+                          onChange={(e) =>
+                            setToFilter(parseISO(e.target.value))
+                          }
+                          className="relative h-8 min-w-44 rounded-md border px-2 text-xs text-slate-400 transition-all focus-within:border-primary disabled:opacity-60"
+                          type="date"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="h-full w-px bg-slate-400/30" />
+
+                  {/* Fast filter */}
+                  <div className="flex min-h-full w-full min-w-44 flex-col justify-start gap-2">
+                    <span className="flex w-full gap-1 border-y border-slate-400/30 p-2 text-xs font-medium text-slate-500">
+                      <ListFilterIcon className="size-3.5 min-w-3.5" />
+                      Filtro rápido
+                    </span>
+
+                    <ul className="flex flex-col gap-0.5">
+                      {fastFilters.map((filter) => (
+                        <li
+                          onClick={() =>
+                            filterFastSelected === filter.value
+                              ? setFilterFastSelected(undefined)
+                              : setFilterFastSelected(filter.value)
+                          }
+                          className={cn(
+                            filterFastSelected === filter.value &&
+                              "bg-slate-200/40",
+                            "flex cursor-pointer items-center gap-2 px-2 py-1.5 text-xs text-slate-400 transition-all hover:bg-slate-200/40",
+                          )}
+                          key={filter.value}
+                        >
+                          {filter.label}
+                          {filterFastSelected === filter.value && (
+                            <CheckIcon className="size-4 min-w-4" />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex w-full items-center justify-center p-3">
+                  <Button variant="success" className="h-8 w-full">
+                    Exportar
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
         {/* TABLE'S CONTAINER */}
-        <TableWork
-          columns={COLUMNS}
-          loading={operationsQuery.isFetching}
-          error={operationsQuery.error}
-          searchInput={search}
-          data={filteredOperations}
-          openModal={onOpenCreateOperationModal}
-          optionsMenu={options}
-          pagination={{
-            page: page,
-            limit: limit,
-            total: operationsQuery.data?.total ?? 0,
-            nextPage: setPage,
-            prevPage: setPage,
-            changeLimit: setLimit,
-          }}
-        />
+        {(from || to) &&
+        filteredOperations.length === 0 &&
+        !operationsQuery.isFetching ? (
+          <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+            <CalendarOffIcon className="size-16 text-slate-400" />
+            <p className="text-slate-400">
+              No hay resultados de operaciones durante esa fecha
+            </p>
+          </div>
+        ) : (
+          <TableWork
+            columns={COLUMNS}
+            loading={operationsQuery.isFetching}
+            error={operationsQuery.error}
+            searchInput={search}
+            data={filteredOperations}
+            openModal={onOpenCreateOperationModal}
+            optionsMenu={options}
+            pagination={{
+              page: page,
+              limit: limit,
+              total: operationsQuery.data?.total ?? 0,
+              nextPage: setPage,
+              prevPage: setPage,
+              changeLimit: setLimit,
+            }}
+          />
+        )}
       </div>
 
       {isCreateOperationOpenModal &&

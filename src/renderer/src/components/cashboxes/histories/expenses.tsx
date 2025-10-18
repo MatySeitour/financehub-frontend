@@ -115,11 +115,12 @@ export function ExpensesHistoryCashbox({
       {/* Body */}
       {historyExpensesQuery.data?.length === 0 ? (
         <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
-          <CircleAlertIcon className="size-20 text-slate-600" />
-          <p className="text-slate-600">No hay gastos en este historial</p>
+          <CircleAlertIcon className="size-16 text-slate-400" />
+          <p className="text-slate-400">No hay gastos en este historial</p>
         </div>
       ) : (
         <TableWork
+          withButtonCreate={false}
           columns={COLUMNS}
           error={historyExpensesQuery.error}
           loading={historyExpensesQuery.isFetching}

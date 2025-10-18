@@ -238,6 +238,7 @@ export function CurrentLoansHistoryCashbox({
         </div>
       ) : (
         <TableWork
+          withButtonCreate={false}
           columns={COLUMNS}
           loading={historyLoansQuery.isLoading}
           error={historyLoansQuery.error}

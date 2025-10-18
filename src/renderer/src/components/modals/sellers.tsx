@@ -16,7 +16,7 @@ import {
   TriangleAlertIcon,
   UserPlusIcon,
 } from "lucide-react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import z from "zod";
@@ -37,7 +37,6 @@ export const inputSchema = z.object({
   info: z
     .string()
     .max(250, "Este campo no puede contener mas de 250 carácteres."),
-  referred_to_id: z.number().optional(),
 });
 
 export const deleteClientSchema = z.object({
@@ -53,6 +52,7 @@ export function CreateSellerModal({ isOpen, onClose }: ModalProps) {
     formState: { errors },
     handleSubmit,
     watch,
+    control,
     register,
   } = useForm<Input>({
     resolver: zodResolver(inputSchema),
@@ -124,13 +124,25 @@ export function CreateSellerModal({ isOpen, onClose }: ModalProps) {
                       Télefono <Mandatory />
                     </label>
 
-                    <input
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        errors.phone && "border-red-500",
+                    <Controller
+                      name="phone"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          className={cn(
+                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            errors.phone && "border-red-500",
+                          )}
+                          type="text"
+                          onChange={(e) => {
+                            if (e.target.value.length > 20) return;
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
                       )}
-                      type="text"
-                      {...register("phone")}
                     />
                     {errors.phone && (
                       <p className="text-xs font-medium text-red-500">
@@ -244,7 +256,7 @@ export function DeleteSellerModal({
                   <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                 </div>
                 <span className="text-xl text-danger">Eliminar vendedor</span>
-                <span className="text-balance text-center text-sm font-normal text-red-400">
+                <span className="text-balance text-center text-sm font-normal text-red-500">
                   ¿Estás seguro que quieres eliminar el vendedor {seller.name}?
                 </span>
               </div>
@@ -293,6 +305,7 @@ export function UpdateSellerModal({
     formState: { errors },
     handleSubmit,
     watch,
+    control,
     register,
   } = useForm<Input>({
     resolver: zodResolver(inputSchema),
@@ -374,13 +387,25 @@ export function UpdateSellerModal({
                       Télefono <Mandatory />
                     </label>
 
-                    <input
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        errors.phone && "border-red-500",
+                    <Controller
+                      name="phone"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          className={cn(
+                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            errors.phone && "border-red-500",
+                          )}
+                          type="text"
+                          onChange={(e) => {
+                            if (e.target.value.length > 20) return;
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
                       )}
-                      type="text"
-                      {...register("phone")}
                     />
                     {errors.phone && (
                       <p className="text-xs font-medium text-red-500">

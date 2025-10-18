@@ -5,6 +5,7 @@ import { useQuery } from "react-query";
 
 import {
   BanknoteIcon,
+  CalendarOffIcon,
   CircleCheckIcon,
   SearchIcon,
   TrendingDownIcon,
@@ -30,6 +31,8 @@ import { Progress, Tooltip } from "@heroui/react";
 
 export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
@@ -96,7 +99,6 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
           <span
             className={cn(
               item.type === "buys" ? "text-blue-500" : "text-primary",
-              "font-mono",
             )}
           >
             ${item.amount.toFixed(2)}
@@ -107,7 +109,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
         label: "Precio",
         key: "price",
         render: (item: Operation) => (
-          <span className="font-mono font-medium text-slate-500">
+          <span className="font-medium text-slate-500">
             ${item.price.toFixed(2)}
           </span>
         ),
@@ -116,7 +118,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
         label: "Precio de mercado",
         key: "marketPrice",
         render: (item: Operation) => (
-          <span className="font-mono">${item.marketPrice.toFixed(2)}</span>
+          <span>${item.marketPrice.toFixed(2)}</span>
         ),
       },
       {
@@ -124,7 +126,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
         key: "profit",
         render: (item: Operation) =>
           item.profit > 0 ? (
-            <div className="flex items-center gap-2 font-mono font-medium">
+            <div className="flex items-center gap-2 font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-success/10 px-1.5 py-0.5 text-xs text-success">
                 {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
@@ -132,7 +134,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 font-mono font-medium">
+            <div className="flex items-center gap-2 font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-danger/10 px-1.5 py-0.5 text-xs text-danger">
                 {((item.profit / (item.amount * item.price)) * 100).toFixed(2)}%
@@ -149,9 +151,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Operation) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
-        ),
+        render: (item: Operation) => <span>${item.commission.toFixed(2)}</span>,
       },
     ];
   }, [operationsSellerQuery.data]);
@@ -178,7 +178,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
 
   return (
     <div className="flex h-full w-full flex-col gap-6 overflow-hidden px-6">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex min-h-11 items-end justify-between gap-4">
         <div
           className={cn(
             operationsSellerQuery.isFetching && "opacity-60",
@@ -206,27 +206,58 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
             </div>
           </div>
 
-          <div className="flex min-h-14 w-full items-center gap-2 pt-1">
+          <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Desde</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Desde
+              </span>
+
               <input
+                ref={fromRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!operationsSellerQuery.isFetching) {
+                    fromRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={operationsSellerQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setFrom(undefined);
+                  setFrom(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
+
             {/* To date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Hasta</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Hasta
+              </span>
+
               <input
+                ref={toRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!operationsSellerQuery.isFetching) {
+                    toRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={operationsSellerQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setTo(undefined);
+                  setTo(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
           </div>
         </div>
 
@@ -276,20 +307,33 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
         </div>
       )} */}
 
-      <TableWork
-        columns={COLUMNS_OPERATIONS}
-        loading={operationsSellerQuery.isFetching}
-        error={operationsSellerQuery.error}
-        searchInput={search}
-        data={filteredOperations}
-        openModal={() => console.log()}
-      />
+      {(from || to) &&
+      filteredOperations.length === 0 &&
+      !operationsSellerQuery.isFetching ? (
+        <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+          <CalendarOffIcon className="size-16 text-slate-400" />
+          <p className="text-slate-400">
+            No hay resultados de operaciones durante esa fecha
+          </p>
+        </div>
+      ) : (
+        <TableWork
+          columns={COLUMNS_OPERATIONS}
+          loading={operationsSellerQuery.isFetching}
+          error={operationsSellerQuery.error}
+          searchInput={search}
+          data={filteredOperations}
+          openModal={() => console.log()}
+        />
+      )}
     </div>
   );
 }
 
 export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState<Date>();
@@ -367,7 +411,10 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
                   value={currentInstallment}
                   maxValue={item.numberOfInstallments}
                 />
-                {currentInstallment}/{item.numberOfInstallments}
+                {currentInstallment > item.numberOfInstallments
+                  ? item.numberOfInstallments
+                  : currentInstallment}
+                /{item.numberOfInstallments}
               </div>
             </div>
           );
@@ -385,7 +432,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
             item.numberOfInstallments,
           );
 
-          if (currentInstallment === item.numberOfInstallments)
+          if (currentInstallment >= item.numberOfInstallments)
             return (
               <div className="flex items-center gap-1 text-primary">
                 <CircleCheckIcon className="size-4 min-w-4" />
@@ -410,6 +457,12 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
         render: (item: Loan) => {
           const remainingDate = differenceInDays(item.firstDueDate, new Date());
           const statusStyles = getDaysRemaingStatusSyles(remainingDate);
+
+          if (
+            item.totalPaid >=
+            item.numberOfInstallments * item.installmentValue
+          )
+            return "-";
 
           return (
             <div className="flex items-center gap-3 pl-1">
@@ -447,9 +500,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => (
-          <span className="font-mono">${item.commission.toFixed(2)}</span>
-        ),
+        render: (item: Loan) => <span>${item.commission.toFixed(2)}</span>,
       },
     ];
   }, []);
@@ -476,7 +527,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
 
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-hidden px-6">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex min-h-11 items-end justify-between gap-4">
         <div
           className={cn(
             loansSellerQuery.isFetching && "opacity-60",
@@ -505,27 +556,58 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
           </div>
 
           {/* Search */}
-          <div className="flex min-h-14 w-full items-center gap-2 pt-1">
+          <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Desde</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Desde
+              </span>
+
               <input
+                ref={fromRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansSellerQuery.isFetching) {
+                    fromRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansSellerQuery.isFetching}
-                onChange={(e) => setFrom(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setFrom(undefined);
+                  setFrom(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
+
             {/* To date */}
-            <div className="flex w-1/2 flex-col gap-0.5">
-              <label className="text-xs text-slate-400">Hasta</label>
+            <label className="relative h-9 min-w-44 rounded-md border p-2 text-sm text-slate-400 transition-all focus-within:border-primary disabled:opacity-60">
+              <span className="absolute -top-2.5 left-1.5 w-12 bg-white pl-1 text-xs text-slate-400/70">
+                Hasta
+              </span>
+
               <input
+                ref={toRef}
+                onFocus={() => {
+                  // if input disabled, dont show datepicker
+                  if (!loansSellerQuery.isFetching) {
+                    toRef.current?.showPicker?.();
+                  }
+                }}
+                onKeyDown={(e) => e.preventDefault()}
+                onPaste={(e) => e.preventDefault()}
                 disabled={loansSellerQuery.isFetching}
-                onChange={(e) => setTo(parseISO(e.target.value))}
+                onChange={(e) => {
+                  if (e.target.value === "") return setTo(undefined);
+                  setTo(parseISO(e.target.value));
+                }}
                 type="date"
-                className="h-9 rounded-md border p-2 text-sm text-slate-400 disabled:opacity-60"
+                className="w-full"
               />
-            </div>
+            </label>
           </div>
         </div>
 
@@ -552,37 +634,27 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
             </div>
           </div>
         )}
-
-        {/* {loansSellerQuery.data && (
-          <div className="flex items-center gap-10">
-            <div className="flex flex-col items-start border-l-3 border-primary pl-2">
-              <span className="text-nowrap text-xs text-slate-400/80">
-                Total préstamos
-              </span>
-              <span className="font-medium text-slate-500">
-                ${totalAmount.toLocaleString("es")}
-              </span>
-            </div>
-            <div className="flex flex-col items-start border-l-3 border-primary pl-2">
-              <span className="text-nowrap text-xs text-slate-400/80">
-                Cantidad de préstamos
-              </span>
-              <span className="font-medium text-slate-500">
-                {loansSellerQuery.data?.length ?? 0}
-              </span>
-            </div>
-          </div>
-        )} */}
       </div>
 
-      <TableWork
-        columns={COLUMNS_LOANS}
-        loading={loansSellerQuery.isFetching}
-        error={loansSellerQuery.error}
-        searchInput={search}
-        data={filteredLoans}
-        openModal={() => console.log()}
-      />
+      {(from || to) &&
+      filteredLoans.length === 0 &&
+      !loansSellerQuery.isFetching ? (
+        <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
+          <CalendarOffIcon className="size-16 text-slate-400" />
+          <p className="text-slate-400">
+            No hay resultados de préstamos durante esa fecha
+          </p>
+        </div>
+      ) : (
+        <TableWork
+          columns={COLUMNS_LOANS}
+          loading={loansSellerQuery.isFetching}
+          error={loansSellerQuery.error}
+          searchInput={search}
+          data={filteredLoans}
+          openModal={() => console.log()}
+        />
+      )}
     </div>
   );
 }

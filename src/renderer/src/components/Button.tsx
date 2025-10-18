@@ -10,6 +10,7 @@ const buttonStyles = cva(
     variants: {
       variant: {
         success: "bg-primary hover:bg-primary/90 transition-all",
+        blue: "bg-blue-500 hover:bg-blue-500/90 transition-all",
         error: "bg-red-500 hover:bg-danger/90 transition-all",
         outline:
           "bg-white border border-slate-300 opacity-100 text-slate-400 after:h-0 after:w-0",

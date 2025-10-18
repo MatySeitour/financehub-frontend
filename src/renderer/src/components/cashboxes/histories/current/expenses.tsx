@@ -116,6 +116,7 @@ export function CurrentExpensesHistoryCashbox({
         </div>
       ) : (
         <TableWork
+          withButtonCreate={false}
           columns={COLUMNS}
           error={historyExpensesQuery.error}
           loading={historyExpensesQuery.isFetching}

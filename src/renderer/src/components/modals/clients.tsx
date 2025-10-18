@@ -16,7 +16,8 @@ import {
   AlertCircleIcon,
   CircleAlertIcon,
   TriangleAlertIcon,
-  UserPlusIcon,
+  UserRoundPenIcon,
+  UserRoundPlusIcon,
 } from "lucide-react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -42,7 +43,7 @@ export const inputSchema = z.object({
     .min(1, "Este campo es requerido.")
     .max(200, "La direccion no puede contener mas de 200 caracteres."),
   info: z.string(),
-  referred_to_id: z.number().nullable(),
+  referred_to_id: z.number().nullable().optional(),
 });
 //delete client data validation
 export const deleteClientSchema = z.object({
@@ -104,7 +105,7 @@ export function CreateClientModal({ isOpen, onClose }: ModalProps) {
         {(onClose) => (
           <>
             <ModalHeader className="flex h-auto items-center gap-3">
-              <UserPlusIcon className="size-8 min-w-8 text-slate-500" />
+              <UserRoundPlusIcon className="size-8 min-w-8 text-slate-500" />
               <div className="flex w-fit flex-col justify-center">
                 <span className="text-lg text-slate-500">Crear cliente</span>
               </div>
@@ -142,13 +143,25 @@ export function CreateClientModal({ isOpen, onClose }: ModalProps) {
                       Télefono <Mandatory />
                     </label>
 
-                    <input
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        errors.phone && "border-red-500",
+                    <Controller
+                      name="phone"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          className={cn(
+                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            errors.phone && "border-red-500",
+                          )}
+                          type="text"
+                          onChange={(e) => {
+                            if (e.target.value.length > 20) return;
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
                       )}
-                      type="text"
-                      {...register("phone")}
                     />
                     {errors.phone && (
                       <p className="text-xs font-medium text-red-500">
@@ -356,7 +369,7 @@ export function DeleteClientModal({
                   <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                 </div>
                 <span className="text-xl text-danger">Eliminar cliente</span>
-                <span className="text-balance text-center text-sm font-normal text-red-400">
+                <span className="text-balance text-center text-sm font-normal text-red-500">
                   ¿Estás seguro que quieres eliminar el cliente {client.name}?
                 </span>
               </div>
@@ -458,7 +471,7 @@ export function UpdateClientModal({
         {(onClose) => (
           <>
             <ModalHeader className="flex h-auto items-center gap-3">
-              <UserPlusIcon className="size-8 min-w-8 text-slate-500" />
+              <UserRoundPenIcon className="size-8 min-w-8 text-slate-500" />
               <div className="flex w-fit flex-col justify-center">
                 <span className="text-lg text-slate-500">
                   Modificar cliente
@@ -498,13 +511,25 @@ export function UpdateClientModal({
                       Télefono <Mandatory />
                     </label>
 
-                    <input
-                      className={cn(
-                        "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        errors.phone && "border-red-500",
+                    <Controller
+                      name="phone"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <input
+                          {...field}
+                          className={cn(
+                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            errors.phone && "border-red-500",
+                          )}
+                          type="text"
+                          onChange={(e) => {
+                            if (e.target.value.length > 20) return;
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
                       )}
-                      type="text"
-                      {...register("phone")}
                     />
                     {errors.phone && (
                       <p className="text-xs font-medium text-red-500">

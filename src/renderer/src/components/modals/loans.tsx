@@ -17,7 +17,8 @@ import {
 } from "@heroui/react";
 import {
   AlertCircleIcon,
-  PackagePlusIcon,
+  BanknoteArrowUpIcon,
+  PiggyBankIcon,
   TriangleAlertIcon,
 } from "lucide-react";
 import { Client } from "@renderer/hooks/clients";
@@ -28,6 +29,7 @@ import { Loan, PaymentFrequency } from "@renderer/hooks/loans";
 import { toast } from "sonner";
 import { ErrorForm } from "../ErrorMessage";
 import { format, parseISO } from "date-fns";
+import { TInstallment } from "@renderer/hooks/installments";
 
 /* ENUMS */
 const paymentFrequency = ["daily", "weekly", "biweekly", "monthly"] as const;
@@ -54,8 +56,6 @@ const paymentFrequencyLabels: Record<
   monthly: "Mensual",
 };
 
-/* SCHEMAS */
-//create and edit loan data validation
 export function loanFormSchema(clients: Client[], sellers: Seller[]) {
   return z.object({
     client_id: z
@@ -96,11 +96,38 @@ export function loanFormSchema(clients: Client[], sellers: Seller[]) {
   });
 }
 //
-export function addPayInstallmentSchema() {
-  return z.object({
-    payment_amount: z.number({ message: "Este campo  es requerido." }),
-    payment_date: z.date().nullable(),
-  });
+export function addPayInstallmentSchema(
+  installmentValue: number,
+  lastInstallmentValue: TInstallment,
+) {
+  return z
+    .object({
+      payment_amount: z
+        .number({ message: "Este campo  es requerido." })
+        .gt(0, { message: "El monto debe ser mayor a 0" }),
+      payment_date: z
+        .date({ message: "Debe ser una fecha valida" })
+        .nullable()
+        .optional(),
+    })
+    .refine(
+      (val) => {
+        const totalPaid =
+          lastInstallmentValue.paymentAmount + val.payment_amount;
+
+        if (totalPaid < installmentValue) return true;
+
+        if (!val.payment_date) return false;
+
+        const year = val.payment_date.getFullYear();
+        return year >= 1900 && year <= 2100;
+      },
+
+      {
+        message: "La fecha de pago es requerida si esta cuota se completa",
+        path: ["payment_date"],
+      },
+    );
 }
 
 /* MODALS */
@@ -178,7 +205,7 @@ export function CreateLoanModal({
           {(onClose) => (
             <>
               <ModalHeader className="flex h-auto items-center gap-3">
-                <PackagePlusIcon className="size-8 min-w-8 text-slate-500" />
+                <PiggyBankIcon className="size-8 min-w-8 text-slate-500" />
                 <div className="flex w-fit flex-col justify-center">
                   <p className="text-lg text-slate-500">Crear préstamo</p>
                 </div>
@@ -579,7 +606,13 @@ export function AddPayModal({
   isOpen,
   onClose,
   loanId,
-}: ModalProps & { loanId: number }) {
+  lastInstallmentPaid,
+  installmentValue,
+}: ModalProps & {
+  loanId: number;
+  lastInstallmentPaid: TInstallment;
+  installmentValue: number;
+}) {
   /* UTILS */
   //
   const queryClient = useQueryClient();
@@ -592,7 +625,7 @@ export function AddPayModal({
     addPayInstallment
   >({
     mutationFn: async (body) => {
-      //send new client to backend
+      // send new client to backend
       const { data } = await AxiosFetch.put(
         `/api/v1/loans/${loanId}/installments`,
         body,
@@ -616,10 +649,12 @@ export function AddPayModal({
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<addPayInstallment>({
-    resolver: zodResolver(addPayInstallmentSchema()),
-    defaultValues: {},
+    resolver: zodResolver(
+      addPayInstallmentSchema(installmentValue, lastInstallmentPaid),
+    ),
   });
 
   /* EVENT HANDLERS */
@@ -639,7 +674,7 @@ export function AddPayModal({
         {(onClose) => (
           <>
             <ModalHeader className="flex h-auto items-center gap-3">
-              <PackagePlusIcon className="size-8 min-w-8 text-slate-500" />
+              <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500" />
               <div className="flex w-fit flex-col justify-center">
                 <p className="text-lg text-slate-500">Agregar pago</p>
               </div>
@@ -719,12 +754,21 @@ export function AddPayModal({
                             field.onChange(parseISO(v.target.value))
                           }
                           className={cn(
-                            "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                            errors.payment_date
+                              ? "border-danger"
+                              : "border-slate-300",
+                            "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
                           )}
                           type="date"
                         />
                       )}
                     />
+
+                    {errors.payment_date && (
+                      <span className="text-xs text-danger">
+                        {errors.payment_date?.message}
+                      </span>
+                    )}
                   </label>
                 </div>
                 {mutation.isError && (
@@ -797,7 +841,7 @@ export function DeleteLoanModal({
                   <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                 </div>
                 <span className="text-xl text-danger">Eliminar préstamo</span>
-                <span className="text-balance text-center text-sm font-normal text-red-400">
+                <span className="text-balance text-center text-sm font-normal text-red-500">
                   ¿Estás seguro que quieres eliminar este préstamo?
                 </span>
               </div>

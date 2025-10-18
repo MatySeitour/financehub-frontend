@@ -533,7 +533,7 @@ export function DeleteOperationModal({
                   <TriangleAlertIcon className="size-12 min-w-12 text-danger" />
                 </div>
                 <span className="text-xl text-danger">Eliminar operación</span>
-                <span className="text-balance text-center text-sm font-normal text-red-400">
+                <span className="text-balance text-center text-sm font-normal text-red-500">
                   ¿Estás seguro que quieres eliminar esta operación? <br />
                   Al confirmar, el monto de está operación volvera a sus
                   respectivas divisas

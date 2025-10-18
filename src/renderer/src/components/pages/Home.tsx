@@ -359,9 +359,7 @@ export function Home() {
         label: "Precio de mercado",
         key: "marketPrice",
         render: (item: Operation) => (
-          <span className="font-mono">
-            ${item.marketPrice.toLocaleString("es-AR")}
-          </span>
+          <span>${item.marketPrice.toLocaleString("es-AR")}</span>
         ),
       },
       {
@@ -403,9 +401,7 @@ export function Home() {
         label: "Comisión",
         key: "commission",
         render: (item: Operation) => (
-          <span className="font-mono">
-            ${item.commission.toLocaleString("es-AR")}
-          </span>
+          <span>${item.commission.toLocaleString("es-AR")}</span>
         ),
       },
     ];
@@ -465,7 +461,10 @@ export function Home() {
                   value={currentInstallment}
                   maxValue={item.numberOfInstallments}
                 />
-                {currentInstallment}/{item.numberOfInstallments}
+                {currentInstallment > item.numberOfInstallments
+                  ? item.numberOfInstallments
+                  : currentInstallment}
+                /{item.numberOfInstallments}
               </div>
             </div>
           );
@@ -483,11 +482,14 @@ export function Home() {
             item.numberOfInstallments,
           );
 
-          if (currentInstallment === item.numberOfInstallments)
+          if (currentInstallment >= item.numberOfInstallments)
             return (
               <div className="flex items-center gap-1 text-primary">
                 <CircleCheckIcon className="size-4 min-w-4" />
-                <span>Pagado</span>
+                <span>
+                  Pagado (${item.installmentValue * item.numberOfInstallments}{" "}
+                  de ${item.installmentValue * item.numberOfInstallments})
+                </span>
               </div>
             );
           return (
@@ -546,9 +548,7 @@ export function Home() {
         label: "Comisión",
         key: "commission",
         render: (item: Loan) => (
-          <span className="font-mono">
-            ${item.commission.toLocaleString("es-AR")}
-          </span>
+          <span>${item.commission.toLocaleString("es-AR")}</span>
         ),
       },
     ];
