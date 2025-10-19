@@ -93,7 +93,7 @@ export function Navigation({ user }: { user: TSession }) {
                       isActive
                         ? "relative rounded-md font-medium text-primary after:bg-primary/60"
                         : "border-transparent text-slate-400 after:bg-transparent hover:text-slate-500/80",
-                      "flex h-full min-h-10 w-full items-center font-medium transition-all after:absolute after:-left-3.5 after:h-5 after:w-1 after:rounded-r-md xl:pl-2 xl:after:left-0 xl:after:top-0 xl:after:h-full xl:after:rounded-sm 2xl:after:w-0.5",
+                      "flex h-full min-h-10 w-full items-center font-medium transition-all after:absolute after:-left-3.5 after:h-5 after:w-1 after:rounded-r-md xl:pl-2 xl:after:left-0 xl:after:top-0 xl:after:h-full xl:after:w-0.5 xl:after:rounded-sm",
                     )
                   }
                   to={navItem.linkTo}
@@ -114,14 +114,19 @@ export function Navigation({ user }: { user: TSession }) {
         </div>
 
         {/* User */}
-        <div className="flex h-16 w-full items-center gap-2 overflow-hidden rounded-md border-t border-slate-200 bg-white px-1.5 py-4 2xl:p-4">
+        <div className="flex h-16 w-full items-center gap-2 overflow-hidden rounded-md border-t border-slate-200 bg-white px-1.5 py-4 xl:p-4">
           <div className="flex items-center justify-center rounded-full bg-primary/10 p-1.5">
             <span className="text-sm font-medium uppercase text-primary">
               {firstLetter}
               {secondLetter}
             </span>
           </div>
-          <div className="flex w-full flex-col gap-1">
+          <div
+            className={cn(
+              isAsideOpen ? "opacity-100" : "opacity-0 xl:opacity-100",
+              "flex w-full flex-col gap-1 transition-all",
+            )}
+          >
             <div className="group relative h-4 w-full overflow-hidden">
               <p className="w-full cursor-default text-sm font-semibold text-slate-500">
                 {user.name}
