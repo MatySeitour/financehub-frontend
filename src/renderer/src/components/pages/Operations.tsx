@@ -3,24 +3,14 @@ import { Button } from "../Button";
 import { MenuOption, ServerError } from "@renderer/utils/types";
 import {
   BanknoteArrowUpIcon,
-  CalendarDaysIcon,
   CalendarOffIcon,
-  CheckIcon,
-  DownloadIcon,
-  FileSpreadsheetIcon,
-  ListFilterIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
   TrendingDownIcon,
   TrendingUpIcon,
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  useDisclosure,
-} from "@heroui/react";
+import { useDisclosure } from "@heroui/react";
 import {
   CreateOperationModal,
   DeleteOperationModal,
@@ -34,32 +24,7 @@ import { useQuery } from "react-query";
 import { getClients } from "@renderer/hooks/clients";
 import { getSellers } from "@renderer/hooks/sellers";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
-
-/* ENUMS */
-
-type FastFilters = (typeof fastFilters)[number];
-const fastFilters = [
-  {
-    value: "today",
-    label: "Hoy",
-  },
-  {
-    value: "yesterday",
-    label: "Ayer",
-  },
-  {
-    value: "week",
-    label: "Hace 7 días",
-  },
-  {
-    value: "biweek",
-    label: "Hace 15 días",
-  },
-  {
-    value: "month",
-    label: "Hace 30 días",
-  },
-] as const;
+import { ExportExcelOperations } from "../operations";
 
 //Component starts here
 export function OperationsSection() {
@@ -73,11 +38,6 @@ export function OperationsSection() {
   const [to, setTo] = useState<Date>();
   const [limit, setLimit] = useState<DataPerPage>(20);
   const [operationToDelete, setOperationToDelete] = useState<Operation>();
-  const [filterFastSelected, setFilterFastSelected] =
-    useState<FastFilters["value"]>();
-
-  const [fromFilter, setFromFilter] = useState<Date>();
-  const [toFilter, setToFilter] = useState<Date>();
 
   const operationsQuery = useQuery<
     Awaited<ReturnType<typeof getOperations>>,
@@ -377,100 +337,9 @@ export function OperationsSection() {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <Popover placement="left" showArrow={true}>
-              <PopoverTrigger>
-                <div>
-                  <Button variant="blue" className="w-fit gap-2 text-nowrap">
-                    <DownloadIcon className="size-3.5 min-w-3.5" />
-                    Exportar excel
-                  </Button>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="h-72 flex-col items-start rounded-md border border-slate-400/30 bg-slate-50 !p-0">
-                <span className="flex items-center gap-1 px-2 py-3 text-left text-sm font-medium text-slate-500">
-                  <FileSpreadsheetIcon className="size-4 min-w-4" />
-                  Exportar operaciones
-                </span>
+          {/* Export excel btn */}
 
-                <div className="flex h-full w-full items-center border-b border-slate-400/30">
-                  {/* Manual filter */}
-                  <div className="flex h-full flex-col items-start gap-2">
-                    <span className="flex w-full gap-1 border-y border-slate-400/30 p-2 text-xs font-medium text-slate-500">
-                      <CalendarDaysIcon className="size-3.5 min-w-3.5" />
-                      Manual
-                    </span>
-
-                    <div className="flex flex-col gap-2 px-3">
-                      <label className="flex flex-col gap-px">
-                        <span className="text-xs text-slate-500">Desde</span>
-
-                        <input
-                          onChange={(e) =>
-                            setFromFilter(parseISO(e.target.value))
-                          }
-                          className="relative h-8 min-w-44 rounded-md border px-2 text-xs text-slate-400 transition-all focus-within:border-primary disabled:opacity-60"
-                          type="date"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="flex flex-col gap-2 px-3">
-                      <label className="flex flex-col gap-px">
-                        <span className="text-xs text-slate-500">Hasta</span>
-                        <input
-                          onChange={(e) =>
-                            setToFilter(parseISO(e.target.value))
-                          }
-                          className="relative h-8 min-w-44 rounded-md border px-2 text-xs text-slate-400 transition-all focus-within:border-primary disabled:opacity-60"
-                          type="date"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="h-full w-px bg-slate-400/30" />
-
-                  {/* Fast filter */}
-                  <div className="flex min-h-full w-full min-w-44 flex-col justify-start gap-2">
-                    <span className="flex w-full gap-1 border-y border-slate-400/30 p-2 text-xs font-medium text-slate-500">
-                      <ListFilterIcon className="size-3.5 min-w-3.5" />
-                      Filtro rápido
-                    </span>
-
-                    <ul className="flex flex-col gap-0.5">
-                      {fastFilters.map((filter) => (
-                        <li
-                          onClick={() =>
-                            filterFastSelected === filter.value
-                              ? setFilterFastSelected(undefined)
-                              : setFilterFastSelected(filter.value)
-                          }
-                          className={cn(
-                            filterFastSelected === filter.value &&
-                              "bg-slate-200/40",
-                            "flex cursor-pointer items-center gap-2 px-2 py-1.5 text-xs text-slate-400 transition-all hover:bg-slate-200/40",
-                          )}
-                          key={filter.value}
-                        >
-                          {filter.label}
-                          {filterFastSelected === filter.value && (
-                            <CheckIcon className="size-4 min-w-4" />
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex w-full items-center justify-center p-3">
-                  <Button variant="success" className="h-8 w-full">
-                    Exportar
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <ExportExcelOperations disabled={!operationsQuery.data} />
         </div>
 
         {/* TABLE'S CONTAINER */}
