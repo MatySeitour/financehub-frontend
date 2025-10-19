@@ -118,7 +118,7 @@ export function SellersSection() {
           onClick={() => setIsSellerCreateOpen(true)}
           disabled={sellersQuery.isLoading || sellersQuery.isError}
           variant="success"
-          className="flex h-8 items-center gap-1 pr-5"
+          className="flex h-8 w-44 items-center gap-1 pr-5"
         >
           <PlusIcon className="size-4 min-w-4" />
           Agregar vendedor
