@@ -1,21 +1,23 @@
 import { cn, strNormalize } from "@renderer/utils";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarCheck2Icon,
   CalendarClockIcon,
   CalendarX2Icon,
+  CheckIcon,
+  ChevronRightIcon,
   CircleAlertIcon,
   CircleCheckBigIcon,
   CircleDotIcon,
   SearchIcon,
 } from "lucide-react";
 import { TableWork } from "@renderer/components/Table";
-import { differenceInDays, format } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { getCashboxHistoryInstallments } from "@renderer/hooks/cashboxes";
-import { InstallmentHistory } from "@renderer/hooks/installments";
+import { TInstallment } from "@renderer/hooks/installments";
+import { ServerError } from "@renderer/utils/types";
 
 export function InstallmentsHistoryCashbox({
   cashboxID,
@@ -29,7 +31,7 @@ export function InstallmentsHistoryCashbox({
 
   const historyInstallmentsQuery = useQuery<
     Awaited<ReturnType<typeof getCashboxHistoryInstallments>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["history-installments", historyID],
     queryFn: () =>
@@ -41,43 +43,62 @@ export function InstallmentsHistoryCashbox({
   const COLUMNS = useMemo(() => {
     return [
       {
-        label: "Fecha de movimiento",
-        key: "movimentDateTime",
-        render: (item: InstallmentHistory) =>
-          `${format(item.movimentDateTime, "dd/MM/yyyy HH:mm")} hs`,
-      },
-      {
-        label: "Préstamo",
-        key: "loan_id",
-        render: (item: InstallmentHistory) => (
-          <span className="text-slate-500">#{item.loan_id}</span>
-        ),
-      },
-      {
-        label: "Monto",
+        label: "Monto acumulado",
         key: "amount",
-        render: (item: InstallmentHistory) => (
-          <span className="font-medium text-primary">
-            +${item.amount?.toLocaleString("es-AR")}
-          </span>
+        render: (item: TInstallment) => (
+          <div
+            className={cn(
+              item.paymentAmount === item.value
+                ? "text-primary"
+                : "text-slate-400",
+              "flex items-center gap-2",
+            )}
+          >
+            <span>${item.paymentAmount}</span>
+            <ChevronRightIcon className="size-4 min-w-4 text-slate-400" />
+            <span>${item.value}</span>
+          </div>
         ),
       },
       {
         label: "Número de cuota",
-        key: "number",
-        render: (item: InstallmentHistory) =>
-          item.number.toLocaleString("es-AR"),
+        key: "number_of_installments",
+        wrapContent: true,
+        render: (item: TInstallment) => (
+          <ul className="flex w-full flex-wrap items-center gap-0.5 py-1">
+            {Array.from({ length: item.number_of_installments }).map(
+              (_, index) => (
+                <li
+                  key={index}
+                  className={cn(
+                    index + 1 === item.number
+                      ? "border-blue-100 bg-blue-100/70 text-blue-300"
+                      : index + 1 < item.number
+                        ? "border-primary/15 bg-primary/10 text-primary/60"
+                        : "border-slate-100 bg-slate-100/70 text-slate-400",
+                    "flex size-6 min-w-6 items-center justify-center rounded-md border p-1 text-xs",
+                  )}
+                >
+                  {index + 1 < item.number ? (
+                    <CheckIcon className="size-3.5 min-w-3.5" />
+                  ) : (
+                    index + 1
+                  )}
+                </li>
+              ),
+            )}
+          </ul>
+        ),
       },
       {
         label: "Valor de cuota",
         key: "value",
-        render: (item: InstallmentHistory) =>
-          `$${item.value.toLocaleString("es-AR")}`,
+        render: (item: TInstallment) => `$${item.value}`,
       },
       {
         label: "Estado de cuota",
-        key: "payment_amount",
-        render: (item: InstallmentHistory) => (
+        key: "paymentAmount",
+        render: (item: TInstallment) => (
           <div className="flex items-center gap-2">
             {item.paymentAmount === item.value ? (
               <>
@@ -96,7 +117,7 @@ export function InstallmentsHistoryCashbox({
       {
         label: "Tiempo de pago",
         key: "payment_date",
-        render: (item: InstallmentHistory) => {
+        render: (item: TInstallment) => {
           const remainingDate = differenceInDays(
             item.dueDate,
             item.paymentDate ?? "",
@@ -119,7 +140,9 @@ export function InstallmentsHistoryCashbox({
               ) : (
                 <>
                   <CalendarX2Icon className="size-4 min-w-4 text-danger" />
-                  <span className="text-danger">Pagó atrasado</span>
+                  <span className="text-danger">
+                    Atrasado {remainingDate * -1} días
+                  </span>
                 </>
               )}
             </div>
@@ -129,12 +152,12 @@ export function InstallmentsHistoryCashbox({
       {
         label: "Cliente",
         key: "clientName",
-        render: (item: InstallmentHistory) => item.clientName,
+        render: (item: TInstallment) => item.clientName,
       },
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: InstallmentHistory) => item.sellerName,
+        render: (item: TInstallment) => item.sellerName,
       },
     ];
   }, []);

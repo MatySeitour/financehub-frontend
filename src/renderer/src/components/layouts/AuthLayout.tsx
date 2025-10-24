@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from "react-router";
 import { errorAuth, getSession } from "@renderer/utils";
 import { useCookies } from "react-cookie";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 
 export function AuthLayout() {
   const [cookies] = useCookies(["token"]);
@@ -10,14 +10,14 @@ export function AuthLayout() {
 
   const sessionQuery = useQuery<
     Awaited<ReturnType<typeof getSession>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["session"],
     queryFn: () => getSession(cookies?.token),
     onSuccess: () => {
       navigate("/home");
     },
-    onError: (error: BaseResponseServer) => {
+    onError: (error: ServerError) => {
       console.log("Error en sesión:", error);
       if (errorAuth.includes(error?.message ?? "")) {
         navigate("/create-organization");

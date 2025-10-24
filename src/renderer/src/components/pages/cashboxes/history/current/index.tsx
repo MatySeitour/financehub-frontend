@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 import { Tooltip } from "@heroui/react";
 import { useState } from "react";
 import { Undo2Icon } from "lucide-react";
@@ -23,7 +23,7 @@ export function HistoryCurrentSection() {
 
   const cashboxQuery = useQuery<
     Awaited<ReturnType<typeof getCashbox>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["cashboxes", cashboxID],
     queryFn: () => getCashbox(cashboxID ?? -1),

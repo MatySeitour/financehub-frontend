@@ -1,6 +1,6 @@
 import { cn, strNormalize } from "@renderer/utils";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 import { Progress, Tooltip } from "@heroui/react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -58,7 +58,7 @@ export function LoansHistoryCashbox({
 
   const historyLoansQuery = useQuery<
     Awaited<ReturnType<typeof getCashboxHistoryLoans>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["history-loans", historyID],
     queryFn: () => getCashboxHistoryLoans(cashboxID ?? -1, historyID ?? -1),

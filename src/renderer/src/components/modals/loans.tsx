@@ -649,7 +649,6 @@ export function AddPayModal({
   const {
     control,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<addPayInstallment>({
     resolver: zodResolver(

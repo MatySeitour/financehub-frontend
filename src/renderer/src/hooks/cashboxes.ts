@@ -5,7 +5,7 @@ import { currencySchema } from "./currencies";
 import { operationSchema } from "./operations";
 import { loanSchema } from "./loans";
 import { expenseSchema } from "./expenses";
-import { installmentHistorySchema } from "./installments";
+import { installmentSchema } from "./installments";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -104,7 +104,7 @@ export async function getCashboxHistoryInstallments(
   const { data } = await AxiosFetch(
     `/api/v1/cashboxes/${cashboxID}/history/${historyID}/installments`,
   );
-  return installmentHistorySchema.array().parse(data.data);
+  return installmentSchema.array().parse(data.data);
 }
 ////////////////////////////////////////////////////////////
 ////////////// Cashbox current history //////////////
@@ -141,7 +141,7 @@ export async function getCashboxCurrentHistoryInstallments(cashboxID: number) {
   const { data } = await AxiosFetch(
     `/api/v1/cashboxes/${cashboxID}/history/current/installments`,
   );
-  return installmentHistorySchema.array().parse(data.data);
+  return installmentSchema.array().parse(data.data);
 }
 ////////////////////////////////////////////////////////////
 ////////////// Cashboxes active //////////////

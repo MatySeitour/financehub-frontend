@@ -1,6 +1,6 @@
 import { cn, strNormalize } from "@renderer/utils";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleAlertIcon, SearchIcon } from "lucide-react";
@@ -20,7 +20,7 @@ export function CurrentExpensesHistoryCashbox({
 
   const historyExpensesQuery = useQuery<
     Awaited<ReturnType<typeof getCashboxCurrentHistoryExpenses>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["history-expenses", cashboxID],
     queryFn: () => getCashboxCurrentHistoryExpenses(cashboxID ?? -1),

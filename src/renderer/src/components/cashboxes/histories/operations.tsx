@@ -1,6 +1,6 @@
 import { cn, strNormalize } from "@renderer/utils";
 import { useQuery } from "react-query";
-import { BaseResponseServer } from "@renderer/utils/types";
+import { ServerError } from "@renderer/utils/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -29,7 +29,7 @@ export function OperationsHistoryCashbox({
 
   const historyOperationsQuery = useQuery<
     Awaited<ReturnType<typeof getCashboxHistoryOperations>>,
-    BaseResponseServer
+    ServerError
   >({
     queryKey: ["history-operations", historyID],
     queryFn: () =>
