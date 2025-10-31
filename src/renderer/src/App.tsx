@@ -16,6 +16,7 @@ import { ClientSection } from "./components/pages/clients";
 import { SellersSection } from "./components/pages/sellers";
 import { SellerDetailsSection } from "./components/pages/sellers/details";
 import { LoanDetailsSection } from "./components/pages/loans/details";
+import { SettingsLayout } from "./components/layouts/SettingsLayout";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -101,14 +102,9 @@ function App() {
             <Route path="/operations" element={<OperationsSection />} />
 
             {/* Settings */}
-            <Route
-              path="/settings"
-              element={
-                <main className="h-full w-full bg-green-200">
-                  Estamos en configuracion
-                </main>
-              }
-            />
+            <Route element={<SettingsLayout />}>
+              <Route path="/settings" element={<Login />} />
+            </Route>
           </Route>
         </Routes>
       </Suspense>

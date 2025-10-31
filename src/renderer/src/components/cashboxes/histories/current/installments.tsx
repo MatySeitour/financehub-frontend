@@ -15,9 +15,9 @@ import {
   SearchIcon,
 } from "lucide-react";
 import { TableWork } from "@renderer/components/Table";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, format } from "date-fns";
 import { getCashboxCurrentHistoryInstallments } from "@renderer/hooks/cashboxes";
-import { TInstallment } from "@renderer/hooks/installments";
+import { InstallmentHistory, TInstallment } from "@renderer/hooks/installments";
 
 export function CurrentInstallmentsHistoryCashbox({
   cashboxID,
@@ -40,9 +40,15 @@ export function CurrentInstallmentsHistoryCashbox({
   const COLUMNS = useMemo(() => {
     return [
       {
+        label: "Fecha de pago",
+        key: "movimentDateTime",
+        render: (item: InstallmentHistory) =>
+          format(item.movimentDateTime, "dd/MM/yyyy"),
+      },
+      {
         label: "Monto acumulado",
         key: "amount",
-        render: (item: TInstallment) => (
+        render: (item: InstallmentHistory) => (
           <div
             className={cn(
               item.paymentAmount === item.value
@@ -61,7 +67,7 @@ export function CurrentInstallmentsHistoryCashbox({
         label: "Número de cuota",
         key: "number_of_installments",
         wrapContent: true,
-        render: (item: TInstallment) => (
+        render: (item: InstallmentHistory) => (
           <ul className="flex w-full flex-wrap items-center gap-0.5 py-1">
             {Array.from({ length: item.number_of_installments }).map(
               (_, index) => (
@@ -90,12 +96,12 @@ export function CurrentInstallmentsHistoryCashbox({
       {
         label: "Valor de cuota",
         key: "value",
-        render: (item: TInstallment) => `$${item.value}`,
+        render: (item: InstallmentHistory) => `$${item.value}`,
       },
       {
         label: "Estado de cuota",
         key: "paymentAmount",
-        render: (item: TInstallment) => (
+        render: (item: InstallmentHistory) => (
           <div className="flex items-center gap-2">
             {item.paymentAmount === item.value ? (
               <>
@@ -114,15 +120,17 @@ export function CurrentInstallmentsHistoryCashbox({
       {
         label: "Tiempo de pago",
         key: "payment_date",
-        render: (item: TInstallment) => {
+        render: (item: InstallmentHistory) => {
           const remainingDate = differenceInDays(
             item.dueDate,
-            item.paymentDate ?? "",
+            item.paymentDate ?? new Date(),
           );
 
           return (
             <div className="flex items-center gap-2">
-              {item.paymentAmount === item.value && remainingDate > 0 ? (
+              {item.paymentAmount === item.value &&
+              remainingDate >= 0 &&
+              item.paymentDate ? (
                 <>
                   <CalendarCheck2Icon className="size-4 min-w-4 text-primary" />
                   <span className="text-primary">A tiempo</span>
@@ -149,12 +157,12 @@ export function CurrentInstallmentsHistoryCashbox({
       {
         label: "Cliente",
         key: "clientName",
-        render: (item: TInstallment) => item.clientName,
+        render: (item: InstallmentHistory) => item.clientName,
       },
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: TInstallment) => item.sellerName,
+        render: (item: InstallmentHistory) => item.sellerName,
       },
     ];
   }, []);

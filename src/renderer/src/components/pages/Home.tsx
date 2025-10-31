@@ -240,8 +240,8 @@ export function Home() {
     Awaited<ReturnType<typeof getInstallments>>,
     ServerError
   >({
-    queryFn: () => getInstallments(now, tomorrow),
-    // queryFn: () => getInstallments(new Date("2025-05-06"), tomorrow),
+    // queryFn: () => getInstallments(now, tomorrow),
+    queryFn: () => getInstallments(new Date("2025-05-06"), tomorrow),
     queryKey: ["installments", "all"],
     enabled: tabActive === "installments",
   });
@@ -656,12 +656,14 @@ export function Home() {
         render: (item: TInstallment) => {
           const remainingDate = differenceInDays(
             item.dueDate,
-            item.paymentDate ?? "",
+            item.paymentDate ?? new Date(),
           );
 
           return (
             <div className="flex items-center gap-2">
-              {item.paymentAmount === item.value && remainingDate > 0 ? (
+              {item.paymentAmount === item.value &&
+              remainingDate >= 0 &&
+              item.paymentDate ? (
                 <>
                   <CalendarCheck2Icon className="size-4 min-w-4 text-primary" />
                   <span className="text-primary">A tiempo</span>

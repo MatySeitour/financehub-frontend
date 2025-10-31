@@ -7,14 +7,17 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   BanknoteArrowUpIcon,
+  Building2,
   Building2Icon,
   CircleUserRoundIcon,
   CogIcon,
   DollarSignIcon,
   HandCoinsIcon,
   HouseIcon,
+  KeyRoundIcon,
   LandmarkIcon,
   LucideIcon,
+  ShieldUserIcon,
   UsersIcon,
   WalletCardsIcon,
 } from "lucide-react";
@@ -315,5 +318,27 @@ export const tabsMoviments: {
     label: "Otros",
     icon: HandCoinsIcon,
     name: "expenses",
+  },
+] as const;
+
+export const settingSectionsTabs: {
+  label: string;
+  icon: LucideIcon;
+  name: string;
+}[] = [
+  {
+    label: "Organización",
+    icon: Building2,
+    name: "organization",
+  },
+  {
+    label: "Mi perfil",
+    icon: ShieldUserIcon,
+    name: "profile",
+  },
+  {
+    label: "Permisos",
+    icon: KeyRoundIcon,
+    name: "rols",
   },
 ] as const;

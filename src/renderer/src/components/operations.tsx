@@ -5,6 +5,7 @@ import {
   DownloadIcon,
   FileSpreadsheetIcon,
   ListFilterIcon,
+  UploadIcon,
 } from "lucide-react";
 import {
   Popover,
@@ -129,7 +130,7 @@ export function ExportExcelOperations({ disabled }: { disabled: boolean }) {
               variant="blue"
               className="w-fit gap-2 text-nowrap"
             >
-              <DownloadIcon className="size-3.5 min-w-3.5" />
+              <UploadIcon className="size-3.5 min-w-3.5" />
               Exportar excel
             </Button>
           </div>

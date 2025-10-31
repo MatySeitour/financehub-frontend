@@ -1,26 +1,34 @@
 /* IMPORTS */
 import { Button } from "../../Button";
-import { useDisclosure } from "@heroui/react";
+import { Progress, Tooltip, useDisclosure } from "@heroui/react";
 import { DataPerPage, TableWork } from "../../Table";
 import {
   CalendarOffIcon,
+  CircleCheckIcon,
   LandmarkIcon,
   PaperclipIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
 } from "lucide-react";
-import { getLoans, Loan } from "@renderer/hooks/loans";
+import { getLoans, Loan, paymentFrequencies } from "@renderer/hooks/loans";
 import { useQuery } from "react-query";
 import { MenuOption, ServerError } from "@renderer/utils/types";
-import { cn, strNormalize, withCbk } from "@renderer/utils";
+import {
+  cn,
+  getDaysRemaingStatusSyles,
+  getInstallmentStatusSyles,
+  strNormalize,
+  withCbk,
+} from "@renderer/utils";
 import { useMemo, useRef, useState } from "react";
-import { format, parseISO } from "date-fns";
+import { differenceInDays, format, parseISO } from "date-fns";
 import { getClients } from "@renderer/hooks/clients";
 import { getSellers } from "@renderer/hooks/sellers";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
 import { CreateLoanModal, DeleteLoanModal } from "../../modals/loans";
 import { useNavigate } from "react-router";
+import { ErrorMessage } from "@renderer/components/ErrorMessage";
 
 //Component starts here
 export function LoansSection() {
@@ -107,73 +115,142 @@ export function LoansSection() {
   const COLUMNS = useMemo(() => {
     return [
       {
-        label: "Fecha",
-        key: "date",
-        render: (item: Loan) => format(item.dateGenerated, "dd/MM/yyyy"),
+        label: "Fecha generada",
+        key: "dateGenerated",
+        render: (item: Loan) => format(item.dateGenerated, "dd/MM/yyyy HH:mm"),
+      },
+      {
+        label: "Monto",
+        key: "principal",
+        render: (item: Loan) => (
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium text-slate-500">
+              ${item.principal}
+            </span>
+            <span className="text-[0.7rem] font-medium text-slate-400/70">
+              Ganancia: ${item.expected_profit}
+            </span>
+          </div>
+        ),
       },
       {
         label: "Cliente",
-        key: "clientName",
+        key: "client.name",
         render: (item: Loan) => item.client.name,
       },
       {
-        label: "Divisa",
-        key: "cashboxID",
-        render: (item: Loan) => currency(item.cashboxID),
-      },
-      {
-        label: "Capital",
-        key: "principal",
-        render: (item: Loan) => `$${item.principal.toLocaleString("es-AR")}`,
-      },
-      {
-        label: "Frecuencia de cobro",
-        key: "paymentFrequency",
-        render: (item: Loan) =>
-          item.paymentFrequency == "daily"
-            ? "Diario"
-            : item.paymentFrequency == "weekly"
-              ? "Semanal"
-              : item.paymentFrequency == "biweekly"
-                ? "Quincenal"
-                : item.paymentFrequency == "monthly"
-                  ? "Mensual"
-                  : "",
-      },
-      {
-        label: "Cantidad de cuotas",
-        key: "numberOfInstallments",
-        render: (item: Loan) => item.numberOfInstallments,
+        label: "Valor por cuota",
+        key: "installmentValue",
+        render: (item: Loan) => (
+          <span className="text-primary">${item.installmentValue}</span>
+        ),
       },
       {
         label: "Cuotas",
-        key: "installmentValue",
-        render: (item: Loan) =>
-          `$${item.installmentValue.toLocaleString("es-AR")}`,
+        key: "numberOfInstallments",
+        render: (item: Loan) => {
+          const currentInstallment =
+            Math.floor(item.totalPaid / item.installmentValue) + 1;
+
+          return (
+            <div className="flex flex-col">
+              <div className="w-fit rounded-lg border border-primary/10 bg-primary/5 px-1.5 py-0.5 text-[0.6rem] text-primary">
+                {paymentFrequencies[item.paymentFrequency]}
+              </div>
+              <div className="flex items-center gap-2">
+                <Progress
+                  size="sm"
+                  aria-label="Loading..."
+                  className="max-w-md"
+                  value={currentInstallment}
+                  maxValue={item.numberOfInstallments}
+                />
+                {currentInstallment}/{item.numberOfInstallments}
+              </div>
+            </div>
+          );
+        },
       },
       {
-        label: "Proximo vencimiento",
+        label: "Total pagado",
+        key: "totalPaid",
+        render: (item: Loan) => {
+          const currentInstallment =
+            Math.floor(item.totalPaid / item.installmentValue) + 1;
+
+          const textColorStatus = getInstallmentStatusSyles(
+            currentInstallment,
+            item.numberOfInstallments,
+          );
+
+          if (currentInstallment === item.numberOfInstallments)
+            return (
+              <div className="flex items-center gap-1 text-primary">
+                <CircleCheckIcon className="size-4 min-w-4" />
+                <span>Pagado</span>
+              </div>
+            );
+          return (
+            <>
+              <span className={cn(textColorStatus)}> ${item.totalPaid}</span> de{" "}
+              <span className={cn(textColorStatus)}>
+                {" "}
+                ${item.installmentValue * item.numberOfInstallments}
+              </span>
+            </>
+          );
+        },
+      },
+
+      {
+        label: "Fecha de sig. cuota",
         key: "firstDueDate",
-        render: (item: Loan) => format(item.firstDueDate, "dd/MM/yyyy"),
-      },
-      {
-        label: "Ganancia esperada",
-        key: "expected_profit",
-        render: (item: Loan) =>
-          `$${item.expected_profit.toLocaleString("es-AR")}`,
+        render: (item: Loan) => {
+          const remainingDate = differenceInDays(item.firstDueDate, new Date());
+          const statusStyles = getDaysRemaingStatusSyles(remainingDate);
+
+          return (
+            <div className="flex items-center gap-3 pl-1">
+              <Tooltip
+                closeDelay={0}
+                className={cn(
+                  statusStyles.tooltipClass,
+                  "rounded-md border-slate-400 text-xs font-light",
+                )}
+                content={
+                  remainingDate > 0
+                    ? `Faltan ${Math.abs(remainingDate)} días`
+                    : remainingDate < 0
+                      ? `La fecha de pago se atrasó ${Math.abs(remainingDate)} días`
+                      : "Es hoy"
+                }
+              >
+                <span
+                  className={cn(
+                    statusStyles.circleClass,
+                    "inline-block size-2 rounded-full shadow-[0_0px_6px_1px]",
+                  )}
+                />
+              </Tooltip>
+              {format(item.firstDueDate, "dd/MM/yyyy")}
+            </div>
+          );
+        },
       },
       {
         label: "Vendedor",
-        key: "seller",
+        key: "sellerName",
         render: (item: Loan) => item.seller.name,
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => `$${item.commission.toLocaleString("es-AR")}`,
+        render: (item: Loan) => (
+          <span>${item.commission.toLocaleString("es-AR")}</span>
+        ),
       },
     ];
-  }, [loansQuery.data]);
+  }, []);
 
   const actionOptions: MenuOption<Loan>[] = [
     {
@@ -324,9 +401,11 @@ export function LoansSection() {
 
         {/* TABLE'S CONTAINER */}
 
-        {(from || to) &&
-        filteredLoans.length === 0 &&
-        !loansQuery.isFetching ? (
+        {loansQuery.isError ? (
+          <ErrorMessage error={loansQuery.error} />
+        ) : (from || to) &&
+          filteredLoans.length === 0 &&
+          !loansQuery.isFetching ? (
           <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
             <CalendarOffIcon className="size-16 text-slate-400" />
             <p className="text-slate-400">
