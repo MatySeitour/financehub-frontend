@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { HashRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
 
@@ -6,7 +6,6 @@ import { AuthLayout } from "@components/layouts/AuthLayout";
 import { Home } from "@components/pages/Home";
 import { CashBoxSection } from "./components/pages/cashboxes";
 import { LoansSection } from "./components/pages/loans";
-import { OrganizationOnboarding } from "./components/pages/OrganizationOnboarding";
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";
 import { HistorySection } from "./components/pages/cashboxes/history/details";
 import { HistoryCurrentSection } from "./components/pages/cashboxes/history/current";
@@ -17,6 +16,7 @@ import { SellersSection } from "./components/pages/sellers";
 import { SellerDetailsSection } from "./components/pages/sellers/details";
 import { LoanDetailsSection } from "./components/pages/loans/details";
 import { SettingsLayout } from "./components/layouts/SettingsLayout";
+import { OnboardingPage } from "./components/pages/onboarding";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -24,7 +24,7 @@ const ProtectedLayout = lazy(
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Suspense
         fallback={
           <div className="flex h-full w-full items-center justify-center bg-white">
@@ -39,10 +39,7 @@ function App() {
           {/* Auth */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
-            <Route
-              path="/create-organization"
-              element={<OrganizationOnboarding />}
-            />
+            <Route path="/create-organization" element={<OnboardingPage />} />
           </Route>
 
           {/* ------------ Main routes ------------ */}
@@ -108,7 +105,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

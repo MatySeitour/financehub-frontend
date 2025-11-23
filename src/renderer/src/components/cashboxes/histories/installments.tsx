@@ -16,7 +16,7 @@ import {
 import { TableWork } from "@renderer/components/Table";
 import { differenceInDays, format } from "date-fns";
 import { getCashboxHistoryInstallments } from "@renderer/hooks/cashboxes";
-import { InstallmentHistory, TInstallment } from "@renderer/hooks/installments";
+import { InstallmentHistory } from "@renderer/hooks/installments";
 import { ServerError } from "@renderer/utils/types";
 
 export function InstallmentsHistoryCashbox({

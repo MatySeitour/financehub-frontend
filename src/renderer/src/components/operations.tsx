@@ -2,7 +2,6 @@
 import { ServerError, ServerSucces } from "@renderer/utils/types";
 import {
   CalendarDaysIcon,
-  DownloadIcon,
   FileSpreadsheetIcon,
   ListFilterIcon,
   UploadIcon,

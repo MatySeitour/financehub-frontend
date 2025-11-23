@@ -5,7 +5,7 @@ import { currencySchema } from "./currencies";
 import { operationSchema } from "./operations";
 import { loanSchema } from "./loans";
 import { expenseSchema } from "./expenses";
-import { installmentHistorySchema, installmentSchema } from "./installments";
+import { installmentHistorySchema } from "./installments";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 

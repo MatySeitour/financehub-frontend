@@ -283,15 +283,6 @@ export function LoansSection() {
     });
   }, [loansQuery.data?.loans, search]);
 
-  //
-  function currency(id: number) {
-    const matchedCashbox = cashboxesQuery.data?.find(
-      (cashbox) => id === cashbox.id,
-    );
-
-    return matchedCashbox?.currency.name;
-  }
-
   return (
     <section className="flex h-full w-full flex-col">
       {/* TOP OPTION'S CONTAINER */}

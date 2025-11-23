@@ -1,6 +1,6 @@
 {
   "name": "financehub-frontend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -18,7 +18,52 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "release": "npm run build && electron-builder --publish always"
+  },
+  "build": {
+    "appId": "com.financehub.app",
+    "productName": "FinanceHub",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "out/main/**/*",
+      "out/preload/**/*",
+      "out/renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "out/renderer",
+        "to": "renderer",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "MatySeitour",
+        "repo": "financehub-frontend"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -35,6 +80,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
+    "electron-updater": "^6.6.2",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.532.0",
     "motion": "^12.0.6",

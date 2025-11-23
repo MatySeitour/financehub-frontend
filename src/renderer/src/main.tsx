@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { CookiesProvider } from "react-cookie";
 import { Toaster } from "sonner";
 import { ServerError } from "./utils/types";
+import "./assets/index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

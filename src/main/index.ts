@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
-import { pathToFileURL } from "url";
+import { autoUpdater } from "electron-updater";
 
 app.commandLine.appendSwitch("remote-debugging-port", "9222");
 app.commandLine.appendSwitch("remote-allow-origins", "http://localhost:9222");
@@ -38,20 +38,47 @@ function createWindow(): void {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    const indexPath = join(__dirname, "../renderer/index.html");
-    mainWindow.loadURL(pathToFileURL(indexPath).toString());
+    const filePath = app.isPackaged
+      ? join(process.resourcesPath, "renderer/index.html")
+      : join(__dirname, "../renderer/index.html");
+
+    console.log("=== LOADING ===");
+    console.log("File path:", filePath);
+    console.log("File exists:", require("fs").existsSync(filePath));
+
+    mainWindow
+      .loadFile(filePath)
+      .then(() => {
+        console.log("✅ loadFile completed");
+
+        mainWindow.webContents.openDevTools();
+
+        // Ejecuta código en el renderer para ver si React carga
+        setTimeout(() => {
+          mainWindow.webContents
+            .executeJavaScript(
+              `
+        console.log("Root element:", document.getElementById('root'));
+        console.log("Body children:", document.body.children.length);
+        document.body.innerHTML;
+      `,
+            )
+            .then((html) => {
+              console.log("Body HTML:", html);
+            });
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("❌ loadFile error:", err);
+      });
   }
 
-  mainWindow.webContents.on(
-    "did-fail-load",
-    (_, errorCode, errorDescription) => {
-      console.error("Failed to load:", errorCode, errorDescription);
-    },
-  );
+  mainWindow.webContents.on("did-fail-load", (_, code, desc) => {
+    console.error("LOAD ERROR:", code, desc);
+  });
 }
 
 // This method will be called when Electron has finished
@@ -68,6 +95,16 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+
+  autoUpdater.checkForUpdatesAndNotify();
+
+  autoUpdater.on("update-available", () => {
+    console.log("Update disponible");
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    autoUpdater.quitAndInstall();
+  });
 
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
