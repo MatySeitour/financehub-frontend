@@ -1,6 +1,5 @@
 import { z } from "zod";
 import axios from "./axios";
-import { errorsResponse } from "@renderer/utils";
 
 export type User = z.infer<typeof userSchema>;
 
@@ -86,30 +85,30 @@ export const currentStepSchema = z.object({
   step: z.number(),
   user: z
     .object({
+      id: z.number(),
       name: z.string(),
       email: z.string(),
     })
     .optional(),
+  organization: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
 });
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
 export const getCurrentStep = async () => {
-  try {
-    const { data } = await AxiosFetch("/api/organization-current-step");
-    return currentStepSchema.parse(data?.data);
-  } catch (error) {
-    console.error(error);
-    return errorsResponse(error);
-  }
+  const { data } = await AxiosFetch("/api/organization-current-step");
+  return currentStepSchema.parse(data?.data);
 };
 
 export const getUsersOrganization = async () => {
-  try {
-    const { data } = await AxiosFetch("/api/organization-users");
-    return usersByOrganizationSchema.array().parse(data?.data);
-  } catch (error) {
-    console.error(error);
-    return errorsResponse(error);
-  }
+  const { data } = await AxiosFetch("/api/organization-users");
+  return usersByOrganizationSchema.array().parse(data?.data);
+};
+
+export const whoIAm = async () => {
+  const { data } = await AxiosFetch("/api/user");
+  return sessionSchema.parse(data?.data);
 };
