@@ -9,6 +9,9 @@ import { Navigation } from "../navigation";
 
 export default function ProtectedLayout() {
   const [cookies] = useCookies(["token"]);
+  console.log("llega a home");
+
+  console.log("Cookies", cookies);
   let navigate = useNavigate();
 
   const sessionQuery = useQuery<
@@ -18,6 +21,7 @@ export default function ProtectedLayout() {
     queryKey: ["session"],
     queryFn: () => getSession(cookies?.token),
     onError: (error: any) => {
+      console.log("error: ", error);
       if (errorAuth.includes(error?.message ?? "")) {
         navigate("/create-organization");
       } else if (
@@ -31,6 +35,8 @@ export default function ProtectedLayout() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  console.log("sessionQuery: ", sessionQuery.data);
 
   if (
     sessionQuery?.isLoading ||

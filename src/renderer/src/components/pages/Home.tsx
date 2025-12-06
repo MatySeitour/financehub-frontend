@@ -576,6 +576,8 @@ export function Home() {
     ];
   }, []);
 
+  console.log("API:", import.meta.env.VITE_API_BACKEND_URL);
+
   const COLUMNS_INSTALLMENTS = useMemo(() => {
     return [
       {
