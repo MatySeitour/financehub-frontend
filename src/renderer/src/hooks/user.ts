@@ -90,10 +90,12 @@ export const currentStepSchema = z.object({
       email: z.string(),
     })
     .optional(),
-  organization: z.object({
-    id: z.number(),
-    name: z.string(),
-  }),
+  organization: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+    })
+    .optional(),
 });
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);

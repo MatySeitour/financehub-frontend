@@ -1,11 +1,12 @@
 import { Outlet, useNavigate } from "react-router";
 import { errorAuth, getSession } from "@renderer/utils";
-import { useCookies } from "react-cookie";
 import { useQuery } from "react-query";
 import { ServerError } from "@renderer/utils/types";
+import { useAuthToken } from "@renderer/hooks/useAuth";
 
 export function AuthLayout() {
-  const [cookies] = useCookies(["token"]);
+  const { token, loading } = useAuthToken();
+
   let navigate = useNavigate();
 
   const sessionQuery = useQuery<
@@ -13,7 +14,7 @@ export function AuthLayout() {
     ServerError
   >({
     queryKey: ["session"],
-    queryFn: () => getSession(cookies?.token),
+    queryFn: () => getSession(token),
     onSuccess: () => {
       navigate("/home");
     },
@@ -26,6 +27,7 @@ export function AuthLayout() {
       }
     },
     retry: false,
+    enabled: !loading,
     refetchOnWindowFocus: false,
   });
 

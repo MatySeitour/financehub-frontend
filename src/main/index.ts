@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from "electron";
+import { app, shell, BrowserWindow, session, ipcMain } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
@@ -6,6 +6,145 @@ import { autoUpdater } from "electron-updater";
 
 app.commandLine.appendSwitch("remote-debugging-port", "9222");
 app.commandLine.appendSwitch("remote-allow-origins", "http://localhost:9222");
+
+async function parseCookieAndStore(cookieString: string, url: string) {
+  try {
+    const parts = cookieString.split(";");
+    const [nameValue] = parts[0].split("=");
+    const name = nameValue;
+    const value = parts[0].substring(name.length + 1);
+
+    let domain = new URL(url).hostname;
+    let path = "/";
+    let secure = false;
+    let httpOnly = false;
+    let expirationDate = Date.now() / 1000 + 86400;
+
+    parts.slice(1).forEach((part) => {
+      const trimmed = part.trim().toLowerCase();
+      if (trimmed.startsWith("domain=")) {
+        domain = part.split("=")[1].trim();
+        if (domain.startsWith(".")) domain = domain.substring(1);
+      } else if (trimmed.startsWith("path=")) {
+        path = part.split("=")[1].trim();
+      } else if (trimmed === "secure") {
+        secure = true;
+      } else if (trimmed === "httponly") {
+        httpOnly = true;
+      } else if (trimmed.startsWith("max-age=")) {
+        const maxAge = parseInt(part.split("=")[1]);
+        expirationDate = Date.now() / 1000 + maxAge;
+      }
+    });
+
+    const cookie = {
+      url: `https://${domain}${path}`,
+      name: name,
+      value: value,
+      domain: domain,
+      path: path,
+      secure: secure,
+      httpOnly: httpOnly,
+      expirationDate: expirationDate,
+    };
+
+    await session.defaultSession.cookies.set(cookie);
+  } catch (error) {
+    console.error("❌ Error parseando cookie:", error);
+  }
+}
+
+async function getCookiesForRequest(url: string): Promise<string | null> {
+  try {
+    const urlObj = new URL(url);
+    const cookies = await session.defaultSession.cookies.get({
+      domain: urlObj.hostname,
+    });
+
+    if (cookies.length === 0) return null;
+
+    return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  } catch (error) {
+    console.error("Error obteniendo cookies:", error);
+    return null;
+  }
+}
+
+function setupCookieHandlers() {
+  const ses = session.defaultSession;
+
+  ses.webRequest.onHeadersReceived((details, callback) => {
+    const setCookieHeaders =
+      details.responseHeaders?.["set-cookie"] ||
+      details.responseHeaders?.["Set-Cookie"];
+
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      setCookieHeaders.forEach(async (cookieString) => {
+        await parseCookieAndStore(cookieString, details.url);
+      });
+    }
+
+    callback({ responseHeaders: details.responseHeaders });
+  });
+
+  ses.webRequest.onBeforeSendHeaders((details, callback) => {
+    if (details.url.includes("api.financehub.com.ar")) {
+      getCookiesForRequest(details.url).then((cookieHeader) => {
+        if (cookieHeader) {
+          details.requestHeaders["Cookie"] = cookieHeader;
+          console.log("🍪 Enviando cookies al backend");
+        }
+        callback({ requestHeaders: details.requestHeaders });
+      });
+    } else {
+      callback({ requestHeaders: details.requestHeaders });
+    }
+  });
+
+  console.log("✅ Cookie handlers configurados");
+}
+
+function setupIpcHandlers() {
+  ipcMain.handle("get-cookie", async (_, name: string) => {
+    try {
+      const cookies = await session.defaultSession.cookies.get({ name });
+
+      return cookies.length > 0 ? cookies[0].value : null;
+    } catch (error) {
+      console.error("Error getting cookie:", error);
+      return null;
+    }
+  });
+
+  ipcMain.handle("get-all-cookies", async () => {
+    try {
+      const cookies = await session.defaultSession.cookies.get({});
+      return cookies;
+    } catch (error) {
+      return [];
+    }
+  });
+
+  ipcMain.handle("set-cookie", async (_, cookieData: any) => {
+    try {
+      await session.defaultSession.cookies.set(cookieData);
+      return { success: true };
+    } catch (error) {
+      console.error("Error setting cookie:", error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle("remove-cookie", async (_, url: string, name: string) => {
+    try {
+      await session.defaultSession.cookies.remove(url, name);
+      return { success: true };
+    } catch (error) {
+      console.error("Error removing cookie:", error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -87,6 +226,10 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.electron");
+
+  setupCookieHandlers();
+  setupIpcHandlers();
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -121,6 +264,3 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.

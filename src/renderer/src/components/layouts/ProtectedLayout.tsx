@@ -1,17 +1,14 @@
 import { Outlet, useNavigate } from "react-router";
 import { errorAuth, getSession } from "@renderer/utils";
-import { useCookies } from "react-cookie";
 import { useQuery } from "react-query";
 import { CircleAlertIcon } from "lucide-react";
 import { Button } from "../Button";
 import { ServerError } from "@renderer/utils/types";
 import { Navigation } from "../navigation";
+import { useAuthToken } from "@renderer/hooks/useAuth";
 
 export default function ProtectedLayout() {
-  const [cookies] = useCookies(["token"]);
-  console.log("llega a home");
-
-  console.log("Cookies", cookies);
+  const { token, loading } = useAuthToken();
   let navigate = useNavigate();
 
   const sessionQuery = useQuery<
@@ -19,7 +16,7 @@ export default function ProtectedLayout() {
     ServerError
   >({
     queryKey: ["session"],
-    queryFn: () => getSession(cookies?.token),
+    queryFn: () => getSession(token),
     onError: (error: any) => {
       console.log("error: ", error);
       if (errorAuth.includes(error?.message ?? "")) {
@@ -34,9 +31,8 @@ export default function ProtectedLayout() {
     },
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: !loading,
   });
-
-  console.log("sessionQuery: ", sessionQuery.data);
 
   if (
     sessionQuery?.isLoading ||

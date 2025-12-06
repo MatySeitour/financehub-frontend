@@ -218,7 +218,7 @@ export function OnboardingPage() {
                 <p className="text-4xl font-medium text-slate-600">
                   Bienvenido{" "}
                   <b className="onboarding-text inline-block">
-                    {currentStepQuery.data?.organization.name}
+                    {currentStepQuery.data?.organization?.name}
                   </b>
                 </p>
                 <div className="flex flex-col items-center gap-4">
