@@ -144,7 +144,7 @@ export function StepOne({
             type={sameData ? "button" : "submit"}
             disabled={!watch("name") || mutation.isLoading}
             className="gap-1"
-            variant="success"
+            variant="error"
           >
             Siguiente paso
             <ArrowRightIcon className="size-4 min-w-4" />
@@ -507,7 +507,7 @@ export function StepTwo({
             isLoading={mutation.isLoading}
             type="submit"
             className="gap-1"
-            variant="success"
+            variant="error"
           >
             Siguiente paso
             <ArrowRightIcon className="size-4 min-w-4" />
