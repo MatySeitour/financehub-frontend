@@ -76,7 +76,7 @@ export function StepOne({
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["current-step", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["current-step"] });
       nextStep(2);
     },
   });
@@ -215,7 +215,7 @@ export function StepTwo({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organization"] });
+      queryClient.invalidateQueries({ queryKey: ["current-step"] });
       nextStep(3);
     },
   });
@@ -592,54 +592,65 @@ export function StepThree({
             </Button>
           </div>
           <div className="h-72 w-full overflow-y-auto">
-            <ul className="flex flex-col items-center gap-4">
-              {usersOrganizationQuery.data?.map((user) => {
-                const firstLetter = user.name.split(" ")[0][0];
-                const currentUser = session.id === user.id;
+            {usersOrganizationQuery.isLoading ? (
+              <div className="flex flex-col items-center gap-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-16 w-full animate-pulse rounded-md bg-slate-200"
+                  />
+                ))}
+              </div>
+            ) : (
+              <ul className="flex flex-col items-center gap-4">
+                {usersOrganizationQuery.data?.map((user) => {
+                  const firstLetter = user.name.split(" ")[0][0];
+                  const currentUser = session.id === user.id;
 
-                const secondLetter =
-                  user.name.split(" ")[1] !== undefined
-                    ? user.name.split(" ")[1][0]
-                    : user.name.split(" ")[0][1];
+                  const secondLetter =
+                    user.name.split(" ")[1] !== undefined
+                      ? user.name.split(" ")[1][0]
+                      : user.name.split(" ")[0][1];
 
-                return (
-                  <li
-                    key={user.id}
-                    className="flex w-full items-center justify-between overflow-hidden rounded-md border-slate-300/70 bg-[#FCFCFC] bg-gradient-to-br from-transparent via-transparent to-slate-100 p-3 shadow"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 p-2">
-                        <span className="font-medium uppercase text-primary">
-                          {firstLetter}
-                          {secondLetter}
-                        </span>
+                  return (
+                    <li
+                      key={user.id}
+                      className="flex w-full items-center justify-between overflow-hidden rounded-md border-slate-300/70 bg-[#FCFCFC] bg-gradient-to-br from-transparent via-transparent to-slate-100 p-3 shadow"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 p-2">
+                          <span className="font-medium uppercase text-primary">
+                            {firstLetter}
+                            {secondLetter}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-slate-400">
+                            {user.name} {currentUser && "(Tú)"}
+                          </span>
+                          <span className="text-sm text-slate-300">
+                            {user.email}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-400">
-                          {user.name} {currentUser && "(Tú)"}
-                        </span>
-                        <span className="text-sm text-slate-300">
-                          {user.email}
-                        </span>
-                      </div>
-                    </div>
 
-                    {!currentUser && (
-                      <div className="flex items-center gap-4 text-slate-400/50">
-                        <SquarePenIcon
-                          onClick={() => setMemberToUpdate(user)}
-                          className="size-5 min-w-5 translate-y-px cursor-pointer transition-all hover:text-slate-400"
-                        />
-                        <Trash2Icon
-                          onClick={() => setMemberToDelete(user)}
-                          className="size-5 min-w-5 cursor-pointer transition-all hover:text-danger"
-                        />
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      {!currentUser && (
+                        <div className="flex items-center gap-4 text-slate-400/50">
+                          <SquarePenIcon
+                            onClick={() => setMemberToUpdate(user)}
+                            className="size-5 min-w-5 translate-y-px cursor-pointer transition-all hover:text-slate-400"
+                          />
+                          <Trash2Icon
+                            onClick={() => setMemberToDelete(user)}
+                            className="size-5 min-w-5 cursor-pointer transition-all hover:text-danger"
+                          />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -653,6 +664,10 @@ export function StepThree({
           <Button
             onClick={() => nextStep(2)}
             type="button"
+            disabled={
+              mutationCompleteSteps.isLoading ||
+              usersOrganizationQuery.isLoading
+            }
             className="gap-1"
             variant="outline"
           >
@@ -661,7 +676,10 @@ export function StepThree({
           </Button>
           <Button
             onClick={() => mutationCompleteSteps.mutate()}
-            disabled={mutationCompleteSteps.isLoading}
+            disabled={
+              mutationCompleteSteps.isLoading ||
+              usersOrganizationQuery.isLoading
+            }
             isLoading={mutationCompleteSteps.isLoading}
             type="button"
             className="gap-1"

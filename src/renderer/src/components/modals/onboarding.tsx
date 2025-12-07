@@ -30,12 +30,13 @@ import { z } from "zod";
 import { ErrorForm } from "../ErrorMessage";
 import { UsersByOrganization } from "@renderer/hooks/user";
 
-const userDefaultValue = {
+const userDefaultValue: Input = {
   email: "",
   password: "",
   repeatPassword: "",
   name: "",
   role_id: 2,
+  needsResetPassword: false,
 };
 
 type Input = z.infer<typeof inputSchema>;
@@ -50,7 +51,6 @@ const inputSchema = z
   })
   .superRefine((val, ctx) => {
     if (val.needsResetPassword && val.password !== val.repeatPassword) {
-      console.log(val.needsResetPassword);
       return ctx.addIssue({
         message: "Las contraseñas no coinciden",
         path: ["repeatPassword"],
@@ -413,6 +413,7 @@ export function UpdateUserModal({
       onClose();
     },
   });
+  console.log(errors);
 
   const onSubmit: SubmitHandler<Input> = (data) => mutation.mutate(data);
 

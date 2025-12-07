@@ -101,7 +101,7 @@ export const currentStepSchema = z.object({
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
 export const getCurrentStep = async () => {
-  const { data } = await AxiosFetch("/api/organization-current-step");
+  const { data } = await AxiosFetch("/api/organizatiosn-current-step");
   return currentStepSchema.parse(data?.data);
 };
 

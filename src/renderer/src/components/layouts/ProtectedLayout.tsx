@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router";
-import { errorAuth, getSession } from "@renderer/utils";
+import { errorAuth, getErrorMessage, getSession } from "@renderer/utils";
 import { useQuery } from "react-query";
 import { CircleAlertIcon } from "lucide-react";
 import { Button } from "../Button";
@@ -53,7 +53,7 @@ export default function ProtectedLayout() {
           <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
             <CircleAlertIcon className="size-20 min-w-20 text-red-500" />
             <p className="text-lg font-medium text-red-500">
-              Ha ocurrido un error en el servidor
+              {getErrorMessage(sessionQuery.error)}
             </p>
             <Button onClick={() => navigate("/login")} variant="success">
               Volver al inicio
