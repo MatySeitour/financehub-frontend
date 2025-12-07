@@ -1,6 +1,17 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 
+declare global {
+  interface Window {
+    electronUpdater?: {
+      checkForUpdates: () => Promise<any>;
+      getAppVersion: () => Promise<string>;
+      quitAndInstall: () => Promise<void>;
+      onUpdateStatus: (callback: (status: any) => void) => void;
+      onUpdateNotification: (callback: (info: any) => void) => void;
+    };
+  }
+}
 // Custom APIs for renderer
 const api = {};
 
@@ -13,15 +24,26 @@ const electronCookies = {
     ipcRenderer.invoke("remove-cookie", url, name),
 };
 
+const electronUpdater = {
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
+  quitAndInstall: () => ipcRenderer.invoke("quit-and-install"),
+  onUpdateStatus: (callback: (status: any) => void) => {
+    ipcRenderer.on("update-status", (_, status) => callback(status));
+  },
+  onUpdateNotification: (callback: (info: any) => void) => {
+    ipcRenderer.on("show-update-notification", (_, info) => callback(info));
+  },
+};
+
 // Exponer variables de entorno
 contextBridge.exposeInMainWorld("env", {
   API_URL: process.env.VITE_API_URL,
   SECRET_KEY: process.env.ELECTRON_SECRET_KEY,
 });
 
-// Exponer API de cookies
 contextBridge.exposeInMainWorld("electronCookies", electronCookies);
-
+contextBridge.exposeInMainWorld("electronUpdater", electronUpdater);
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
@@ -36,4 +58,6 @@ if (process.contextIsolated) {
   window.api = api;
   // @ts-ignore (define in dts)
   window.electronCookies = electronCookies;
+
+  window.electronUpdater = electronUpdater;
 }

@@ -3,6 +3,14 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import { autoUpdater } from "electron-updater";
+import log from "electron-log";
+
+log.transports.file.level = "info";
+autoUpdater.logger = log;
+
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.allowDowngrade = false;
 
 app.commandLine.appendSwitch("remote-debugging-port", "9222");
 app.commandLine.appendSwitch("remote-allow-origins", "http://localhost:9222");
@@ -105,6 +113,24 @@ function setupCookieHandlers() {
 }
 
 function setupIpcHandlers() {
+  ipcMain.handle("check-for-updates", async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return result;
+    } catch (error) {
+      log.error("Error checking for updates:", error);
+      return null;
+    }
+  });
+
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+
+  ipcMain.handle("quit-and-install", () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
+
   ipcMain.handle("get-cookie", async (_, name: string) => {
     try {
       const cookies = await session.defaultSession.cookies.get({ name });
@@ -143,6 +169,94 @@ function setupIpcHandlers() {
       console.error("Error removing cookie:", error);
       return { success: false, error: (error as Error).message };
     }
+  });
+}
+
+function setupAutoUpdater(mainWindow: BrowserWindow) {
+  // Solo verificar actualizaciones en producción
+  if (is.dev) {
+    log.info("Modo desarrollo - auto-updater desactivado");
+    return;
+  }
+
+  log.info("Configurando auto-updater...");
+  log.info("Versión actual:", app.getVersion());
+
+  // Verificar actualizaciones al iniciar (después de 3 segundos)
+  setTimeout(() => {
+    log.info("Verificando actualizaciones...");
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 3000);
+
+  // Verificar cada 10 minutos
+  setInterval(
+    () => {
+      log.info("Verificación periódica de actualizaciones...");
+      autoUpdater.checkForUpdatesAndNotify();
+    },
+    10 * 60 * 1000,
+  );
+
+  // Eventos del auto-updater
+  autoUpdater.on("checking-for-update", () => {
+    log.info("🔍 Verificando actualizaciones...");
+    mainWindow.webContents.send("update-status", {
+      status: "checking",
+      message: "Verificando actualizaciones...",
+    });
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    log.info("✅ Actualización disponible:", info.version);
+    mainWindow.webContents.send("update-status", {
+      status: "available",
+      message: `Nueva versión ${info.version} disponible. Descargando...`,
+      version: info.version,
+    });
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("ℹ️ No hay actualizaciones disponibles");
+    log.info("Versión actual:", info.version);
+    mainWindow.webContents.send("update-status", {
+      status: "not-available",
+      message: "La aplicación está actualizada",
+      version: info.version,
+    });
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.error("❌ Error en auto-updater:", err);
+    mainWindow.webContents.send("update-status", {
+      status: "error",
+      message: "Error al verificar actualizaciones: " + err.message,
+    });
+  });
+
+  autoUpdater.on("download-progress", (progressObj) => {
+    const message = `Descargando: ${Math.round(progressObj.percent)}%`;
+    log.info(message);
+    mainWindow.webContents.send("update-status", {
+      status: "downloading",
+      message: message,
+      percent: progressObj.percent,
+      transferred: progressObj.transferred,
+      total: progressObj.total,
+    });
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log.info("✅ Actualización descargada:", info.version);
+    mainWindow.webContents.send("update-status", {
+      status: "downloaded",
+      message: `Actualización ${info.version} lista. Reinicia la aplicación para instalar.`,
+      version: info.version,
+    });
+
+    // Mostrar notificación
+    mainWindow.webContents.send("show-update-notification", {
+      version: info.version,
+    });
   });
 }
 
@@ -218,6 +332,8 @@ function createWindow(): void {
   mainWindow.webContents.on("did-fail-load", (_, code, desc) => {
     console.error("LOAD ERROR:", code, desc);
   });
+
+  setupAutoUpdater(mainWindow);
 }
 
 // This method will be called when Electron has finished
@@ -238,12 +354,6 @@ app.whenReady().then(() => {
   });
 
   createWindow();
-
-  autoUpdater.setFeedURL({
-    provider: "github",
-    owner: "MatySeitour",
-    repo: "financehub-frontend",
-  });
 
   autoUpdater.checkForUpdatesAndNotify();
 
