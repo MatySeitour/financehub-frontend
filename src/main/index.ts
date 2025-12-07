@@ -239,6 +239,12 @@ app.whenReady().then(() => {
 
   createWindow();
 
+  autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "MatySeitour",
+    repo: "financehub-frontend",
+  });
+
   autoUpdater.checkForUpdatesAndNotify();
 
   autoUpdater.on("update-available", () => {

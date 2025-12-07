@@ -1,6 +1,6 @@
 {
   "name": "financehub-frontend",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -46,7 +46,8 @@
       {
         "provider": "github",
         "owner": "MatySeitour",
-        "repo": "financehub-frontend"
+        "repo": "financehub-frontend",
+        "releaseType": "release"
       }
     ],
     "win": {
