@@ -9,8 +9,8 @@ export const cronistaCurrencySchema = z.object({
   id: z.number(),
   name: z.string(),
   update_date: z.string(),
-  sale_value: z.coerce.number(),
-  buy_value: z.coerce.number(),
+  sale_value: z.string(),
+  buys_value: z.string(),
   variation: z.coerce.number(),
 });
 

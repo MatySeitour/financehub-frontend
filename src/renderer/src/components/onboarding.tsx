@@ -144,7 +144,7 @@ export function StepOne({
             type={sameData ? "button" : "submit"}
             disabled={!watch("name") || mutation.isLoading}
             className="gap-1"
-            variant="error"
+            variant="success"
           >
             Siguiente paso
             <ArrowRightIcon className="size-4 min-w-4" />
@@ -166,7 +166,6 @@ const inputSecondSchema = z
   })
   .superRefine((val, ctx) => {
     if (val.needsResetPassword && val.password !== val.repeatPassword) {
-      console.log(val.needsResetPassword);
       return ctx.addIssue({
         message: "Las contraseñas no coinciden",
         path: ["repeatPassword"],
@@ -507,7 +506,7 @@ export function StepTwo({
             isLoading={mutation.isLoading}
             type="submit"
             className="gap-1"
-            variant="error"
+            variant="success"
           >
             Siguiente paso
             <ArrowRightIcon className="size-4 min-w-4" />

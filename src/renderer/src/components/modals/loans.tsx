@@ -818,8 +818,6 @@ export function DeleteLoanModal({
     },
   });
 
-  console.log(loan);
-
   return (
     <Modal
       backdrop="opaque"

@@ -19,7 +19,6 @@ export function AuthLayout() {
       navigate("/home");
     },
     onError: (error: ServerError) => {
-      console.log("Error en sesión:", error);
       if (errorAuth.includes(error?.message ?? "")) {
         navigate("/create-organization");
       } else {

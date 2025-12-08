@@ -38,9 +38,6 @@ const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 export async function getLoans() {
   try {
     const { data } = await AxiosFetch(`/api/v1/loans`);
-
-    console.log("Respuesta sin parsear:", data?.data);
-
     return loanSchema.array().parse(data?.data);
   } catch (error) {
     console.error(error);

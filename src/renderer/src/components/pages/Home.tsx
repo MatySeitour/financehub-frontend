@@ -1,7 +1,8 @@
-import { Progress, Skeleton, Tooltip } from "@heroui/react";
+import { Progress, Tooltip } from "@heroui/react";
 import {
   cn,
   getDaysRemaingStatusSyles,
+  getErrorMessage,
   getInstallmentStatusSyles,
   strNormalize,
   TabMovimentsNames,
@@ -576,8 +577,6 @@ export function Home() {
     ];
   }, []);
 
-  console.log("API:", import.meta.env.VITE_API_BACKEND_URL);
-
   const COLUMNS_INSTALLMENTS = useMemo(() => {
     return [
       {
@@ -786,21 +785,17 @@ export function Home() {
   return (
     <section className="flex h-screen w-full flex-col bg-[#FEFEFE]">
       {/* Slider prices */}
-      <div className="relative h-16 w-full">
+      <div className="relative h-16 w-full bg-[#FAFAFA]">
         <div className="relative z-10 flex h-16 overflow-hidden border-b">
           {/* Loadings */}
           {cronistaCurrenciesQuery?.isLoading ? (
-            <ul className="flex w-full items-center justify-center gap-2 px-4 py-2">
-              {Array.from(
-                [1, 2, 3, 4].map((_, index) => (
-                  <li
-                    className="flex h-full w-64 items-center justify-center gap-2.5"
-                    key={index}
-                  >
-                    <Skeleton className="flex h-8 w-full rounded-md" />
-                  </li>
-                )),
-              )}
+            <ul className="flex w-full items-center justify-between gap-2 px-4 py-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <li
+                  className="flex h-10 w-72 animate-pulse items-center justify-center gap-2.5 rounded-md bg-slate-200"
+                  key={index}
+                />
+              ))}
             </ul>
           ) : !cronistaCurrenciesQuery?.isError ? (
             // Loadings
@@ -816,17 +811,17 @@ export function Home() {
               ].map((currency, index) => (
                 <li
                   key={`${currency?.id}-${index}`}
-                  className="relative flex h-full w-72 items-center justify-center gap-2.5 after:absolute after:left-0 after:h-6 after:w-[0.5px] after:bg-slate-300 2xl:w-96"
+                  className="relative flex h-full w-80 items-center justify-center gap-2.5 after:absolute after:left-0 after:h-6 after:w-[0.5px] after:bg-slate-300 2xl:w-96"
                 >
                   <p className="text-sm font-medium text-slate-500">
                     {currency?.name}
                   </p>
                   <p className="text-sm font-light text-slate-400">
-                    ${currency?.buy_value.toLocaleString("es-AR")}
+                    ${currency?.buys_value}
                   </p>
                   <ChevronUpIcon className="size-3 min-w-3 text-green-500" />
                   <p className="text-sm font-light text-slate-400">
-                    ${currency?.sale_value.toLocaleString("es-AR")}
+                    ${currency?.sale_value}
                   </p>
                   <p
                     className={cn(
@@ -844,11 +839,11 @@ export function Home() {
               ))}
             </ul>
           ) : (
-            <div className="flex h-12 w-full items-center justify-center gap-2 text-red-500">
-              <CircleAlertIcon className="size-4 min-w-4" />
-              <p className="text-sm font-medium">
-                Ha ocurrido un error intentando cargar los datos
-              </p>
+            <div className="flex h-full w-full items-center justify-center gap-2 text-red-500">
+              <CircleAlertIcon className="size-5 min-w-5" />
+              <span className="font-medium">
+                {getErrorMessage(cronistaCurrenciesQuery.error)}
+              </span>
             </div>
           )}
         </div>

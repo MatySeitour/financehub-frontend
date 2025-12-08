@@ -108,11 +108,10 @@ export function CreateOperationModal({
       //return data for the toast
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       //Forces a refetch
       queryClient.invalidateQueries(["operations", "all"]);
 
-      console.log("La operacion se ha creado correctamente", data);
       toast.success("Se ha creado una nueva operación", {
         className: "!border-primary/70",
       });

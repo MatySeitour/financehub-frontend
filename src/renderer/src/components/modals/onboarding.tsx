@@ -413,7 +413,6 @@ export function UpdateUserModal({
       onClose();
     },
   });
-  console.log(errors);
 
   const onSubmit: SubmitHandler<Input> = (data) => mutation.mutate(data);
 

@@ -16,8 +16,10 @@ import { ChevronUpIcon, LogOutIcon, PanelLeftOpenIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./Button";
 import { TSession } from "@renderer/hooks/user";
+import { useAppVersion } from "@renderer/hooks/useVersion";
 
 export function Navigation({ user }: { user: TSession }) {
+  const { appVersion } = useAppVersion();
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
   let navigate = useNavigate();
@@ -74,10 +76,11 @@ export function Navigation({ user }: { user: TSession }) {
               <span className="onboarding-text text-2xl font-extrabold text-slate-200">
                 Finance
               </span>
-              <b className="onboarding-text inline-block text-2xl font-extrabold">
+              <b className="onboarding-text mr-1.5 inline-block text-2xl font-extrabold">
                 {" "}
                 hub
               </b>
+              <span className="text-slate-300">v{appVersion}</span>
             </div>
           </div>
         </div>
@@ -87,27 +90,41 @@ export function Navigation({ user }: { user: TSession }) {
           <ul className="flex flex-col gap-2">
             {navItems.map((navItem) => (
               <li key={navItem.name} className="h-auto w-full">
-                <NavLink
-                  className={({ isActive }) =>
-                    cn(
-                      isActive
-                        ? "relative rounded-md font-medium text-primary after:bg-primary/60"
-                        : "border-transparent text-slate-400 after:bg-transparent hover:text-slate-500/80",
-                      "flex h-full min-h-10 w-full items-center font-medium transition-all after:absolute after:-left-3.5 after:h-5 after:w-1 after:rounded-r-md xl:pl-2 xl:after:left-0 xl:after:top-0 xl:after:h-full xl:after:w-0.5 xl:after:rounded-sm",
-                    )
-                  }
-                  to={navItem.linkTo}
-                >
-                  <navItem.icon className="size-5 min-w-5" />
-                  <p
-                    className={cn(
-                      isAsideOpen ? "opacity-100" : "opacity-0",
-                      "rounded-lg p-2 text-sm transition-all xl:opacity-100",
-                    )}
+                {navItem.disabled ? (
+                  <div className="flex h-full min-h-10 w-full items-center border-transparent font-medium text-slate-400 opacity-60 xl:pl-3">
+                    <navItem.icon className="size-5 min-w-5" />
+                    <p
+                      className={cn(
+                        isAsideOpen ? "opacity-100" : "opacity-0",
+                        "rounded-lg p-2 text-sm transition-all xl:opacity-100",
+                      )}
+                    >
+                      {navItem.name}
+                    </p>
+                  </div>
+                ) : (
+                  <NavLink
+                    className={({ isActive }) =>
+                      cn(
+                        isActive
+                          ? "relative rounded-md font-medium text-primary after:bg-primary/60"
+                          : "border-transparent text-slate-400 after:bg-transparent hover:text-slate-500/80",
+                        "relative flex h-full min-h-10 w-full items-center font-medium transition-all after:absolute after:-left-3.5 after:h-5 after:w-1 after:rounded-r-md xl:pl-3 xl:after:left-0 xl:after:top-1.5 xl:after:h-7 xl:after:w-[0.2rem] xl:after:rounded-sm",
+                      )
+                    }
+                    to={navItem.linkTo}
                   >
-                    {navItem.name}
-                  </p>
-                </NavLink>
+                    <navItem.icon className="size-5 min-w-5" />
+                    <p
+                      className={cn(
+                        isAsideOpen ? "opacity-100" : "opacity-0",
+                        "rounded-lg p-2 text-sm transition-all xl:opacity-100",
+                      )}
+                    >
+                      {navItem.name}
+                    </p>
+                  </NavLink>
+                )}
               </li>
             ))}
           </ul>

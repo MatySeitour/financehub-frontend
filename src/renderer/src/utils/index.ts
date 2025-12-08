@@ -96,7 +96,6 @@ export async function getSession(
     const { data } = await AxiosFetch.get("/api/user");
     return sessionSchema.parse(data.data);
   } catch (e: any) {
-    console.log("entra en el error");
     const errorMessage =
       e?.response?.data?.error ?? e?.response?.data?.message ?? "unknown_error";
     throw { status: e?.response?.status || 500, message: errorMessage };
@@ -211,36 +210,43 @@ export const navItems: NavItem[] = [
     name: "Inicio",
     linkTo: "/home",
     icon: HouseIcon,
+    disabled: false,
   },
   {
     name: "Clientes",
     linkTo: "/clients",
     icon: UsersIcon,
+    disabled: false,
   },
   {
     name: "Vendedores",
     linkTo: "/sellers",
     icon: HandCoinsIcon,
+    disabled: false,
   },
   {
     name: "Operaciones",
     linkTo: "/operations",
     icon: BanknoteArrowUpIcon,
+    disabled: false,
   },
   {
     name: "Cajas",
     linkTo: "/boxes",
     icon: DollarSignIcon,
+    disabled: false,
   },
   {
     name: "Prestamos",
     linkTo: "/loans",
     icon: LandmarkIcon,
+    disabled: false,
   },
   {
     name: "Configuraciones",
     linkTo: "/settings",
     icon: CogIcon,
+    disabled: true,
   },
 ];
 

@@ -62,6 +62,7 @@ export type NavItem = {
   name: string;
   linkTo: string;
   icon: LucideIcon;
+  disabled: boolean;
 };
 
 export type ModalProps = {

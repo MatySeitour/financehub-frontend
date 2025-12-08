@@ -451,17 +451,11 @@ export function UpdateCashboxModal({
 
   const mutation = useMutation<Cashbox, ServerError, Input>({
     mutationFn: async (body) => {
-      try {
-        const { data } = await AxiosFetch.put(
-          `/api/v1/cashboxes/${cashbox.id}`,
-          body,
-        );
-        console.log(body);
-        return data;
-      } catch (error) {
-        console.error(error);
-        errorsResponse(error);
-      }
+      const { data } = await AxiosFetch.put(
+        `/api/v1/cashboxes/${cashbox.id}`,
+        body,
+      );
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cashboxes", "all"] });
@@ -804,7 +798,6 @@ export function CreateCashboxExpenseModal({
 
   const onSubmit: SubmitHandler<InputExpense> = (data) => mutation.mutate(data);
 
-  console.log(errors.date);
   return (
     <Modal
       backdrop="opaque"

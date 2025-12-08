@@ -10,7 +10,6 @@ import { Input } from "@heroui/react";
 import { Tooltip } from "@heroui/react";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "../Button";
-import { useCookies } from "react-cookie";
 
 export function Login() {
   const queryClient = useQueryClient();
@@ -27,11 +26,9 @@ export function Login() {
   });
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [cookies] = useCookies(["token"]);
 
   const login = useMutation<void, any, UserCredentials>({
     mutationFn: async (userCredentials: UserCredentials) => {
-      console.log("AxiosFetch baseURL:", AxiosFetch.defaults.baseURL);
       try {
         const { data } = await AxiosFetch.post(`/api/login`, userCredentials);
         return data;
@@ -41,8 +38,6 @@ export function Login() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      console.log("navegando a home");
-      console.log("Cookies", cookies);
       navigate("/home");
     },
   });

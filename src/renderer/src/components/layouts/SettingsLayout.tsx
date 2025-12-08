@@ -3,7 +3,6 @@ import { useLocation } from "react-router";
 
 export function SettingsLayout() {
   const location = useLocation();
-  console.log(location.pathname);
 
   return (
     <section className="flex h-full w-full flex-col p-4">
