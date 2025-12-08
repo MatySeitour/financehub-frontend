@@ -301,6 +301,31 @@ function createWindow(): void {
     console.log("=== LOADING ===");
     console.log("File path:", filePath);
     console.log("File exists:", require("fs").existsSync(filePath));
+
+    mainWindow
+      .loadFile(filePath)
+      .then(() => {
+        console.log("✅ loadFile completed");
+
+        // mainWindow.webContents.openDevTools();
+
+        setTimeout(() => {
+          mainWindow.webContents
+            .executeJavaScript(
+              `
+        console.log("Root element:", document.getElementById('root'));
+        console.log("Body children:", document.body.children.length);
+        document.body.innerHTML;
+      `,
+            )
+            .then((html) => {
+              console.log("Body HTML:", html);
+            });
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("❌ loadFile error:", err);
+      });
   }
 
   mainWindow.webContents.on("did-fail-load", (_, code, desc) => {
