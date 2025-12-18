@@ -37,11 +37,11 @@ const checkIsCashboxOpenSchema = (isCashboxOpen: boolean) =>
     .object({
       openingValue: z.coerce
         .number()
-        .gt(0, { message: "Debe ser mayor a 0" })
+        .gte(0, { message: "Debe ser mayor a 0" })
         .optional(),
     })
     .superRefine((data, ctx) => {
-      if (!isCashboxOpen && !data.openingValue) {
+      if (!isCashboxOpen && data.openingValue === undefined) {
         ctx.addIssue({
           path: ["openingValue"],
           code: z.ZodIssueCode.custom,
@@ -412,12 +412,12 @@ const inputUpdateSchema = (isCashboxOpen: boolean) =>
     .object({
       openingValue: z.coerce
         .number()
-        .gt(0, { message: "Debe ser mayor a 0" })
+        .gte(0, { message: "Debe ser mayor a 0" })
         .optional(),
     })
     .merge(inputSchema)
     .superRefine((data, ctx) => {
-      if (isCashboxOpen && !data.openingValue) {
+      if (isCashboxOpen && data.openingValue === undefined) {
         ctx.addIssue({
           path: ["openingValue"],
           code: z.ZodIssueCode.custom,
