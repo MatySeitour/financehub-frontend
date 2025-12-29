@@ -188,8 +188,8 @@ export function InstallmentsHistoryCashbox({
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return historyInstallmentsQuery?.data?.filter((expense) => {
-      let searched = `${expense.amount}${expense.value}`;
+    return historyInstallmentsQuery?.data?.filter((installment) => {
+      let searched = `${installment.amount}${installment.value}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

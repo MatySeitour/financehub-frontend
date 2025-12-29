@@ -19,7 +19,7 @@ import {
 } from "@renderer/components/sellers";
 import { Tooltip } from "@heroui/react";
 
-type TabNames = "operations" | "loans" | "installments" | "expenses";
+type TabNames = "operations" | "loans" | "installments" | "moviments";
 
 const tabs: { label: string; icon: LucideIcon; name: TabNames }[] = [
   {

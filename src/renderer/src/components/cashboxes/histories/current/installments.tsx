@@ -185,8 +185,8 @@ export function CurrentInstallmentsHistoryCashbox({
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return historyInstallmentsQuery?.data?.filter((expense) => {
-      let searched = `${expense.amount}${expense.value}`;
+    return historyInstallmentsQuery?.data?.filter((moviment) => {
+      let searched = `${moviment.amount}${moviment.value}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

@@ -298,7 +298,7 @@ export type TabMovimentsNames =
   | "operations"
   | "loans"
   | "installments"
-  | "expenses";
+  | "moviments";
 
 export const tabsMoviments: {
   label: string;
@@ -323,7 +323,7 @@ export const tabsMoviments: {
   {
     label: "Otros",
     icon: HandCoinsIcon,
-    name: "expenses",
+    name: "moviments",
   },
 ] as const;
 

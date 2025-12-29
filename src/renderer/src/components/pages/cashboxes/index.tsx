@@ -16,8 +16,8 @@ import {
 } from "@heroui/react";
 import {
   ChangeStateCashboxModal,
-  CreateCashboxExpenseModal,
   CreateCashboxModal,
+  CreateCashboxMovimentModal,
   DeleteCashboxModal,
   UpdateCashboxModal,
 } from "../../modals/cashboxes";
@@ -82,7 +82,7 @@ export function CashBoxSection() {
   const [cashboxToChangeState, setCashboxToChangeState] = useState<Cashbox>();
   const [cashboxToUpdate, setCashboxToUpdate] = useState<Cashbox>();
   const [cashboxToDelete, setCashboxToDelete] = useState<Cashbox>();
-  const [createCashboxExpenseModal, setCreateCashboxExpenseModal] =
+  const [createCashboxMovimentModal, setCreateCashboxMovimentModal] =
     useState<Cashbox>();
   const [search, setSearch] = useState("");
 
@@ -477,13 +477,13 @@ export function CashBoxSection() {
                                 </p>
                               </DropdownItem>
 
-                              {/* Make expense move */}
+                              {/* Make moviment move */}
                               {cashbox.state === 1 ? (
                                 <DropdownItem
-                                  key="expense-cashbox"
+                                  key="moviment-cashbox"
                                   textValue="Agregar movimiento"
                                   onClick={() =>
-                                    setCreateCashboxExpenseModal(cashbox)
+                                    setCreateCashboxMovimentModal(cashbox)
                                   }
                                   classNames={{
                                     title: "!flex !items-center gap-1",
@@ -724,14 +724,14 @@ export function CashBoxSection() {
         />
       )}
 
-      {/* Create expense cashbox  */}
+      {/* Create moviment cashbox  */}
       {cashboxesQuery.isSuccess &&
-        createCashboxExpenseModal &&
+        createCashboxMovimentModal &&
         currenciesQuery.data && (
-          <CreateCashboxExpenseModal
-            isOpen={!!createCashboxExpenseModal}
-            cashbox={createCashboxExpenseModal}
-            onClose={() => setCreateCashboxExpenseModal(undefined)}
+          <CreateCashboxMovimentModal
+            isOpen={!!createCashboxMovimentModal}
+            cashbox={createCashboxMovimentModal}
+            onClose={() => setCreateCashboxMovimentModal(undefined)}
           />
         )}
 

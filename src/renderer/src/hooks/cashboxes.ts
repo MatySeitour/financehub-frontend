@@ -4,8 +4,8 @@ import { errorsResponse } from "@renderer/utils";
 import { currencySchema } from "./currencies";
 import { operationSchema } from "./operations";
 import { loanSchema } from "./loans";
-import { expenseSchema } from "./expenses";
 import { installmentHistorySchema } from "./installments";
+import { movimentSchema } from "./moviments";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -41,7 +41,7 @@ export const cashboxHistorySchema = z.object({
   openingDateTime: z.string().nullable(),
   closeDateTime: z.string().nullable(),
   profit: z.number(),
-  movementsCount: z.number(),
+  movimentsCount: z.number(),
 });
 
 export type CashboxHistoryList = z.infer<typeof cashboxSchema>;
@@ -87,14 +87,14 @@ export async function getCashboxHistoryLoans(
   }
 }
 
-export async function getCashboxHistoryExpenses(
+export async function getCashboxHistoryMoviments(
   cashboxID: number,
   historyID: number,
 ) {
   const { data } = await AxiosFetch(
-    `/api/v1/cashboxes/${cashboxID}/history/${historyID}/expenses`,
+    `/api/v1/cashboxes/${cashboxID}/history/${historyID}/moviments`,
   );
-  return expenseSchema.array().parse(data.data);
+  return movimentSchema.array().parse(data.data);
 }
 
 export async function getCashboxHistoryInstallments(
@@ -130,11 +130,11 @@ export async function getCashboxCurrentHistoryLoans(cashboxID: number) {
   }
 }
 
-export async function getCashboxCurrentHistoryExpenses(cashboxID: number) {
+export async function getCashboxCurrentHistoryMoviments(cashboxID: number) {
   const { data } = await AxiosFetch(
-    `/api/v1/cashboxes/${cashboxID}/history/current/expenses`,
+    `/api/v1/cashboxes/${cashboxID}/history/current/moviments`,
   );
-  return expenseSchema.array().parse(data.data);
+  return movimentSchema.array().parse(data.data);
 }
 
 export async function getCashboxCurrentHistoryInstallments(cashboxID: number) {

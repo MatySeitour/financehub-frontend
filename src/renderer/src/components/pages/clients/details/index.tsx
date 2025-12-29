@@ -13,7 +13,7 @@ import {
 import { getClient } from "@renderer/hooks/clients";
 import { Tooltip } from "@heroui/react";
 
-type TabNames = "operations" | "loans" | "installments" | "expenses";
+type TabNames = "operations" | "loans" | "installments" | "moviments";
 
 //Component starts here
 export function ClientDetailsSection() {
