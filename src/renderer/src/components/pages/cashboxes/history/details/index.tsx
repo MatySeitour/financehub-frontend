@@ -8,9 +8,9 @@ import { z } from "zod";
 import { getCashbox } from "@renderer/hooks/cashboxes";
 import { OperationsHistoryCashbox } from "@renderer/components/cashboxes/histories/operations";
 import { LoansHistoryCashbox } from "@renderer/components/cashboxes/histories/loans";
-import { ExpensesHistoryCashbox } from "@renderer/components/cashboxes/histories/expenses";
 import { InstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/installments";
 import { cn, TabMovimentsNames, tabsMoviments } from "@renderer/utils";
+import { MovimentsHistoryCashbox } from "@renderer/components/cashboxes/histories/expenses";
 
 export function HistorySection() {
   const params = useParams();
@@ -97,8 +97,8 @@ export function HistorySection() {
             <LoansHistoryCashbox cashboxID={cashboxID} historyID={historyID} />
           )}
 
-          {tabActive === "expenses" && (
-            <ExpensesHistoryCashbox
+          {tabActive === "moviments" && (
+            <MovimentsHistoryCashbox
               cashboxID={cashboxID}
               historyID={historyID}
             />

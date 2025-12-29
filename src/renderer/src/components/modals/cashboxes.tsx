@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Currency } from "@renderer/hooks/currencies";
 import { now } from "@internationalized/date";
 import { I18nProvider } from "@react-aria/i18n";
+import { movimentTypes } from "@renderer/hooks/moviments";
 
 type ChangeStateCashbox = z.infer<ReturnType<typeof checkIsCashboxOpenSchema>>;
 const checkIsCashboxOpenSchema = (isCashboxOpen: boolean) =>
@@ -744,8 +745,8 @@ export function DeleteCashboxModal({
   );
 }
 
-type InputExpense = z.infer<ReturnType<typeof getInputExpenseSchema>>;
-const getInputExpenseSchema = (maxCashboxValue: number) => {
+type InputMoviment = z.infer<ReturnType<typeof getInputMovimentSchema>>;
+const getInputMovimentSchema = (maxCashboxValue: number) => {
   return z.object({
     description: z.string().min(1, { message: "Campo requerido" }),
     amount: z
@@ -756,10 +757,13 @@ const getInputExpenseSchema = (maxCashboxValue: number) => {
       }),
     date: z.date({ message: "Campo requerido" }),
     cashbox_id: z.number(),
+    moviment_type: z.enum(movimentTypes, {
+      message: "Este campo es requerido",
+    }),
   });
 };
 
-export function CreateCashboxExpenseModal({
+export function CreateCashboxMovimentModal({
   isOpen,
   onClose,
   cashbox,
@@ -772,23 +776,19 @@ export function CreateCashboxExpenseModal({
     handleSubmit,
     control,
     register,
-  } = useForm<InputExpense>({
-    resolver: zodResolver(getInputExpenseSchema(cashbox.value)),
+  } = useForm<InputMoviment>({
+    resolver: zodResolver(getInputMovimentSchema(cashbox.value)),
     defaultValues: {
       cashbox_id: cashbox.id,
       date: now("America/Argentina/Buenos_Aires").toDate(),
     },
   });
 
-  const mutation = useMutation<Cashbox, ServerError, InputExpense>({
+  const mutation = useMutation<Cashbox, ServerError, InputMoviment>({
     mutationFn: async (body) => {
-      try {
-        const { data } = await AxiosFetch.post(`/api/v1/expenses`, body);
-        return data;
-      } catch (error) {
-        console.error(error);
-        errorsResponse(error);
-      }
+      console.log(body);
+      const { data } = await AxiosFetch.post(`/api/v1/moviments`, body);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cashboxes", "all"] });
@@ -796,7 +796,8 @@ export function CreateCashboxExpenseModal({
     },
   });
 
-  const onSubmit: SubmitHandler<InputExpense> = (data) => mutation.mutate(data);
+  const onSubmit: SubmitHandler<InputMoviment> = (data) =>
+    mutation.mutate(data);
 
   return (
     <Modal
@@ -829,7 +830,7 @@ export function CreateCashboxExpenseModal({
                     </label>
                     <div
                       className={cn(
-                        "flex h-9 w-full items-center gap-1 rounded-md border border-slate-300/70 p-1 px-3 text-sm outline-none focus-within:border-primary",
+                        "flex h-8 w-full items-center gap-1 rounded-md border border-slate-300/70 p-1 px-3 text-sm outline-none focus-within:border-primary",
                         errors.amount && "border-red-500",
                       )}
                     >
@@ -897,7 +898,7 @@ export function CreateCashboxExpenseModal({
                             classNames={{
                               innerWrapper: "rounded-md",
                               inputWrapper:
-                                "hover:!bg-white hover:!border-primary  bg-white !h-8 min-h-7 ",
+                                "hover:!bg-white hover:!border-primary  bg-white !h-[1.9rem] min-h-7 ",
                               popoverContent:
                                 "rounded-md text-slate-400 font-normal",
                               segment: "rounded-sm focus:bg-slate-300/40",
@@ -909,6 +910,71 @@ export function CreateCashboxExpenseModal({
                     {errors.date && (
                       <p className="text-sm text-red-500">
                         {errors.date.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex h-14 w-full flex-col gap-1">
+                    <label
+                      htmlFor="currency"
+                      className="text-sm text-slate-500"
+                    >
+                      Divisa
+                    </label>
+
+                    <Controller
+                      name="moviment_type"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={
+                            field.value ? new Set([field.value]) : new Set()
+                          }
+                          placeholder="Selecciona una divisa"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md !h-8",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-[1.88rem] min-h-[1.88rem] ",
+                          }}
+                          className={cn(
+                            errors.moviment_type?.message && "!border-red-500",
+
+                            "h-[2rem] min-h-[2rem] rounded-md border border-slate-300/70 outline-none",
+                          )}
+                          onSelectionChange={(key) => {
+                            console.log(key.currentKey);
+                            if (key.currentKey) field.onChange(key.currentKey);
+                          }}
+                        >
+                          <SelectItem
+                            key="income"
+                            textValue="Ingreso"
+                            classNames={{
+                              base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <span className="text-sm">Ingreso</span>{" "}
+                          </SelectItem>
+                          <SelectItem
+                            key="expense"
+                            textValue="Egreso"
+                            classNames={{
+                              base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <span className="text-sm">Egreso</span>{" "}
+                          </SelectItem>
+                        </Select>
+                      )}
+                    />
+                    {errors.moviment_type && (
+                      <p className="text-sm text-red-500">
+                        {errors.moviment_type.message}
                       </p>
                     )}
                   </div>

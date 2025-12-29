@@ -2,14 +2,19 @@ import { cn, strNormalize } from "@renderer/utils";
 import { useQuery } from "react-query";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CircleAlertIcon, SearchIcon } from "lucide-react";
-import { getCashboxHistoryExpenses } from "@renderer/hooks/cashboxes";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CircleAlertIcon,
+  SearchIcon,
+} from "lucide-react";
 import { TableWork } from "@renderer/components/Table";
 import { format } from "date-fns";
-import { Expense } from "@renderer/hooks/expenses";
 import { ServerError } from "@renderer/utils/types";
+import { getCashboxHistoryMoviments } from "@renderer/hooks/cashboxes";
+import { Moviment } from "@renderer/hooks/moviments";
 
-export function ExpensesHistoryCashbox({
+export function MovimentsHistoryCashbox({
   cashboxID,
   historyID,
 }: {
@@ -20,12 +25,12 @@ export function ExpensesHistoryCashbox({
 
   const [search, setSearch] = useState("");
 
-  const historyExpensesQuery = useQuery<
-    Awaited<ReturnType<typeof getCashboxHistoryExpenses>>,
+  const historyMovimentsQuery = useQuery<
+    Awaited<ReturnType<typeof getCashboxHistoryMoviments>>,
     ServerError
   >({
-    queryKey: ["history-expenses", historyID],
-    queryFn: () => getCashboxHistoryExpenses(cashboxID ?? -1, historyID ?? -1),
+    queryKey: ["history-moviments", historyID],
+    queryFn: () => getCashboxHistoryMoviments(cashboxID ?? -1, historyID ?? -1),
     retry: false,
     enabled: !!cashboxID && !!historyID,
   });
@@ -35,21 +40,38 @@ export function ExpensesHistoryCashbox({
       {
         label: "Fecha generado",
         key: "date",
-        render: (item: Expense) => format(item.date, "dd/MM/yyyy HH:mm"),
+        render: (item: Moviment) => format(item.date, "dd/MM/yyyy HH:mm"),
+      },
+      {
+        label: "Fecha generado",
+        key: "date",
+        render: (item: Moviment) =>
+          item.moviment_type === "income" ? (
+            <div className="flex items-center gap-1.5 text-success">
+              <ArrowUpIcon className="size-3.5 min-w-3.5" />
+              Ingreso
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-danger">
+              <ArrowDownIcon className="size-3.5 min-w-3.5" />
+              Egreso
+            </div>
+          ),
       },
       {
         label: "Monto",
         key: "amount",
-        render: (item: Expense) => (
-          <span className="font-medium text-danger">
-            -${item.amount.toLocaleString("es-AR")}
-          </span>
-        ),
+        render: (item: Moviment) =>
+          item.moviment_type === "income" ? (
+            <span className="font-medium text-success">${item.amount}</span>
+          ) : (
+            <span className="font-medium text-danger">$ -{item.amount}</span>
+          ),
       },
       {
         label: "Descripción",
         key: "description",
-        render: (item: Expense) => item.description,
+        render: (item: Moviment) => item.description,
       },
     ];
   }, []);
@@ -67,24 +89,24 @@ export function ExpensesHistoryCashbox({
     return () => window.removeEventListener("keydown", handleFocusSearch);
   }, []);
 
-  const filteredExpenses = useMemo(() => {
-    if (!historyExpensesQuery?.data) return [];
+  const filteredMoviments = useMemo(() => {
+    if (!historyMovimentsQuery?.data) return [];
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return historyExpensesQuery?.data?.filter((expense) => {
-      let searched = `${expense.amount}${expense.description}`;
+    return historyMovimentsQuery?.data?.filter((moviment) => {
+      let searched = `${moviment.amount}${moviment.description}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
-  }, [historyExpensesQuery.data, search]);
+  }, [historyMovimentsQuery.data, search]);
 
   return (
     <>
       {/* Search */}
       <div
         className={cn(
-          historyExpensesQuery.isFetching && "opacity-60",
+          historyMovimentsQuery.isFetching && "opacity-60",
           "flex h-9 min-h-8 w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary",
         )}
       >
@@ -93,7 +115,7 @@ export function ExpensesHistoryCashbox({
         <input
           ref={searchRef}
           disabled={
-            historyExpensesQuery.isFetching || !historyExpensesQuery.data
+            historyMovimentsQuery.isFetching || !historyMovimentsQuery.data
           }
           onChange={(e) => setSearch(e.target.value)}
           className="h-full w-full text-sm text-slate-500 outline-none"
@@ -113,7 +135,7 @@ export function ExpensesHistoryCashbox({
       </div>
 
       {/* Body */}
-      {historyExpensesQuery.data?.length === 0 ? (
+      {historyMovimentsQuery.data?.length === 0 ? (
         <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
           <CircleAlertIcon className="size-16 text-slate-400" />
           <p className="text-slate-400">No hay gastos en este historial</p>
@@ -122,10 +144,10 @@ export function ExpensesHistoryCashbox({
         <TableWork
           withButtonCreate={false}
           columns={COLUMNS}
-          error={historyExpensesQuery.error}
-          loading={historyExpensesQuery.isFetching}
+          error={historyMovimentsQuery.error}
+          loading={historyMovimentsQuery.isFetching}
           searchInput={search}
-          data={filteredExpenses}
+          data={filteredMoviments}
           openModal={() => console.log()}
         />
       )}

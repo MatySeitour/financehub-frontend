@@ -8,9 +8,9 @@ import { z } from "zod";
 import { getCashbox } from "@renderer/hooks/cashboxes";
 import { CurrentOperationsHistoryCashbox } from "@renderer/components/cashboxes/histories/current/operations";
 import { CurrentLoansHistoryCashbox } from "@renderer/components/cashboxes/histories/current/loans";
-import { CurrentExpensesHistoryCashbox } from "@renderer/components/cashboxes/histories/current/expenses";
 import { CurrentInstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/current/installments";
 import { cn, TabMovimentsNames, tabsMoviments } from "@renderer/utils";
+import { CurrentMovimentsHistoryCashbox } from "@renderer/components/cashboxes/histories/current/expenses";
 
 export function HistoryCurrentSection() {
   const params = useParams();
@@ -59,7 +59,7 @@ export function HistoryCurrentSection() {
         </div>
       </div>
 
-      <article className="flex h-auto w-full flex-col gap-4 overflow-hidden p-4">
+      <article className="flex h-auto w-full flex-col gap-4 overflow-hidden py-4">
         <ul className="flex items-center gap-2 border-b pl-4">
           {tabsMoviments.map((tab) => (
             <li
@@ -91,8 +91,8 @@ export function HistoryCurrentSection() {
             <CurrentLoansHistoryCashbox cashboxID={cashboxID} />
           )}
 
-          {tabActive === "expenses" && (
-            <CurrentExpensesHistoryCashbox cashboxID={cashboxID} />
+          {tabActive === "moviments" && (
+            <CurrentMovimentsHistoryCashbox cashboxID={cashboxID} />
           )}
 
           {tabActive === "installments" && (

@@ -317,7 +317,7 @@ export function CashBoxHistorySection() {
 
                       <div className="flex w-full items-center justify-between">
                         <p className="text-xl font-medium text-slate-500">
-                          {cashboxHistoryQuery.data?.current.movementsCount}
+                          {cashboxHistoryQuery.data?.current.movimentsCount}
                         </p>
                         <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -460,7 +460,7 @@ export function CashBoxHistorySection() {
 
                       <div className="flex w-full items-center justify-between">
                         <p className="text-xl font-medium text-slate-500">
-                          {history.movementsCount}
+                          {history.movimentsCount}
                         </p>
                         <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>

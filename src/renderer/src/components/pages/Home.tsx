@@ -64,10 +64,10 @@ import {
 } from "@renderer/hooks/operations";
 import { es } from "date-fns/locale";
 import { TableWork } from "../Table";
-import { Expense, getExpenses } from "@renderer/hooks/expenses";
 import { getLoans, Loan, paymentFrequencies } from "@renderer/hooks/loans";
 import { getInstallments, TInstallment } from "@renderer/hooks/installments";
 import { getCashboxesActive } from "@renderer/hooks/cashboxes";
+import { getMoviments, Moviment } from "@renderer/hooks/moviments";
 
 type DataPoint = {
   count: number;
@@ -217,14 +217,14 @@ export function Home() {
     enabled: tabActive === "operations",
   });
 
-  const expensesQuery = useQuery<
-    Awaited<ReturnType<typeof getExpenses>>,
+  const movimentsQuery = useQuery<
+    Awaited<ReturnType<typeof getMoviments>>,
     ServerError
   >({
-    queryFn: () => getExpenses(now, tomorrow),
-    // queryFn: () => getExpenses(new Date("2025-08-06"), tomorrow),
-    queryKey: ["expenses", "all"],
-    enabled: tabActive === "expenses",
+    queryFn: () => getMoviments(now, tomorrow),
+    // queryFn: () => getMoviments(new Date("2025-08-06"), tomorrow),
+    queryKey: ["moviments", "all"],
+    enabled: tabActive === "moviments",
   });
 
   const loansQuery = useQuery<
@@ -555,24 +555,43 @@ export function Home() {
     ];
   }, []);
 
-  const COLUMNS_EXPENSES = useMemo(() => {
+  const COLUMNS_MOVIMENTS = useMemo(() => {
     return [
       {
         label: "Fecha generado",
         key: "date",
-        render: (item: Expense) => format(item.date, "dd/MM/yyyy HH:mm"),
+        render: (item: Moviment) => format(item.date, "dd/MM/yyyy HH:mm"),
+      },
+      {
+        label: "Fecha generado",
+        key: "date",
+        render: (item: Moviment) =>
+          item.moviment_type === "income" ? (
+            <div className="flex items-center gap-1.5 text-success">
+              <ArrowUpIcon className="size-3.5 min-w-3.5" />
+              Ingreso
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-danger">
+              <ArrowDownIcon className="size-3.5 min-w-3.5" />
+              Egreso
+            </div>
+          ),
       },
       {
         label: "Monto",
         key: "amount",
-        render: (item: Expense) => (
-          <span className="font-medium text-danger">-${item.amount}</span>
-        ),
+        render: (item: Moviment) =>
+          item.moviment_type === "income" ? (
+            <span className="font-medium text-success">${item.amount}</span>
+          ) : (
+            <span className="font-medium text-danger">$ -{item.amount}</span>
+          ),
       },
       {
         label: "Descripción",
         key: "description",
-        render: (item: Expense) => item.description,
+        render: (item: Moviment) => item.description,
       },
     ];
   }, []);
@@ -725,17 +744,17 @@ export function Home() {
     });
   }, [loansQuery.data, search]);
 
-  const filteredExpenses = useMemo(() => {
-    if (!expensesQuery?.data) return [];
+  const filteredMoviments = useMemo(() => {
+    if (!movimentsQuery?.data) return [];
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return expensesQuery?.data?.filter((expense) => {
-      let searched = `${expense.amount}${expense.description}`;
+    return movimentsQuery?.data?.filter((moviment) => {
+      let searched = `${moviment.amount}${moviment.description}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
-  }, [expensesQuery.data, search]);
+  }, [movimentsQuery.data, search]);
 
   const filteredInstallments = useMemo(() => {
     if (!installmentsQuery?.data) return [];
@@ -780,7 +799,7 @@ export function Home() {
     operationsQuery.isFetching ||
     loansQuery.isFetching ||
     installmentsQuery.isFetching ||
-    expensesQuery.isFetching;
+    movimentsQuery.isFetching;
 
   return (
     <section className="flex h-screen w-full flex-col bg-[#FEFEFE]">
@@ -1191,14 +1210,14 @@ export function Home() {
               data={filteredOperations}
               openModal={() => console.log()}
             />
-          ) : tabActive === "expenses" ? (
+          ) : tabActive === "moviments" ? (
             <TableWork
               withButtonCreate={false}
-              columns={COLUMNS_EXPENSES}
-              error={expensesQuery.error}
-              loading={expensesQuery.isFetching}
+              columns={COLUMNS_MOVIMENTS}
+              error={movimentsQuery.error}
+              loading={movimentsQuery.isFetching}
               searchInput={search}
-              data={filteredExpenses}
+              data={filteredMoviments}
               openModal={() => console.log()}
             />
           ) : tabActive === "loans" ? (
