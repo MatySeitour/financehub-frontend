@@ -16,10 +16,8 @@ import { ChevronUpIcon, LogOutIcon, PanelLeftOpenIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./Button";
 import { TSession } from "@renderer/hooks/user";
-import { useAppVersion } from "@renderer/hooks/useVersion";
 
 export function Navigation({ user }: { user: TSession }) {
-  const { appVersion } = useAppVersion();
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
   let navigate = useNavigate();
@@ -80,7 +78,6 @@ export function Navigation({ user }: { user: TSession }) {
                 {" "}
                 hub
               </b>
-              <span className="text-slate-300">v{appVersion}</span>
             </div>
           </div>
         </div>

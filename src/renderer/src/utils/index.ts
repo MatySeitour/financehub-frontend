@@ -11,6 +11,7 @@ import {
   Building2Icon,
   CircleUserRoundIcon,
   CogIcon,
+  CoinsIcon,
   DollarSignIcon,
   HandCoinsIcon,
   HouseIcon,
@@ -240,6 +241,12 @@ export const navItems: NavItem[] = [
     name: "Prestamos",
     linkTo: "/loans",
     icon: LandmarkIcon,
+    disabled: false,
+  },
+  {
+    name: "Comisiones",
+    linkTo: "/commissions",
+    icon: CoinsIcon,
     disabled: false,
   },
   {
