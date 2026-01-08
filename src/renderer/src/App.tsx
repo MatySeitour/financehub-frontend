@@ -17,6 +17,7 @@ import { SellerDetailsSection } from "./components/pages/sellers/details";
 import { LoanDetailsSection } from "./components/pages/loans/details";
 import { SettingsLayout } from "./components/layouts/SettingsLayout";
 import { OnboardingPage } from "./components/pages/onboarding";
+import { CommissionsSection } from "./components/pages/Commissions";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -97,6 +98,9 @@ function App() {
 
             {/* Operations */}
             <Route path="/operations" element={<OperationsSection />} />
+
+            {/* Commissions */}
+            <Route path="/commissions" element={<CommissionsSection />} />
 
             {/* Settings */}
             <Route element={<SettingsLayout />}>
