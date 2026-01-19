@@ -7,6 +7,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CircleAlert,
+  CircleOffIcon,
   SearchIcon,
   TrendingDownIcon,
   TrendingUpIcon,
@@ -157,14 +158,20 @@ export function OperationsHistoryCashbox({
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Operation) => item.sellerName,
+        render: (item: Operation) => item.sellerName ?? "-",
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Operation) => (
-          <span className="">${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Operation) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);

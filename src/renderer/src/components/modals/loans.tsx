@@ -14,10 +14,12 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Tooltip,
 } from "@heroui/react";
 import {
   AlertCircleIcon,
   BanknoteArrowUpIcon,
+  InfoIcon,
   PiggyBankIcon,
   TriangleAlertIcon,
 } from "lucide-react";
@@ -71,11 +73,12 @@ export function loanFormSchema(clients: Client[], sellers: Seller[]) {
     seller_id: z
       .string()
       .transform((val) => {
+        if (val === "") return val;
         const matchedSeller = sellers.find((s) => s.name === val);
-
-        return matchedSeller?.id;
+        return matchedSeller?.id ? matchedSeller?.id : false;
       })
-      .refine((val) => val, {
+      .optional()
+      .refine((val) => val === "" || val !== false, {
         message: "El Vendedor no existe.",
       }),
     principal: z
@@ -158,6 +161,7 @@ export function CreateLoanModal({
       //send new client to backend
       const { data } = await AxiosFetch.post(`/api/v1/loans`, {
         ...body,
+        seller_id: body.seller_id ? body.seller_id : undefined,
         first_due_date: format(body.first_due_date, "yyyy-MM-dd"),
       });
       //return data for the toast
@@ -180,6 +184,7 @@ export function CreateLoanModal({
     register,
     setValue,
     control,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<LoanForm>({
@@ -242,9 +247,7 @@ export function CreateLoanModal({
                     </label>
                     {/* seller name */}
                     <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Vendedor <Mandatory />
-                      </div>
+                      <div className="flex items-center gap-0.5">Vendedor</div>
                       <input
                         {...register("seller_id")}
                         className={cn(
@@ -402,55 +405,99 @@ export function CreateLoanModal({
                       )}
                       control={control}
                     />
-                    {/*  */}
+
+                    {/* Commission */}
                     <Controller
                       defaultValue={0}
                       name="commission"
                       render={({ field }) => (
                         <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                          <div className="flex items-center gap-0.5">
-                            Comisión <Mandatory />
-                          </div>
-                          <div
-                            className={cn(
-                              errors.commission
-                                ? "border-danger"
-                                : "border-slate-300",
-                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
-                            )}
-                          >
-                            $
-                            <input
-                              onChange={(e) => {
-                                const input = e.target.value;
+                          {!watch("seller_id") ? (
+                            <>
+                              <Tooltip
+                                offset={2}
+                                color="success"
+                                className="text-xs text-white"
+                                closeDelay={0}
+                                content="Selecciona un vendedor para ingresar la comisión"
+                              >
+                                <div className="flex w-fit items-center gap-1.5">
+                                  Comisión{" "}
+                                  <InfoIcon className="size-4 min-w-4 text-slate-400/70 transition-all hover:text-slate-400" />
+                                </div>
+                              </Tooltip>
+                              <div
+                                className={cn(
+                                  errors.commission
+                                    ? "border-danger"
+                                    : "border-slate-300",
+                                  "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm opacity-60 outline-none focus-within:border-primary",
+                                )}
+                              >
+                                <input
+                                  disabled
+                                  className="w-full"
+                                  placeholder="Sin comisión"
+                                  value={undefined}
+                                  type="text"
+                                />
+                              </div>
+                              {errors.commission && (
+                                <span className="text-xs text-danger">
+                                  {errors.commission?.message}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-0.5">
+                                Comisión <Mandatory />
+                              </div>
+                              <div
+                                className={cn(
+                                  errors.commission
+                                    ? "border-danger"
+                                    : "border-slate-300",
+                                  "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                                )}
+                              >
+                                $
+                                <input
+                                  onChange={(e) => {
+                                    const input = e.target.value;
 
-                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
-                                if (!isValid) return;
+                                    const isValid = /^[0-9]*\.?[0-9]*$/.test(
+                                      input,
+                                    );
+                                    if (!isValid) return;
 
-                                if (
-                                  `${field.value}` === "0" &&
-                                  input.length === 2 &&
-                                  !input.includes(".")
-                                ) {
-                                  // if the field number is 0 and the input has 2 values, remove the 0
-                                  field.onChange(+input[1]);
-                                } else {
-                                  ////////////////////////////// if input has no values, set default 0
-                                  field.onChange(
-                                    input[input.length - 1] === "."
-                                      ? input
-                                      : +input,
-                                  );
-                                }
-                              }}
-                              value={field.value}
-                              type="text"
-                            />
-                          </div>
-                          {errors.commission && (
-                            <span className="text-xs text-danger">
-                              {errors.commission?.message}
-                            </span>
+                                    if (
+                                      `${field.value}` === "0" &&
+                                      input.length === 2 &&
+                                      !input.includes(".")
+                                    ) {
+                                      // if the field number is 0 and the input has 2 values, remove the 0
+                                      field.onChange(+input[1]);
+                                    } else {
+                                      ////////////////////////////// if input has no values, set default 0
+                                      field.onChange(
+                                        input[input.length - 1] === "."
+                                          ? input
+                                          : +input,
+                                      );
+                                    }
+                                  }}
+                                  className="w-full"
+                                  value={field.value}
+                                  type="text"
+                                />
+                              </div>
+                              {errors.commission && (
+                                <span className="text-xs text-danger">
+                                  {errors.commission?.message}
+                                </span>
+                              )}
+                            </>
                           )}
                         </label>
                       )}

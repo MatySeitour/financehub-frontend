@@ -33,7 +33,7 @@ export const operationSchema = z.object({
   marketPrice: z.coerce.number(),
   commission: z.coerce.number(),
   clientName: z.string(),
-  sellerName: z.string(),
+  sellerName: z.string().optional(),
   profit: z.coerce.number(),
   type: z.enum(operationType),
 });

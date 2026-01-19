@@ -4,6 +4,7 @@ import { MenuOption, ServerError } from "@renderer/utils/types";
 import {
   BanknoteArrowUpIcon,
   CalendarOffIcon,
+  CircleOffIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
@@ -153,10 +154,9 @@ export function OperationsSection() {
             <div className="flex items-center gap-2 font-medium">
               ${item.profit}
               <div className="flex min-w-10 items-center justify-center gap-1 rounded-lg bg-success/10 px-1.5 py-0.5 text-xs text-success">
-                {(
-                  (item.profit / (item.amount * item.price)) *
-                  100
-                ).toLocaleString("es-AR")}
+                {((item.profit / (item.amount * item.price)) * 100)
+                  .toFixed(1)
+                  .toLocaleString()}
                 %
                 <TrendingUpIcon className="size-3 min-w-3" />
               </div>
@@ -178,14 +178,20 @@ export function OperationsSection() {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Operation) => item.sellerName,
+        render: (item: Operation) => item.sellerName ?? "-",
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Operation) => (
-          <span className="">${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Operation) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, [operationsQuery.data]);
