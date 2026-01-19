@@ -43,11 +43,12 @@ export function operationFormSchema(clients: Client[], sellers: Seller[]) {
       seller_id: z
         .string()
         .transform((val) => {
+          if (val === "") return val;
           const matchedSeller = sellers.find((s) => s.name === val);
-
-          return matchedSeller?.id;
+          return matchedSeller?.id ? matchedSeller?.id : false;
         })
-        .refine((val) => val, {
+        .optional()
+        .refine((val) => val === "" || val !== false, {
           message: "El Vendedor no existe.",
         }),
       client_id: z
@@ -104,7 +105,10 @@ export function CreateOperationModal({
   const mutation = useMutation<OperationForm, ServerError, OperationForm>({
     mutationFn: async (body) => {
       //send new client to backend
-      const { data } = await AxiosFetch.post(`/api/v1/operations`, body);
+      const { data } = await AxiosFetch.post(`/api/v1/operations`, {
+        ...body,
+        seller_id: body.seller_id ? body.seller_id : undefined,
+      });
       //return data for the toast
       return data;
     },
@@ -131,7 +135,9 @@ export function CreateOperationModal({
     formState: { errors },
   } = useForm<OperationForm>({
     resolver: zodResolver(operationFormSchema(clients, sellers)),
-    defaultValues: {},
+    defaultValues: {
+      seller_id: undefined,
+    },
   });
 
   /* EVENT HANDLERS */
@@ -189,9 +195,7 @@ export function CreateOperationModal({
                     </label>
                     {/* seller name */}
                     <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Vendedor <Mandatory />
-                      </div>
+                      <div className="flex items-center gap-0.5">Vendedor</div>
                       <input
                         {...register("seller_id")}
                         className={cn(

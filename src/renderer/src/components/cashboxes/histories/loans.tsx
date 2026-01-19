@@ -4,7 +4,12 @@ import { ServerError } from "@renderer/utils/types";
 import { Progress, Tooltip } from "@heroui/react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CircleAlertIcon, CircleCheckIcon, SearchIcon } from "lucide-react";
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  CircleOffIcon,
+  SearchIcon,
+} from "lucide-react";
 import { getCashboxHistoryLoans } from "@renderer/hooks/cashboxes";
 import { TableWork } from "@renderer/components/Table";
 import { differenceInDays, format } from "date-fns";
@@ -194,14 +199,20 @@ export function LoansHistoryCashbox({
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Loan) => item.seller.name,
+        render: (item: Loan) => (item.seller ? item.seller.name : "-"),
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => (
-          <span>${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Loan) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);
@@ -225,7 +236,7 @@ export function LoansHistoryCashbox({
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return historyLoansQuery?.data?.filter((loan) => {
-      let searched = `${loan.client.name}${loan.seller.name}${loan.principal}`;
+      let searched = `${loan.client.name}${loan.seller?.name}${loan.principal}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

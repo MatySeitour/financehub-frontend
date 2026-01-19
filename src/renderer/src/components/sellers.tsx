@@ -495,7 +495,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Loan) => item.seller.name,
+        render: (item: Loan) => item.seller?.name,
       },
       {
         label: "Comisión",
@@ -511,7 +511,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return loansSellerQuery?.data?.filter((loan) => {
-      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller.name}${loan.commission}`;
+      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller?.name}${loan.commission}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

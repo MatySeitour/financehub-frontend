@@ -31,6 +31,7 @@ import {
   CircleCheckBigIcon,
   CircleCheckIcon,
   CircleDotIcon,
+  CircleOffIcon,
   ClipboardListIcon,
   ClockIcon,
   DollarSignIcon,
@@ -396,14 +397,20 @@ export function Home() {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Operation) => item.sellerName,
+        render: (item: Operation) => item.sellerName ?? "-",
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Operation) => (
-          <span>${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Operation) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);
@@ -543,14 +550,20 @@ export function Home() {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Loan) => item.seller.name,
+        render: (item: Loan) => (item.seller ? item.seller.name : "-"),
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => (
-          <span>${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Loan) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);
@@ -738,7 +751,7 @@ export function Home() {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return loansQuery?.data?.loans?.filter((loan) => {
-      let searched = `${loan.client.name}${loan.principal}${loan.retainedEarnings}${loan.seller.name}`;
+      let searched = `${loan.client.name}${loan.principal}${loan.retainedEarnings}${loan.seller?.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

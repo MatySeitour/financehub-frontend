@@ -33,10 +33,12 @@ export const loanSchema = z.object({
   commission: z.coerce.number(),
   expected_profit: z.coerce.number(),
   retainedEarnings: z.coerce.number().nullable(),
-  seller: z.object({
-    id: z.number(),
-    name: z.string(),
-  }),
+  seller: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+    })
+    .optional(),
   client: z.object({
     id: z.number(),
     name: z.string(),

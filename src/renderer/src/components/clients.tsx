@@ -7,6 +7,7 @@ import {
   BanknoteIcon,
   CalendarOffIcon,
   CircleCheckIcon,
+  CircleOffIcon,
   SearchIcon,
   TrendingDownIcon,
   TrendingUpIcon,
@@ -472,12 +473,20 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Loan) => item.seller.name,
+        render: (item: Loan) => (item.seller ? item.seller.name : "-"),
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => <span>${item.commission.toFixed(2)}</span>,
+        render: (item: Loan) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);
@@ -488,7 +497,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return loansClientQuery?.data?.filter((loan) => {
-      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller.name}`;
+      let searched = `${loan.principal}${loan.retainedEarnings}${loan.seller?.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });

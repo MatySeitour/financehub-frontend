@@ -5,6 +5,7 @@ import { DataPerPage, TableWork } from "../../Table";
 import {
   CalendarOffIcon,
   CircleCheckIcon,
+  CircleOffIcon,
   LandmarkIcon,
   PaperclipIcon,
   PlusIcon,
@@ -240,14 +241,20 @@ export function LoansSection() {
       {
         label: "Vendedor",
         key: "sellerName",
-        render: (item: Loan) => item.seller.name,
+        render: (item: Loan) => (item.seller ? item.seller.name : "-"),
       },
       {
         label: "Comisión",
         key: "commission",
-        render: (item: Loan) => (
-          <span>${item.commission.toLocaleString("es-AR")}</span>
-        ),
+        render: (item: Loan) =>
+          item.commission === 0 ? (
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CircleOffIcon className="size-4 min-w-4" />
+              Sin comisión
+            </div>
+          ) : (
+            <span className="">${item.commission.toLocaleString("es-AR")}</span>
+          ),
       },
     ];
   }, []);
@@ -277,7 +284,7 @@ export function LoansSection() {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return loansQuery?.data?.loans?.filter((loan) => {
-      let searched = `${loan.client.name}${loan.seller.name}${loan.cashboxID}`;
+      let searched = `${loan.client.name}${loan.seller?.name}${loan.cashboxID}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
