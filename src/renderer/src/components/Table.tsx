@@ -546,36 +546,42 @@ function ContextMenu<T>({
         )}
       >
         <ul className="flex h-full w-full flex-col gap-0.5 p-1 text-slate-400">
-          {options.map((option: MenuOption<T>) => (
-            <li
-              onClick={() => {
-                handleMenuClick(option);
-              }}
-              className={cn(
-                "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs transition-all hover:bg-slate-200/40",
-                option.name.toLowerCase() === "eliminar" &&
-                  "hover:bg-danger/10",
-              )}
-              key={option.name}
-            >
-              {option.icon && (
-                <option.icon
+          {options.map((option: MenuOption<T>) => {
+            if (!option.isDisabled || option.isDisabled(selectedItem))
+              return (
+                <li
+                  onClick={() => {
+                    handleMenuClick(option);
+                  }}
                   className={cn(
-                    "size-4 min-w-4 text-slate-400",
-                    option.name.toLowerCase() === "eliminar" && "text-danger",
+                    "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs transition-all",
+                    option.name.toLowerCase() === "eliminar" &&
+                      "hover:bg-danger/10",
                   )}
-                />
-              )}
-              <p
-                className={cn(
-                  "tracking-wide",
-                  option.name.toLowerCase() === "eliminar" && "text-danger",
-                )}
-              >
-                {option.name}
-              </p>
-            </li>
-          ))}
+                  key={option.name}
+                >
+                  {option.icon && (
+                    <option.icon
+                      className={cn(
+                        "size-4 min-w-4 text-slate-400",
+                        option.name.toLowerCase() === "eliminar" &&
+                          "text-danger",
+                      )}
+                    />
+                  )}
+                  <p
+                    className={cn(
+                      "tracking-wide",
+                      option.name.toLowerCase() === "eliminar" && "text-danger",
+                    )}
+                  >
+                    {option.name}
+                  </p>
+                </li>
+              );
+
+            return;
+          })}
         </ul>
       </div>
     </>
