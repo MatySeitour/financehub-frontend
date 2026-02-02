@@ -48,6 +48,7 @@ export type MenuOption<T> = {
   name: string;
   icon: LucideIcon;
   onAction: (e?: T) => void;
+  isDisabled?: (e?: T) => boolean;
 };
 
 export type ModalState =

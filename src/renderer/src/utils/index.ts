@@ -15,6 +15,7 @@ import {
   DollarSignIcon,
   HandCoinsIcon,
   HouseIcon,
+  IdCardIcon,
   KeyRoundIcon,
   LandmarkIcon,
   LucideIcon,
@@ -241,6 +242,12 @@ export const navItems: NavItem[] = [
     name: "Prestamos",
     linkTo: "/loans",
     icon: LandmarkIcon,
+    disabled: false,
+  },
+  {
+    name: "Cuentas corrientes",
+    linkTo: "/checking-accounts",
+    icon: IdCardIcon,
     disabled: false,
   },
   {
