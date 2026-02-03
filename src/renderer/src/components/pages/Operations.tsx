@@ -118,6 +118,15 @@ export function OperationsSection() {
           ),
       },
       {
+        label: "Total",
+        key: "price",
+        render: (item: Operation) => (
+          <span className="font-semibold text-slate-500">
+            ${(item.amount * item.price).toLocaleString("es-AR")}
+          </span>
+        ),
+      },
+      {
         label: "Cantidad",
         key: "amount",
         render: (item: Operation) => (
@@ -134,7 +143,7 @@ export function OperationsSection() {
         label: "Precio",
         key: "price",
         render: (item: Operation) => (
-          <span className="font-medium text-slate-500">
+          <span className="font-medium text-slate-400">
             ${item.price.toLocaleString("es-AR")}
           </span>
         ),
