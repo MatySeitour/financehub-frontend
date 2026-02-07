@@ -26,6 +26,7 @@ import { Mandatory } from "../Mandatory";
 import { ErrorForm } from "../ErrorMessage";
 import { toast } from "sonner";
 import { Operation } from "@renderer/hooks/operations";
+import { Currency } from "@renderer/hooks/currencies";
 
 /* DATA TYPES */
 //create operation structure
@@ -73,6 +74,9 @@ export function operationFormSchema(clients: Client[], sellers: Seller[]) {
       type: z.enum(["buys", "sale"]),
       increase_cashbox_id: z.number({ message: "Este campo es requerido." }),
       decrease_cashbox_id: z.number({ message: "Este campo es requerido." }),
+      currency: z
+        .string({ message: "Este campo es requerido" })
+        .min(1, { message: "Este campo es requerido" }),
     })
     .refine((val) => val.decrease_cashbox_id !== val.increase_cashbox_id, {
       message:
@@ -89,10 +93,12 @@ export function CreateOperationModal({
   clients,
   sellers,
   cashboxes,
+  currencies,
 }: ModalProps & {
   clients: Client[];
   sellers: Seller[];
   cashboxes: Cashbox[];
+  currencies: Currency[];
 }) {
   /* STATES */
 
@@ -131,12 +137,14 @@ export function CreateOperationModal({
     register,
     setValue,
     control,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<OperationForm>({
     resolver: zodResolver(operationFormSchema(clients, sellers)),
     defaultValues: {
       seller_id: undefined,
+      currency: undefined,
     },
   });
 
@@ -145,6 +153,25 @@ export function CreateOperationModal({
 
   const onSubmit: SubmitHandler<OperationForm> = (data) =>
     mutation.mutate(data);
+
+  const increaseCashboxFiltered =
+    watch("currency") !== undefined
+      ? watch("type") === "buys"
+        ? cashboxes.filter(
+            (cashbox) => cashbox.currency.name === watch("currency"),
+          )
+        : cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
+      : undefined;
+
+  const decreaseCashboxFiltered =
+    watch("currency") !== undefined
+      ? watch("type") === "buys"
+        ? cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
+        : cashboxes.filter(
+            (cashbox) => cashbox.currency.name === watch("currency"),
+          )
+      : undefined;
+
   return (
     <>
       <Modal
@@ -169,6 +196,136 @@ export function CreateOperationModal({
               >
                 <ModalBody className="py-0">
                   {/* Client & seller */}
+                  <div className="flex w-full items-start gap-4">
+                    {/* type of operation */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Tipo de operación <Mandatory />
+                      </div>
+                      <select
+                        {...register("type")}
+                        className={cn(
+                          "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        <option value="buys">Compra</option>
+                        <option value="sale">Venta</option>
+                      </select>
+                    </label>
+
+                    {/* Currency */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Divisa <Mandatory />
+                      </div>
+                      <select
+                        {...register("currency")}
+                        className={cn(
+                          errors.increase_cashbox_id
+                            ? "border-danger"
+                            : "border-slate-300",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        <option value={undefined}>Selecciona una divisa</option>
+
+                        {currencies.map((currency) => (
+                          <option value={currency.name}>
+                            {currency.name} ({currency.nomenclature})
+                          </option>
+                        ))}
+                      </select>
+                      {errors.currency && (
+                        <span className="text-xs text-danger">
+                          {errors.currency?.message}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                  {/* Increase & decrease cashbox*/}
+                  <div className="flex w-full items-start gap-4">
+                    {/* increase cashbox */}
+                    <label
+                      className={cn(
+                        "flex w-full flex-col gap-0.5 text-sm text-slate-500",
+                      )}
+                    >
+                      <div className="flex items-center gap-0.5">
+                        Caja que incrementa <Mandatory />
+                      </div>
+                      <select
+                        onChange={(v) =>
+                          setValue("increase_cashbox_id", +v.target.value)
+                        }
+                        disabled={watch("currency") === "Selecciona una divisa"}
+                        className={cn(
+                          errors.increase_cashbox_id
+                            ? "border-danger"
+                            : "border-slate-300",
+                          (watch("currency") === "Selecciona una divisa" ||
+                            increaseCashboxFiltered?.length === 0) &&
+                            "pointer-events-none opacity-60",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        <option value={undefined}>Selecciona una caja</option>
+                        {increaseCashboxFiltered?.map((cashbox) => (
+                          <option
+                            key={`${cashbox.id}-incoming`}
+                            value={cashbox.id}
+                          >
+                            {cashbox.currency.name} - {cashbox.name}
+                          </option>
+                        ))}
+                      </select>
+                      {increaseCashboxFiltered &&
+                        increaseCashboxFiltered?.length === 0 && (
+                          <span className="text-xs text-danger">
+                            No hay cajas para esta divisa
+                          </span>
+                        )}
+                    </label>
+
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Caja que disminuye <Mandatory />
+                      </div>
+                      <select
+                        onChange={(v) =>
+                          setValue("decrease_cashbox_id", +v.target.value)
+                        }
+                        disabled={watch("currency") === "Selecciona una divisa"}
+                        className={cn(
+                          errors.decrease_cashbox_id
+                            ? "border-danger"
+                            : "border-slate-300",
+                          (watch("currency") === "Selecciona una divisa" ||
+                            decreaseCashboxFiltered?.length === 0) &&
+                            "pointer-events-none opacity-60",
+                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                        )}
+                      >
+                        <option value={undefined}>Selecciona una caja</option>
+                        {decreaseCashboxFiltered?.map((cashbox) => (
+                          <option key={cashbox.id} value={cashbox.id}>
+                            {cashbox.currency.name} - {cashbox.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.decrease_cashbox_id && (
+                        <span className="text-xs text-danger">
+                          {errors.decrease_cashbox_id?.message}
+                        </span>
+                      )}
+                      {decreaseCashboxFiltered &&
+                        decreaseCashboxFiltered?.length === 0 && (
+                          <span className="text-xs text-danger">
+                            No hay cajas para esta divisa
+                          </span>
+                        )}
+                    </label>
+                  </div>
+                  {/* Amount & type */}
                   <div className="flex w-full items-start gap-4">
                     {/* client name */}
                     <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
@@ -214,69 +371,9 @@ export function CreateOperationModal({
                       )}
                     </label>
                   </div>
-                  {/* Increase & decrease cashbox*/}
+                  {/* Price & market price */}
                   <div className="flex w-full items-start gap-4">
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Divisa <Mandatory />
-                      </div>
-                      <select
-                        onChange={(v) =>
-                          setValue("decrease_cashbox_id", +v.target.value)
-                        }
-                        className={cn(
-                          errors.decrease_cashbox_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value={undefined}>Selecciona una divisa</option>
-                        {cashboxes?.map((cashbox) => (
-                          <option key={cashbox.id} value={cashbox.id}>
-                            {cashbox.currency.name} - {cashbox.name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.decrease_cashbox_id && (
-                        <span className="text-xs text-danger">
-                          {errors.decrease_cashbox_id?.message}
-                        </span>
-                      )}
-                    </label>
-                    {/* increase cashbox */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Caja de entrada <Mandatory />
-                      </div>
-                      <select
-                        onChange={(v) =>
-                          setValue("increase_cashbox_id", +v.target.value)
-                        }
-                        className={cn(
-                          errors.increase_cashbox_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value={undefined}>
-                          Selecciona una divisa a cobrar
-                        </option>
-                        {cashboxes?.map((cashbox) => (
-                          <option
-                            key={`${cashbox.id}-incoming`}
-                            value={cashbox.id}
-                          >
-                            {cashbox.currency.name} - {cashbox.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  {/* Amount & type */}
-                  <div className="flex w-full items-start gap-4">
-                    {/* decrease cashbox */}
+                    {/* amount */}
                     <Controller
                       name="amount"
                       render={({ field }) => (
@@ -330,24 +427,6 @@ export function CreateOperationModal({
                       control={control}
                     />
 
-                    {/* type of operation */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Tipo de operación <Mandatory />
-                      </div>
-                      <select
-                        {...register("type")}
-                        className={cn(
-                          "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value="buys">Compra</option>
-                        <option value="sale">Venta</option>
-                      </select>
-                    </label>
-                  </div>
-                  {/* Price & market price */}
-                  <div className="flex w-full items-start gap-4">
                     <Controller
                       name="price"
                       render={({ field }) => (

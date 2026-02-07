@@ -26,6 +26,7 @@ import { getClients } from "@renderer/hooks/clients";
 import { getSellers } from "@renderer/hooks/sellers";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
 import { ExportExcelOperations } from "../operations";
+import { getCurrencies } from "@renderer/hooks/currencies";
 
 //Component starts here
 export function OperationsSection() {
@@ -79,6 +80,14 @@ export function OperationsSection() {
     queryFn: getCashboxes,
   });
 
+  const currenciesQuery = useQuery<
+    Awaited<ReturnType<typeof getCurrencies>>,
+    ServerError
+  >({
+    queryKey: ["currencies", "all"],
+    queryFn: getCurrencies,
+  });
+
   /* UTILS */
   //Operations table's columns
   const COLUMNS = useMemo(() => {
@@ -119,7 +128,7 @@ export function OperationsSection() {
       },
       {
         label: "Total",
-        key: "price",
+        key: "",
         render: (item: Operation) => (
           <span className="font-semibold text-slate-500">
             ${(item.amount * item.price).toLocaleString("es-AR")}
@@ -392,13 +401,15 @@ export function OperationsSection() {
         operationsQuery.data &&
         clientsQuery.data &&
         sellersQuery.data &&
-        cashboxesQuery.data && (
+        cashboxesQuery.data &&
+        currenciesQuery.data && (
           <CreateOperationModal
             isOpen={isCreateOperationOpenModal}
             onClose={onOpenCreateOperationModal}
             clients={clientsQuery.data}
             sellers={sellersQuery.data}
             cashboxes={cashboxesQuery.data}
+            currencies={currenciesQuery.data}
           />
         )}
       {operationToDelete && operationsQuery.data && (
