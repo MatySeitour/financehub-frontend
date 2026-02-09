@@ -17,6 +17,10 @@ export const installmentSchema = z.object({
   number_of_installments: z.number(),
   clientName: z.string(),
   sellerName: z.string(),
+  cashbox: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
 });
 
 export async function getInstallments(from?: Date, to?: Date) {

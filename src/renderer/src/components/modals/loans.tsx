@@ -2,7 +2,7 @@
 
 import axios from "@renderer/hooks/axios";
 import { ModalProps, ServerError } from "@renderer/utils/types";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import z from "zod";
 import { cn } from "@renderer/utils";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
@@ -14,6 +14,8 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem,
   Tooltip,
 } from "@heroui/react";
 import {
@@ -25,13 +27,14 @@ import {
 } from "lucide-react";
 import { Client } from "@renderer/hooks/clients";
 import { Seller } from "@renderer/hooks/sellers";
-import { Cashbox } from "@renderer/hooks/cashboxes";
+import { Cashbox, getCashboxes } from "@renderer/hooks/cashboxes";
 import { Mandatory } from "../Mandatory";
 import { Loan, PaymentFrequency } from "@renderer/hooks/loans";
 import { toast } from "sonner";
 import { ErrorForm } from "../ErrorMessage";
 import { format, parseISO } from "date-fns";
 import { TInstallment } from "@renderer/hooks/installments";
+import { getCurrencies } from "@renderer/hooks/currencies";
 
 /* ENUMS */
 const paymentFrequency = ["daily", "weekly", "biweekly", "monthly"] as const;
@@ -108,10 +111,10 @@ export function addPayInstallmentSchema(
       payment_amount: z
         .number({ message: "Este campo  es requerido." })
         .gt(0, { message: "El monto debe ser mayor a 0" }),
-      payment_date: z
-        .date({ message: "Debe ser una fecha valida" })
-        .nullable()
-        .optional(),
+      payment_date: z.date({ message: "Debe ser una fecha valida" }),
+
+      currency_id: z.number({ message: "Selecciona una divisa" }),
+      cashbox_id: z.number({ message: "Este campo es requerido" }),
     })
     .refine(
       (val) => {
@@ -664,6 +667,22 @@ export function AddPayModal({
   //
   const queryClient = useQueryClient();
 
+  const cashboxesQuery = useQuery<
+    Awaited<ReturnType<typeof getCashboxes>>,
+    ServerError
+  >({
+    queryKey: ["cashboxes", "all"],
+    queryFn: getCashboxes,
+  });
+
+  const currenciesQuery = useQuery<
+    Awaited<ReturnType<typeof getCurrencies>>,
+    ServerError
+  >({
+    queryKey: ["currencies", "all"],
+    queryFn: getCurrencies,
+  });
+
   /* MUTATIONS */
   //mutation to create operations
   const mutation = useMutation<
@@ -696,17 +715,28 @@ export function AddPayModal({
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<addPayInstallment>({
     resolver: zodResolver(
       addPayInstallmentSchema(installmentValue, lastInstallmentPaid),
     ),
+    defaultValues: {
+      payment_date: new Date(),
+    },
   });
 
   /* EVENT HANDLERS */
   const onSubmit: SubmitHandler<addPayInstallment> = (data) => {
     mutation.mutate(data);
   };
+
+  const cashboxFiltered =
+    watch("currency_id") !== undefined && cashboxesQuery.data
+      ? cashboxesQuery.data?.filter(
+          (cashbox) => cashbox.currency.id === watch("currency_id"),
+        )
+      : [];
 
   return (
     <Modal
@@ -806,6 +836,9 @@ export function AddPayModal({
                             "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
                           )}
                           type="date"
+                          value={
+                            field.value ? format(field.value, "yyyy-MM-dd") : ""
+                          }
                         />
                       )}
                     />
@@ -816,6 +849,135 @@ export function AddPayModal({
                       </span>
                     )}
                   </label>
+                </div>
+
+                <div className="flex w-full items-start gap-4">
+                  {/* currency */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label
+                      htmlFor="currency"
+                      className="text-sm text-slate-500"
+                    >
+                      Divisa
+                    </label>
+
+                    <Controller
+                      name="currency_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={field.value ? `${field.value}` : ""}
+                          placeholder="Selecciona una divisa"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                          }}
+                          className={cn(
+                            errors.currency_id?.message && "!border-red-500",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none",
+                          )}
+                          //  selectedKeys={new Set([selected.name])}
+                          onSelectionChange={(key) => {
+                            if (key.currentKey) field.onChange(+key.currentKey);
+                          }}
+                        >
+                          {(currenciesQuery.data ?? []).map((filter) => (
+                            <SelectItem
+                              textValue={`${filter.name} (${filter.nomenclature})`}
+                              classNames={{
+                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                              }}
+                              className="flex items-center gap-1"
+                              key={filter.id}
+                            >
+                              <span className="text-sm">{filter.name}</span>{" "}
+                              <span className="text-xs text-slate-400">
+                                ({filter.nomenclature})
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.currency_id && (
+                      <p className="text-xs font-medium text-red-500">
+                        {errors.currency_id.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* cashbox */}
+                  <div className="flex w-full flex-col gap-1">
+                    <label
+                      htmlFor="currency"
+                      className="text-sm text-slate-500"
+                    >
+                      Caja
+                    </label>
+
+                    <Controller
+                      name="cashbox_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          disabled={!watch("currency_id")}
+                          selectedKeys={field.value ? `${field.value}` : ""}
+                          placeholder="Selecciona una caja"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                          }}
+                          className={cn(
+                            errors.cashbox_id?.message && "!border-red-500",
+                            !watch("currency_id") && "opacity-60",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none",
+                          )}
+                          //  selectedKeys={new Set([selected.name])}
+                          onSelectionChange={(key) => {
+                            if (key.currentKey) field.onChange(+key.currentKey);
+                          }}
+                        >
+                          {cashboxFiltered?.map((filter) => (
+                            <SelectItem
+                              textValue={`${filter.name}`}
+                              classNames={{
+                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                              }}
+                              className="flex items-center gap-1"
+                              key={filter.id}
+                            >
+                              <span className="text-sm">{filter.name}</span>
+                              {"  "}
+                              {filter.state === 0 ? (
+                                <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[0.63rem] text-danger">
+                                  Cerrada
+                                </span>
+                              ) : (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.63rem] text-primary">
+                                  Abierta
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.cashbox_id && (
+                      <p className="text-xs font-medium text-red-500">
+                        {errors.cashbox_id.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {mutation.isError && (
                   <ErrorForm errorMessage={mutation.error} />
