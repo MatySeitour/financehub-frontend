@@ -6,6 +6,7 @@ import { operationSchema } from "./operations";
 import { loanSchema } from "./loans";
 import { installmentHistorySchema } from "./installments";
 import { movimentSchema } from "./moviments";
+import { commissionHistorySchema } from "./commissions";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -106,6 +107,16 @@ export async function getCashboxHistoryInstallments(
   );
   return installmentHistorySchema.array().parse(data.data);
 }
+
+export async function getCashboxHistoryCommissions(
+  cashboxID: number,
+  historyID: number,
+) {
+  const { data } = await AxiosFetch(
+    `/api/v1/cashboxes/${cashboxID}/history/${historyID}/commissions`,
+  );
+  return commissionHistorySchema.array().parse(data.data);
+}
 ////////////////////////////////////////////////////////////
 ////////////// Cashbox current history //////////////
 export async function getCashboxCurrentHistoryOperations(cashboxID: number) {
@@ -148,4 +159,11 @@ export async function getCashboxCurrentHistoryInstallments(cashboxID: number) {
 export async function getCashboxesActive() {
   const { data } = await AxiosFetch("/api/v1/cashboxes/active");
   return cashboxSchema.array().parse(data.data);
+}
+
+export async function getCashboxCurentHistoryCommissions(cashboxID: number) {
+  const { data } = await AxiosFetch(
+    `/api/v1/cashboxes/${cashboxID}/history/current/commissions`,
+  );
+  return commissionHistorySchema.array().parse(data.data);
 }

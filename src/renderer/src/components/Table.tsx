@@ -271,7 +271,13 @@ function TableWork<T extends TableNode>({
                         if (enableMenu || !hasEnableMenu) {
                           selectRowID && selectRowID(Number(item.id));
                           setSelectedItem(item);
-                          openContextMenuHandler(e, setContextMenu);
+                          if (
+                            optionsMenu?.length !== 1 ||
+                            (optionsMenu[0].isDisabled &&
+                              optionsMenu[0].isDisabled(item))
+                          ) {
+                            openContextMenuHandler(e, setContextMenu);
+                          }
                         }
                       }}
                       key={item.id}

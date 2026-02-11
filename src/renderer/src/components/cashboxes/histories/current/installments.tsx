@@ -64,6 +64,11 @@ export function CurrentInstallmentsHistoryCashbox({
         ),
       },
       {
+        label: "Caja abonada",
+        key: "cashbox.name",
+        render: (item: InstallmentHistory) => item.cashbox.name,
+      },
+      {
         label: "Número de cuota",
         key: "number_of_installments",
         wrapContent: true,

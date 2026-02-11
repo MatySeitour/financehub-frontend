@@ -94,6 +94,15 @@ export function CurrentOperationsHistoryCashbox({
           ),
       },
       {
+        label: "Total",
+        key: "price",
+        render: (item: Operation) => (
+          <span className="font-semibold text-slate-500">
+            ${(item.amount * item.price).toLocaleString("es-AR")}
+          </span>
+        ),
+      },
+      {
         label: "Cantidad",
         key: "amount",
         render: (item: Operation) => (
@@ -111,7 +120,7 @@ export function CurrentOperationsHistoryCashbox({
         label: "Precio",
         key: "price",
         render: (item: Operation) => (
-          <span className="font-mono font-medium text-slate-500">
+          <span className="font-mono font-medium text-slate-400">
             ${item.price.toFixed(2)}
           </span>
         ),

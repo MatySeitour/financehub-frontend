@@ -59,6 +59,11 @@ export function LoanDetailsSection() {
           `$${item.value.toLocaleString("es-AR")}`,
       },
       {
+        label: "Caja abonada",
+        key: "cashbox.name",
+        render: (item: TInstallment) => item.cashbox.name,
+      },
+      {
         label: "Vencimiento",
         key: "dueDate",
         render: (item: TInstallment) => format(item.dueDate, "dd/MM/yyyy"),
@@ -66,8 +71,11 @@ export function LoanDetailsSection() {
       {
         label: "Pago",
         key: "paymentAmount",
-        render: (item: TInstallment) =>
-          `$${item.paymentAmount.toLocaleString("es-AR")}`,
+        render: (item: TInstallment) => (
+          <span className="font-medium text-slate-500">
+            ${item.paymentAmount.toLocaleString("es-AR")}
+          </span>
+        ),
       },
       {
         label: "Fecha de cobro",
@@ -153,7 +161,9 @@ export function LoanDetailsSection() {
                 <br />${loanQuery.data?.commission.toLocaleString("es-AR")}
               </p>
               <p className="basis-1/5 border-l-3 border-green-500 pl-2">
-                <span className="text-xs text-slate-400">Divisa:</span>
+                <span className="text-xs text-slate-400">
+                  Divisa del préstamo:
+                </span>
                 <br />
                 {loanQuery.data?.cashboxID
                   ? currency(loanQuery.data.cashboxID)

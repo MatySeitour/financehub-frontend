@@ -11,6 +11,7 @@ import { LoansHistoryCashbox } from "@renderer/components/cashboxes/histories/lo
 import { InstallmentsHistoryCashbox } from "@renderer/components/cashboxes/histories/installments";
 import { cn, TabMovimentsNames, tabsMoviments } from "@renderer/utils";
 import { MovimentsHistoryCashbox } from "@renderer/components/cashboxes/histories/expenses";
+import { CommissionsHistoryCashbox } from "@renderer/components/cashboxes/histories/commissions";
 
 export function HistorySection() {
   const params = useParams();
@@ -106,6 +107,13 @@ export function HistorySection() {
 
           {tabActive === "installments" && (
             <InstallmentsHistoryCashbox
+              cashboxID={cashboxID}
+              historyID={historyID}
+            />
+          )}
+
+          {tabActive === "commissions" && (
+            <CommissionsHistoryCashbox
               cashboxID={cashboxID}
               historyID={historyID}
             />

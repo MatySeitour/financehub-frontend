@@ -17,6 +17,10 @@ export const installmentSchema = z.object({
   number_of_installments: z.number(),
   clientName: z.string(),
   sellerName: z.string(),
+  cashbox: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
 });
 
 export async function getInstallments(from?: Date, to?: Date) {
@@ -35,7 +39,6 @@ export const installmentHistorySchema = installmentSchema
   .omit({ currency: true })
   .extend({
     installment_id: z.number(),
-    cashbox_id: z.number(),
     movimentDateTime: z.string(),
     loan_id: z.number(),
   });

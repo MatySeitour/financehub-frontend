@@ -824,7 +824,7 @@ export function CreateCashboxMovimentModal({
               <ModalBody className="py-0">
                 <div className="flex w-full items-start gap-4">
                   {/* currency */}
-                  <div className="flex w-full flex-col gap-1">
+                  <div className="flex w-full max-w-44 flex-col gap-1">
                     <label htmlFor="amount" className="text-sm text-slate-500">
                       Cantidad
                     </label>
@@ -876,7 +876,7 @@ export function CreateCashboxMovimentModal({
                   </div>
 
                   {/* Moviment date */}
-                  <div className="flex w-full flex-col gap-1">
+                  <div className="flex w-full max-w-44 flex-col gap-1">
                     <label htmlFor="amount" className="text-sm text-slate-500">
                       Fecha
                     </label>
@@ -919,7 +919,7 @@ export function CreateCashboxMovimentModal({
                       htmlFor="currency"
                       className="text-sm text-slate-500"
                     >
-                      Divisa
+                      Tipo de movimiento
                     </label>
 
                     <Controller
@@ -930,7 +930,7 @@ export function CreateCashboxMovimentModal({
                           selectedKeys={
                             field.value ? new Set([field.value]) : new Set()
                           }
-                          placeholder="Selecciona una divisa"
+                          placeholder="Selecciona un tipo de movimiento"
                           aria-label="filters"
                           classNames={{
                             innerWrapper: "rounded-md",

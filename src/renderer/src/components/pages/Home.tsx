@@ -18,6 +18,7 @@ import {
   ArrowDownRightIcon,
   ArrowUpIcon,
   ArrowUpRightIcon,
+  BanknoteArrowUpIcon,
   BanknoteIcon,
   CalendarCheck2Icon,
   CalendarClockIcon,
@@ -37,6 +38,7 @@ import {
   DollarSignIcon,
   HandCoinsIcon,
   InfoIcon,
+  LandmarkIcon,
   PackageIcon,
   SearchIcon,
   SquareArrowOutUpRight,
@@ -69,6 +71,7 @@ import { getLoans, Loan, paymentFrequencies } from "@renderer/hooks/loans";
 import { getInstallments, TInstallment } from "@renderer/hooks/installments";
 import { getCashboxesActive } from "@renderer/hooks/cashboxes";
 import { getMoviments, Moviment } from "@renderer/hooks/moviments";
+import { Commission, getCommissions } from "@renderer/hooks/commissions";
 
 type DataPoint = {
   count: number;
@@ -242,10 +245,19 @@ export function Home() {
     Awaited<ReturnType<typeof getInstallments>>,
     ServerError
   >({
-    // queryFn: () => getInstallments(now, tomorrow),
-    queryFn: () => getInstallments(new Date("2025-05-06"), tomorrow),
+    queryFn: () => getInstallments(now, tomorrow),
+    // queryFn: () => getInstallments(new Date("2025-05-06"), tomorrow),
     queryKey: ["installments", "all"],
     enabled: tabActive === "installments",
+  });
+
+  const commissionsQuery = useQuery<
+    Awaited<ReturnType<typeof getCommissions>>,
+    ServerError
+  >({
+    queryFn: () => getCommissions(now, tomorrow),
+    queryKey: ["commissions", "all"],
+    enabled: tabActive === "commissions",
   });
 
   const cashboxesQuery = useQuery<
@@ -282,6 +294,15 @@ export function Home() {
   const emptyOpearationsPerWeek = operationsPerWeek.every(
     (operation) => operation.count === 0,
   );
+
+  const allCashboxes = useMemo(() => {
+    const cashboxes: Record<number, string> = {};
+
+    cashboxesQuery.data?.forEach((cashbox) => {
+      return (cashboxes[cashbox.id] = cashbox.name);
+    });
+    return cashboxes;
+  }, [cashboxesQuery.data]);
 
   const COLUMNS_OPERATIONS = useMemo(() => {
     return [
@@ -335,6 +356,15 @@ export function Home() {
           ),
       },
       {
+        label: "Total",
+        key: "price",
+        render: (item: Operation) => (
+          <span className="font-semibold text-slate-500">
+            ${(item.amount * item.price).toLocaleString("es-AR")}
+          </span>
+        ),
+      },
+      {
         label: "Cantidad",
         key: "amount",
         render: (item: Operation) => (
@@ -352,7 +382,7 @@ export function Home() {
         label: "Precio",
         key: "price",
         render: (item: Operation) => (
-          <span className="font-mono font-medium text-slate-500">
+          <span className="font-mono font-medium text-slate-400">
             ${item.price.toLocaleString("es-AR")}
           </span>
         ),
@@ -733,6 +763,75 @@ export function Home() {
     ];
   }, []);
 
+  const COLUMNS_COMMISSIONS = useMemo(() => {
+    return [
+      {
+        label: "Vendedor",
+        key: "seller.name",
+        render: (item: Commission) => item.seller.name,
+      },
+      {
+        label: "Monto",
+        key: "commission",
+        render: (item: Commission) => (
+          <span className="font-medium text-slate-500">
+            $ {item.commission.toLocaleString("es")}
+          </span>
+        ),
+      },
+      {
+        label: "Movimiento",
+        key: "movimentType",
+        render: (item: Commission) =>
+          item.type === "operation" ? (
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-2 py-1 text-primary/80">
+              <BanknoteArrowUpIcon className="size-3.5 min-w-3.5" />
+              Operación
+            </div>
+          ) : (
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-warning/10 bg-warning/5 px-2 py-1 text-warning/80">
+              <LandmarkIcon className="size-3.5 min-w-3.5" />
+              Préstamo
+            </div>
+          ),
+      },
+      {
+        label: "Fecha de movimiento",
+        key: "date",
+        render: (item: Commission) =>
+          format(item.date, "d 'de' MMMM 'del' yyyy", { locale: es }),
+      },
+      {
+        label: "Caja de pago",
+        key: "cashboxID",
+        render: (item: Commission) =>
+          item.state ? (
+            <span className="font-semibold">
+              {allCashboxes[item.cashboxID]}
+            </span>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        label: "Estado",
+        key: "state",
+        render: (item: Commission) =>
+          item.state ? (
+            <div className="flex items-center gap-1.5 text-success">
+              <CircleCheckBigIcon className="size-4 min-w-4" />
+              Pagado
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-danger">
+              <CircleAlertIcon className="size-4 min-w-4" />
+              Sin pagar
+            </div>
+          ),
+      },
+    ];
+  }, [commissionsQuery.data, cashboxesQuery.data]);
+
   const filteredOperations = useMemo(() => {
     if (!operationsQuery?.data) return [];
 
@@ -780,6 +879,19 @@ export function Home() {
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
   }, [installmentsQuery.data, search]);
+
+  const filteredCommissions = useMemo(() => {
+    if (!commissionsQuery?.data?.moviments) return [];
+    if (!search) return commissionsQuery.data.moviments;
+
+    const normalizedFilter = strNormalize(search).toLowerCase();
+
+    return commissionsQuery.data?.moviments.filter((commission) => {
+      let searched = `${commission.seller.name}${commission.seller.name}${commission.commission}${format(commission.date, "d 'de' MMMM 'del' yyyy", { locale: es })}`;
+
+      return strNormalize(searched).toLowerCase().includes(normalizedFilter);
+    });
+  }, [commissionsQuery.data, search]);
 
   /// Focus search with Ctrl + f
   useEffect(() => {
@@ -1241,6 +1353,16 @@ export function Home() {
               loading={loansQuery.isFetching}
               searchInput={search}
               data={filteredLoans}
+              openModal={() => console.log()}
+            />
+          ) : tabActive === "commissions" ? (
+            <TableWork
+              withButtonCreate={false}
+              columns={COLUMNS_COMMISSIONS}
+              error={commissionsQuery.error}
+              loading={commissionsQuery.isFetching}
+              searchInput={search}
+              data={filteredCommissions}
               openModal={() => console.log()}
             />
           ) : (

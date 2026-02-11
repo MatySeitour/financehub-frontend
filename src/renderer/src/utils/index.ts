@@ -19,6 +19,7 @@ import {
   KeyRoundIcon,
   LandmarkIcon,
   LucideIcon,
+  ReceiptIcon,
   ShieldUserIcon,
   UsersIcon,
   WalletCardsIcon,
@@ -312,7 +313,8 @@ export type TabMovimentsNames =
   | "operations"
   | "loans"
   | "installments"
-  | "moviments";
+  | "moviments"
+  | "commissions";
 
 export const tabsMoviments: {
   label: string;
@@ -335,8 +337,13 @@ export const tabsMoviments: {
     name: "installments",
   },
   {
-    label: "Otros",
+    label: "Commisiones",
     icon: HandCoinsIcon,
+    name: "commissions",
+  },
+  {
+    label: "Otros",
+    icon: ReceiptIcon,
     name: "moviments",
   },
 ] as const;
