@@ -98,7 +98,7 @@ export function OperationsHistoryCashbox({
       },
       {
         label: "Total",
-        key: "price",
+        key: "",
         render: (item: Operation) => (
           <span className="font-semibold text-slate-500">
             ${(item.amount * item.price).toLocaleString("es-AR")}

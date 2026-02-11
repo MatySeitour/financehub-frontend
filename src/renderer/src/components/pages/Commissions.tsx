@@ -1,11 +1,14 @@
 /* IMPORTS */
 import { useRef, useState, useEffect, useMemo } from "react";
-import { ServerError } from "@renderer/utils/types";
+import { MenuOption, ServerError } from "@renderer/utils/types";
 import { useQuery } from "react-query";
 
 import {
   BanknoteArrowUpIcon,
+  CircleAlertIcon,
+  CircleCheckBigIcon,
   CoinsIcon,
+  HandCoinsIcon,
   LandmarkIcon,
   SearchIcon,
 } from "lucide-react";
@@ -15,43 +18,8 @@ import { Commission, getCommissions } from "@renderer/hooks/commissions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectItem } from "@heroui/select";
-
-const COLUMNS = [
-  {
-    label: "Vendedor",
-    key: "seller.name",
-    render: (item: Commission) => item.seller.name,
-  },
-  {
-    label: "Monto",
-    key: "commission",
-    render: (item: Commission) => (
-      <span className="font-medium text-slate-500">$ {item.commission}</span>
-    ),
-  },
-  {
-    label: "Movimiento",
-    key: "movimentType",
-    render: (item: Commission) =>
-      item.type === "operation" ? (
-        <div className="flex items-center gap-1.5 text-success">
-          <BanknoteArrowUpIcon className="size-4 min-w-4" />
-          Operación
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 text-warning">
-          <LandmarkIcon className="size-4 min-w-4" />
-          Préstamo
-        </div>
-      ),
-  },
-  {
-    label: "Fecha de movimiento",
-    key: "date",
-    render: (item: Commission) =>
-      format(item.date, "d 'de' MMMM 'del' yyyy", { locale: es }),
-  },
-];
+import { getCashboxes } from "@renderer/hooks/cashboxes";
+import { PayCommissionModal } from "../modals/commission";
 
 const filters = [
   { label: "Todas", name: "all" },
@@ -69,6 +37,7 @@ export function CommissionsSection() {
   const [from, __] = useState<Date>();
   const [to, ___] = useState<Date>();
   const [limit, ____] = useState<DataPerPage>(20);
+  const [commissionToPay, setCommissionToPay] = useState<Commission>();
 
   const commissionsQuery = useQuery<
     Awaited<ReturnType<typeof getCommissions>>,
@@ -78,10 +47,91 @@ export function CommissionsSection() {
     queryKey: ["commissions", "all", selected.name],
   });
 
-  const commissionQueryWithID = commissionsQuery.data?.moviments.map(
-    (commissionData, index) => ({ ...commissionData, id: index }),
-  );
+  const cashboxesQuery = useQuery<
+    Awaited<ReturnType<typeof getCashboxes>>,
+    ServerError
+  >({
+    queryKey: ["cashboxes", "all"],
+    queryFn: getCashboxes,
+  });
 
+  const allCashboxes = useMemo(() => {
+    const cashboxes: Record<number, string> = {};
+
+    cashboxesQuery.data?.forEach((cashbox) => {
+      return (cashboxes[cashbox.id] = cashbox.name);
+    });
+    return cashboxes;
+  }, [cashboxesQuery.data]);
+
+  const COLUMNS = useMemo(() => {
+    return [
+      {
+        label: "Vendedor",
+        key: "seller.name",
+        render: (item: Commission) => item.seller.name,
+      },
+      {
+        label: "Monto",
+        key: "commission",
+        render: (item: Commission) => (
+          <span className="font-medium text-slate-500">
+            $ {item.commission.toLocaleString("es")}
+          </span>
+        ),
+      },
+      {
+        label: "Movimiento",
+        key: "movimentType",
+        render: (item: Commission) =>
+          item.type === "operation" ? (
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-2 py-1 text-primary/80">
+              <BanknoteArrowUpIcon className="size-3.5 min-w-3.5" />
+              Operación
+            </div>
+          ) : (
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-warning/10 bg-warning/5 px-2 py-1 text-warning/80">
+              <LandmarkIcon className="size-3.5 min-w-3.5" />
+              Préstamo
+            </div>
+          ),
+      },
+      {
+        label: "Fecha de movimiento",
+        key: "date",
+        render: (item: Commission) =>
+          format(item.date, "d 'de' MMMM 'del' yyyy", { locale: es }),
+      },
+      {
+        label: "Caja de pago",
+        key: "cashboxID",
+        render: (item: Commission) =>
+          item.state ? (
+            <span className="font-semibold">
+              {allCashboxes[item.cashboxID]}
+            </span>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        label: "Estado",
+        key: "state",
+        render: (item: Commission) =>
+          item.state ? (
+            <div className="flex items-center gap-1.5 text-success">
+              <CircleCheckBigIcon className="size-4 min-w-4" />
+              Pagado
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-danger">
+              <CircleAlertIcon className="size-4 min-w-4" />
+              Sin pagar
+            </div>
+          ),
+      },
+    ];
+  }, [commissionsQuery.data, cashboxesQuery.data]);
   useEffect(() => {
     const handleFocusSearch = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "f") {
@@ -96,16 +146,26 @@ export function CommissionsSection() {
 
   const filteredCommissions = useMemo(() => {
     if (!commissionsQuery?.data?.moviments) return [];
-    if (!search) return commissionQueryWithID;
+    if (!search) return commissionsQuery.data.moviments;
 
     const normalizedFilter = strNormalize(search).toLowerCase();
 
-    return commissionQueryWithID?.filter((commission) => {
-      let searched = `${commission.seller.name}${commission.commission}${format(commission.date, "d 'de' MMMM 'del' yyyy", { locale: es })}`;
+    return commissionsQuery.data?.moviments.filter((commission) => {
+      let searched = `${commission.seller.name}${commission.seller.name}${commission.commission}${format(commission.date, "d 'de' MMMM 'del' yyyy", { locale: es })}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
-  }, [commissionQueryWithID, search]);
+  }, [commissionsQuery.data, search]);
+
+  /* UTILS */
+  const options: MenuOption<Commission>[] = [
+    {
+      name: "Pagar",
+      icon: HandCoinsIcon,
+      onAction: (item) => setCommissionToPay(item),
+      isDisabled: (item) => !item?.state,
+    },
+  ];
 
   return (
     <section className="flex h-full w-full flex-col">
@@ -186,12 +246,21 @@ export function CommissionsSection() {
         <TableWork
           columns={COLUMNS}
           loading={commissionsQuery.isFetching}
-          error={commissionsQuery.isError}
+          error={commissionsQuery.error}
           searchInput={search}
           data={filteredCommissions}
           openModal={() => console.log()}
-          //   optionsMenu={actionOptions}
+          optionsMenu={options}
         />
+
+        {commissionToPay && cashboxesQuery.data && (
+          <PayCommissionModal
+            isOpen={!!commissionToPay}
+            onClose={() => setCommissionToPay(undefined)}
+            commission={commissionToPay}
+            cashboxes={cashboxesQuery.data}
+          />
+        )}
       </div>
     </section>
   );

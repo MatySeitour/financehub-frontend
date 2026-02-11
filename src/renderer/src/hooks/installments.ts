@@ -39,7 +39,6 @@ export const installmentHistorySchema = installmentSchema
   .omit({ currency: true })
   .extend({
     installment_id: z.number(),
-    cashbox_id: z.number(),
     movimentDateTime: z.string(),
     loan_id: z.number(),
   });
