@@ -27,10 +27,12 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronsUpIcon,
   ChevronUpIcon,
   CircleAlertIcon,
   CircleCheckBigIcon,
   CircleCheckIcon,
+  CircleDotDashedIcon,
   CircleDotIcon,
   CircleOffIcon,
   ClipboardListIcon,
@@ -307,14 +309,30 @@ export function Home() {
   const COLUMNS_OPERATIONS = useMemo(() => {
     return [
       {
-        label: "Número",
-        key: "id",
-        render: (item: Operation) => `#${item.id}`,
-      },
-      {
         label: "Fecha",
         key: "date",
         render: (item: Operation) => format(item.date, "dd/MM/yyyy HH:mm"),
+      },
+      {
+        label: "Estado",
+        key: "state",
+        render: (item: Operation) =>
+          item.state === "initialized" ? (
+            <div className="flex items-center gap-1 text-blue-400">
+              <ChevronsUpIcon className="size-4 min-w-4" />
+              Inicializada
+            </div>
+          ) : item.state === "in_process" ? (
+            <div className="flex items-center gap-1 text-warning">
+              <CircleDotDashedIcon className="size-4 min-w-4" />
+              En proceso
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-primary">
+              <CircleCheckBigIcon className="size-4 min-w-4" />
+              Completada
+            </div>
+          ),
       },
       {
         label: "Cliente",

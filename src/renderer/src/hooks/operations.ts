@@ -4,17 +4,20 @@ import axios from "./axios";
 
 import { DataPerPage } from "@renderer/components/Table";
 
-/* UTILS */
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
-/* DATA TYPES */
-export type Operation = z.infer<typeof operationSchema>;
-
-/* ENUMS */
 const operationType = ["sale", "buys"] as const;
 
-/* SCHEMAS */
-//Operations base structure
+export type OperationStates = (typeof operationStates)[number];
+export const operationStates = [
+  "completed",
+  "in_process",
+  "initialized",
+] as const;
+
+export type OperationWithNewState = Operation & { newState?: OperationStates };
+
+export type Operation = z.infer<typeof operationSchema>;
 export const operationSchema = z.object({
   id: z.number(),
   date: z.string(),
@@ -36,6 +39,7 @@ export const operationSchema = z.object({
   sellerName: z.string().optional(),
   profit: z.coerce.number(),
   type: z.enum(operationType),
+  state: z.enum(operationStates),
 });
 
 export const operationWithTotalSchema = z.object({

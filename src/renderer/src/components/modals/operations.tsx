@@ -12,6 +12,11 @@ import { cn } from "@renderer/utils";
 import { ModalProps, ServerError } from "@renderer/utils/types";
 import {
   AlertCircleIcon,
+  AlertTriangleIcon,
+  ChevronsUpIcon,
+  CircleCheckBigIcon,
+  CircleDotDashedIcon,
+  InfoIcon,
   PackagePlusIcon,
   TriangleAlertIcon,
 } from "lucide-react";
@@ -25,7 +30,7 @@ import { Cashbox } from "@renderer/hooks/cashboxes";
 import { Mandatory } from "../Mandatory";
 import { ErrorForm } from "../ErrorMessage";
 import { toast } from "sonner";
-import { Operation } from "@renderer/hooks/operations";
+import { Operation, OperationWithNewState } from "@renderer/hooks/operations";
 import { Currency } from "@renderer/hooks/currencies";
 
 /* DATA TYPES */
@@ -650,6 +655,157 @@ export function DeleteOperationModal({
             </ModalFooter>
           </>
         )}
+      </ModalContent>
+    </Modal>
+  );
+}
+
+export function ChangeStateOperationModal({
+  isOpen,
+  onClose,
+  operation,
+}: ModalProps & { operation: OperationWithNewState }) {
+  const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<Cashbox, ServerError>({
+    mutationFn: async () => {
+      const { data } = await AxiosFetch.patch(
+        `/api/v1/operations/${operation.id}/state`,
+        { ...operation, state: operation.newState },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["operations"] });
+      onClose();
+    },
+  });
+
+  return (
+    <Modal
+      backdrop="opaque"
+      radius="sm"
+      size="3xl"
+      isOpen={isOpen}
+      onOpenChange={onClose}
+    >
+      <ModalContent className="flex flex-col gap-3">
+        {(onClose) =>
+          operation.newState && (
+            <>
+              <ModalHeader className="flex h-auto gap-3 py-0 pt-6 font-normal">
+                {operation.newState === "in_process" ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center rounded-full bg-warning/15 p-1.5">
+                      <CircleDotDashedIcon className="size-5 min-w-5 text-warning" />
+                    </div>
+                    <span className="text-xl font-medium text-slate-500">
+                      Cambiar estado en proceso
+                    </span>
+                  </div>
+                ) : operation.newState === "completed" ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center rounded-full bg-primary/15 p-1.5">
+                      <CircleCheckBigIcon className="size-5 min-w-5 text-primary" />
+                    </div>
+                    <span className="text-xl font-medium text-slate-500">
+                      Cambiar estado completada
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center rounded-full bg-blue-500/15 p-1.5">
+                      <ChevronsUpIcon className="size-5 min-w-5 text-blue-500" />
+                    </div>
+                    <span className="text-xl font-medium text-slate-500">
+                      Cambiar estado inicializada
+                    </span>
+                  </div>
+                )}
+              </ModalHeader>
+
+              <div className="flex flex-col gap-4">
+                <ModalBody className="py-0">
+                  {operation.newState === "in_process" ? (
+                    <>
+                      <div className="w-full font-light text-slate-400/70">
+                        Al cambiar al estado{" "}
+                        <span className="inline-block rounded-lg bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">
+                          En proceso
+                        </span>{" "}
+                        se harán los respectivos ingresos/egresos en las cajas
+                        registradas en esta operación.
+                      </div>
+
+                      <div className="flex w-fit items-center gap-1.5 text-sm text-slate-400">
+                        <InfoIcon className="size-4 min-w-4" />
+                        Pódes volver al estado{" "}
+                        <span className="inline-block rounded-lg bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-500">
+                          Inicializada
+                        </span>{" "}
+                        si lo deseas
+                      </div>
+                    </>
+                  ) : operation.newState === "completed" ? (
+                    <>
+                      <div className="w-full font-light text-slate-400/70">
+                        Al cambiar al estado{" "}
+                        <span className="inline-block rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                          Completada
+                        </span>{" "}
+                        la operación se dará por finalizada.
+                      </div>
+
+                      <div className="flex w-fit items-center gap-1.5 rounded-md bg-warning/5 px-3 py-1 text-sm font-light text-warning">
+                        <AlertTriangleIcon className="size-4 min-w-4 text-warning" />
+                        <div>
+                          Completada la operación{" "}
+                          <b className="font-medium">NO</b> se puede voler al
+                          estado anterior. Esta acción{" "}
+                          <b className="font-medium">no se puede deshacer</b>.
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full font-light text-slate-400/70">
+                      Al cambiar al estado{" "}
+                      <span className="inline-block rounded-lg bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-500">
+                        Inicializada
+                      </span>{" "}
+                      el monto de las cajas registradas en esta operación
+                      volveran a sus montos previos.
+                    </div>
+                  )}
+
+                  {mutation.isError && (
+                    <ErrorForm errorMessage={mutation.error} />
+                  )}
+                </ModalBody>
+                <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
+                  <Button
+                    isLoading={mutation?.isLoading}
+                    disabled={mutation?.isLoading}
+                    type="button"
+                    onClick={() => mutation.mutate()}
+                    variant="success"
+                    className="w-full"
+                  >
+                    Confirmar
+                  </Button>
+                  <Button
+                    variant="error"
+                    className="w-full"
+                    type="button"
+                    onClick={onClose}
+                  >
+                    Cerrar
+                  </Button>
+                </ModalFooter>
+              </div>
+            </>
+          )
+        }
       </ModalContent>
     </Modal>
   );

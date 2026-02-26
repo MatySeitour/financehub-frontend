@@ -271,12 +271,13 @@ function TableWork<T extends TableNode>({
                         if (enableMenu || !hasEnableMenu) {
                           selectRowID && selectRowID(Number(item.id));
                           setSelectedItem(item);
-                          if (
-                            optionsMenu?.length !== 1 ||
-                            (optionsMenu[0].isDisabled &&
-                              optionsMenu[0].isDisabled(item))
-                          ) {
+                          const a = optionsMenu?.some((e) =>
+                            e.isDisabled ? e.isDisabled(item) : true,
+                          );
+                          if (a) {
                             openContextMenuHandler(e, setContextMenu);
+                          } else {
+                            closeContextMenuHandler(setContextMenu);
                           }
                         }
                       }}
