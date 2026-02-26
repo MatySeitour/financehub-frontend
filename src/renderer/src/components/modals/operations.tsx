@@ -274,14 +274,27 @@ export function CreateOperationModal({
                         )}
                       >
                         <option value={undefined}>Selecciona una caja</option>
-                        {increaseCashboxFiltered?.map((cashbox) => (
-                          <option
-                            key={`${cashbox.id}-incoming`}
-                            value={cashbox.id}
-                          >
-                            {cashbox.currency.name} - {cashbox.name}
-                          </option>
-                        ))}
+                        {increaseCashboxFiltered?.map((cashbox) => {
+                          if (cashbox.disabled)
+                            return (
+                              <option
+                                key={`${cashbox.id}-incoming`}
+                                value={cashbox.id}
+                              >
+                                {cashbox.currency.name} - {cashbox.name}{" "}
+                                (Deshabilitada)
+                              </option>
+                            );
+
+                          return (
+                            <option
+                              key={`${cashbox.id}-incoming`}
+                              value={cashbox.id}
+                            >
+                              {cashbox.currency.name} - {cashbox.name}
+                            </option>
+                          );
+                        })}
                       </select>
                       {increaseCashboxFiltered &&
                         increaseCashboxFiltered?.length === 0 && (
@@ -311,11 +324,21 @@ export function CreateOperationModal({
                         )}
                       >
                         <option value={undefined}>Selecciona una caja</option>
-                        {decreaseCashboxFiltered?.map((cashbox) => (
-                          <option key={cashbox.id} value={cashbox.id}>
-                            {cashbox.currency.name} - {cashbox.name}
-                          </option>
-                        ))}
+                        {decreaseCashboxFiltered?.map((cashbox) => {
+                          if (cashbox.disabled)
+                            return (
+                              <option key={cashbox.id} value={cashbox.id}>
+                                {cashbox.currency.name} - {cashbox.name}{" "}
+                                (Deshabilitada)
+                              </option>
+                            );
+
+                          return (
+                            <option key={cashbox.id} value={cashbox.id}>
+                              {cashbox.currency.name} - {cashbox.name}
+                            </option>
+                          );
+                        })}
                       </select>
                       {errors.decrease_cashbox_id && (
                         <span className="text-xs text-danger">
