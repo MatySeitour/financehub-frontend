@@ -4,20 +4,28 @@ import { MenuOption, ServerError } from "@renderer/utils/types";
 import {
   BanknoteArrowUpIcon,
   CalendarOffIcon,
+  ChevronsUpIcon,
+  CircleCheckBigIcon,
+  CircleDotDashedIcon,
   CircleOffIcon,
   PlusIcon,
   SearchIcon,
-  Trash2Icon,
+  SquareCheckBigIcon,
   TrendingDownIcon,
   TrendingUpIcon,
 } from "lucide-react";
 import { useDisclosure } from "@heroui/react";
 import {
+  ChangeStateOperationModal,
   CreateOperationModal,
   DeleteOperationModal,
 } from "../modals/operations";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getOperations, Operation } from "@renderer/hooks/operations";
+import {
+  getOperations,
+  Operation,
+  OperationWithNewState,
+} from "@renderer/hooks/operations";
 import { format, parseISO } from "date-fns";
 import { cn, strNormalize, withCbk } from "@renderer/utils";
 import { DataPerPage, TableWork } from "../Table";
@@ -40,6 +48,8 @@ export function OperationsSection() {
   const [to, setTo] = useState<Date>();
   const [limit, setLimit] = useState<DataPerPage>(20);
   const [operationToDelete, setOperationToDelete] = useState<Operation>();
+  const [operationToState, setOperationToState] =
+    useState<OperationWithNewState>();
 
   const operationsQuery = useQuery<
     Awaited<ReturnType<typeof getOperations>>,
@@ -96,6 +106,27 @@ export function OperationsSection() {
         label: "Fecha",
         key: "date",
         render: (item: Operation) => format(item.date, "dd/MM/yyyy HH:mm"),
+      },
+      {
+        label: "Estado",
+        key: "state",
+        render: (item: Operation) =>
+          item.state === "initialized" ? (
+            <div className="flex items-center gap-1 text-blue-400">
+              <ChevronsUpIcon className="size-4 min-w-4" />
+              Inicializada
+            </div>
+          ) : item.state === "in_process" ? (
+            <div className="flex items-center gap-1 text-warning">
+              <CircleDotDashedIcon className="size-4 min-w-4" />
+              En proceso
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-primary">
+              <CircleCheckBigIcon className="size-4 min-w-4" />
+              Completada
+            </div>
+          ),
       },
       {
         label: "Cliente",
@@ -245,11 +276,38 @@ export function OperationsSection() {
   } = useDisclosure();
 
   /* UTILS */
-  const options: MenuOption<Operation>[] = [
+  const options: MenuOption<OperationWithNewState>[] = [
     {
-      name: "Eliminar",
-      icon: Trash2Icon,
-      onAction: (item) => setOperationToDelete(item),
+      name: "Cambiar a Completada",
+      icon: SquareCheckBigIcon,
+      onAction: (item) =>
+        setOperationToState(
+          item ? { ...item, newState: "completed" } : undefined,
+        ),
+      isDisabled: (item) =>
+        item?.state !== "completed" && item?.state !== "initialized",
+    },
+    {
+      name: "Cambiar a En proceso",
+      icon: CircleDotDashedIcon,
+      onAction: (item) =>
+        setOperationToState(
+          item ? { ...item, newState: "in_process" } : undefined,
+        ),
+
+      isDisabled: (item) =>
+        item?.state !== "completed" && item?.state !== "in_process",
+    },
+    {
+      name: "Cambiar a Inicializada",
+      icon: ChevronsUpIcon,
+      onAction: (item) =>
+        setOperationToState(
+          item ? { ...item, newState: "initialized" } : undefined,
+        ),
+
+      isDisabled: (item) =>
+        item?.state !== "initialized" && item?.state !== "completed",
     },
   ];
 
@@ -412,6 +470,15 @@ export function OperationsSection() {
             currencies={currenciesQuery.data}
           />
         )}
+
+      {operationToState && (
+        <ChangeStateOperationModal
+          isOpen={!!operationToState}
+          onClose={() => setOperationToState(undefined)}
+          operation={operationToState}
+        />
+      )}
+
       {operationToDelete && operationsQuery.data && (
         <DeleteOperationModal
           isOpen={!!operationToDelete}
