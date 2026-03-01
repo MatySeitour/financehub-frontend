@@ -198,13 +198,16 @@ export const getDaysRemaingStatusSyles = (days) => {
 export const getInstallmentStatusSyles = (
   currentInstallment: number,
   numberOfInstallments: number,
+  format: "bg" | "text" = "text",
 ) => {
   const quarterInstallment = numberOfInstallments / 4;
 
-  if (currentInstallment > quarterInstallment * 3) return "text-warning";
+  if (currentInstallment > quarterInstallment * 3)
+    return format === "bg" ? "bg-warning" : "text-warning";
 
-  if (currentInstallment > quarterInstallment) return "text-orange-500";
-  return "text-danger";
+  if (currentInstallment > quarterInstallment)
+    return format === "bg" ? "bg-orange-500" : "text-orange-500";
+  return format === "bg" ? "bg-danger" : "text-danger";
 };
 
 /* Sections navigate */
