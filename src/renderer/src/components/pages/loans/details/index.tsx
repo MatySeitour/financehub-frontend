@@ -276,10 +276,14 @@ export function LoanDetailsSection() {
                         "flex items-center gap-1 text-xs",
                       )}
                     >
-                      Total pagado: <b>${loanQuery.data?.totalPaid}</b>
+                      Total pagado:{" "}
+                      <b>
+                        ${loanQuery.data?.totalPaid.toLocaleString("es-AR")}
+                      </b>
                     </div>
                     <div className="flex items-center gap-1 text-xs font-medium text-slate-500">
-                      Total préstamo: ${loanQuery.data?.principal}
+                      Total préstamo: $
+                      {loanQuery.data?.principal.toLocaleString("es-AR")}
                     </div>
                   </div>
                 </div>

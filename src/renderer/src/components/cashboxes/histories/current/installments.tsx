@@ -43,7 +43,7 @@ export function CurrentInstallmentsHistoryCashbox({
         label: "Fecha de pago",
         key: "movimentDateTime",
         render: (item: InstallmentHistory) =>
-          format(item.movimentDateTime, "dd/MM/yyyy"),
+          format(item.dueDate, "dd/MM/yyyy"),
       },
       {
         label: "Monto acumulado",

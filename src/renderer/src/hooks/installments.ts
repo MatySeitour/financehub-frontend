@@ -38,7 +38,6 @@ export type InstallmentHistory = z.infer<typeof installmentHistorySchema>;
 export const installmentHistorySchema = installmentSchema
   .omit({ currency: true })
   .extend({
-    installment_id: z.number(),
-    movimentDateTime: z.string(),
-    loan_id: z.number(),
+    installment_id: z.number().optional(),
+    movimentDateTime: z.string().optional(),
   });
