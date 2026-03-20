@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <title>Financehub</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      .container {
+        position: relative;
+        display: flex;
+        height: 300px;
+        overflow: hidden;
+        width: 600px;
+        justify-content: center;
+        align-items: center;
+        background-image: linear-gradient(to top, #fff, #f1f5f9);
+      }
+
+      .content-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding-top: 30px;
+      }
+
+      .letters-content {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .onboarding-text {
+        background: linear-gradient(to top, #17c964 20%, #4ade80);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.5rem;
+        line-height: 3rem;
+        font-weight: 700;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: inline-block;
+      }
+
+      .loader {
+        position: relative;
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid #ccc;
+        border-bottom-color: #16a34a;
+        animation: rotateFull 1s linear infinite;
+      }
+
+      .loader::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 2px;
+        height: 2px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        border: 3px solid transparent;
+      }
+
+      @keyframes rotateFull {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .company {
+        font-size: 1rem;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 500;
+        color: rgb(148 163 184 / 0.7);
+      }
+
+      .gradient-left {
+        position: absolute;
+        left: -70px;
+        -webkit-filter: blur(70px);
+        bottom: 0;
+        width: 190px;
+        backdrop-filter: 40px;
+        height: 80px;
+        background-image: linear-gradient(to top, #0ec551, transparent);
+      }
+      .gradient-right {
+        position: absolute;
+        right: -90px;
+        -webkit-filter: blur(70px);
+        top: -50px;
+        width: 190px;
+        backdrop-filter: 40px;
+        height: 80px;
+        background-image: linear-gradient(to top, #0ec551, transparent);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root">
+      <div class="container">
+        <div class="content-container">
+          <div class="letters-content">
+            <span class="onboarding-text"> Finance </span>
+            <b class="onboarding-text"> hub </b>
+          </div>
+          <span class="loader"> </span>
+
+          <a
+            href="https://www.linkedin.com/company/sintelia/"
+            target="_blank"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              transform: translateY(40px);
+              gap: 4px;
+              text-decoration: none;
+            "
+          >
+            <img
+              style="width: 70px; object-fit: cover"
+              src="../src/assets/sintelia.png"
+            />
+            <span class="company">Un producto de <b>Sintelia</b></span>
+          </a>
+        </div>
+
+        <div class="gradient-left" />
+      </div>
+      <div class="gradient-right" />
+    </div>
+  </body>
+</html>

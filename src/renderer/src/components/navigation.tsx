@@ -83,7 +83,7 @@ export function Navigation({ user }: { user: TSession }) {
         </div>
 
         {/* Navigation items */}
-        <div className="flex h-full w-full flex-col justify-between overflow-hidden pb-2 pl-3.5 xl:pl-4">
+        <div className="relative flex h-full w-full flex-col justify-between overflow-hidden pb-2 pl-3.5 xl:pl-4">
           <ul className="flex flex-col gap-2">
             {navItems.map((navItem) => (
               <li key={navItem.name} className="h-auto w-full">

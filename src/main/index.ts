@@ -260,12 +260,33 @@ function setupAutoUpdater(mainWindow: BrowserWindow) {
   });
 }
 
+let splashWindow: BrowserWindow | null = null;
+
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 600,
+    height: 300,
+    frame: false,
+    alwaysOnTop: true,
+    transparent: false,
+    resizable: false,
+    show: true,
+    webPreferences: {
+      preload: join(__dirname, "../preload/index.js"),
+    },
+  });
+
+  splashWindow.loadURL(
+    `${process.env.ELECTRON_RENDERER_URL}/splash/index.html`,
+  );
+}
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    show: true,
+    show: false,
     autoHideMenuBar: true,
     icon:
       process.platform === "win32"
@@ -278,9 +299,13 @@ function createWindow(): void {
     },
   });
 
-  mainWindow.maximize();
-
   mainWindow.on("ready-to-show", () => {
+    if (splashWindow) {
+      splashWindow.close();
+      splashWindow = null;
+    }
+
+    mainWindow.maximize();
     mainWindow.show();
   });
 
@@ -340,6 +365,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
+  createSplashWindow();
   electronApp.setAppUserModelId("com.electron");
 
   setupCookieHandlers();
@@ -352,12 +378,18 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  createWindow();
-
-  autoUpdater.checkForUpdatesAndNotify();
+  if (is.dev) {
+    createWindow();
+  } else {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 
   autoUpdater.on("update-available", () => {
     console.log("Update disponible");
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    createWindow();
   });
 
   autoUpdater.on("update-downloaded", () => {

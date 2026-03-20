@@ -10,6 +10,7 @@ import { Input } from "@heroui/react";
 import { Tooltip } from "@heroui/react";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "../Button";
+import { getYear } from "date-fns";
 
 export function Login() {
   const queryClient = useQueryClient();
@@ -47,7 +48,7 @@ export function Login() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-bl from-primary/10 to-transparent">
+    <div className="flex h-screen w-full items-center justify-center">
       <div className="flex h-full w-full justify-center p-10">
         <div className="flex h-full w-full max-w-lg flex-col justify-center gap-12">
           <h1 className="text-left text-3xl font-medium text-slate-500">
@@ -219,6 +220,20 @@ export function Login() {
           </span>
         </div>
       </div>
+
+      <a
+        href="https://www.linkedin.com/company/sintelia/"
+        target="_blank"
+        className="absolute bottom-4 left-10 flex flex-col items-center justify-center gap-1.5 text-nowrap font-medium text-slate-400"
+      >
+        <img
+          src="../src/assets/sintelia.png"
+          className="h-10 w-24 object-contain"
+        />
+        <span className="text-xs">
+          © {getYear(new Date())} <b className="text-slate-400">Sintelia</b>
+        </span>
+      </a>
     </div>
   );
 }
