@@ -11,7 +11,7 @@ import { Tooltip } from "@heroui/react";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "../Button";
 import { getYear } from "date-fns";
-
+import logo from "../../assets/sintelia.png";
 export function Login() {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
@@ -226,10 +226,7 @@ export function Login() {
         target="_blank"
         className="absolute bottom-4 left-10 flex flex-col items-center justify-center gap-1.5 text-nowrap font-medium text-slate-400"
       >
-        <img
-          src="../src/assets/sintelia.png"
-          className="h-10 w-24 object-contain"
-        />
+        <img src={logo} className="h-10 w-24 object-contain" />
         <span className="text-xs">
           © {getYear(new Date())} <b className="text-slate-400">Sintelia</b>
         </span>

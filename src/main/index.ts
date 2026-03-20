@@ -182,21 +182,6 @@ function setupAutoUpdater(mainWindow: BrowserWindow) {
   log.info("Configurando auto-updater...");
   log.info("Versión actual:", app.getVersion());
 
-  // Verificar actualizaciones al iniciar (después de 3 segundos)
-  setTimeout(() => {
-    log.info("Verificando actualizaciones...");
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 3000);
-
-  // Verificar cada 10 minutos
-  setInterval(
-    () => {
-      log.info("Verificación periódica de actualizaciones...");
-      autoUpdater.checkForUpdatesAndNotify();
-    },
-    10 * 60 * 1000,
-  );
-
   // Eventos del auto-updater
   autoUpdater.on("checking-for-update", () => {
     log.info("🔍 Verificando actualizaciones...");
@@ -364,42 +349,50 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
   createSplashWindow();
+
   electronApp.setAppUserModelId("com.electron");
 
   setupCookieHandlers();
   setupIpcHandlers();
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
 
   if (is.dev) {
+    console.log("🛠 DEV MODE - no updater");
     createWindow();
-  } else {
-    autoUpdater.checkForUpdatesAndNotify();
+    return;
   }
 
+  console.log("🚀 PROD MODE - checking updates...");
+
+  // 🔥 ACA ESTA LA CLAVE
+  autoUpdater.checkForUpdates();
+
+  autoUpdater.on("checking-for-update", () => {
+    console.log("🔍 Buscando updates...");
+  });
+
   autoUpdater.on("update-available", () => {
-    console.log("Update disponible");
+    console.log("⬇️ Update disponible, descargando...");
   });
 
   autoUpdater.on("update-not-available", () => {
+    console.log("✅ No hay update → abrir app");
     createWindow();
   });
 
   autoUpdater.on("update-downloaded", () => {
+    console.log("💣 Update descargado → instalando...");
     autoUpdater.quitAndInstall();
   });
 
-  app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  autoUpdater.on("error", (err) => {
+    console.log("❌ Error updater:", err);
+    console.log("👉 Abrimos app igual");
+    createWindow();
   });
 });
 
