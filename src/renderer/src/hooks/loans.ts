@@ -73,6 +73,7 @@ export const loanWithInstallmentSchema = z.object({
 export const loanWithTotalSchema = z.object({
   total: z.number(),
   loans: loanSchema.array(),
+  totalLoans: z.coerce.number().optional()
 });
 
 export async function getLoans(

@@ -26,7 +26,7 @@ import { Button } from "@renderer/components/Button";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
 import { Progress, Tooltip, useDisclosure } from "@heroui/react";
 import { AddPayModal } from "@renderer/components/modals/loans";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { cn, getInstallmentStatusSyles } from "@renderer/utils";
 
 //Component starts here
@@ -81,7 +81,7 @@ export function LoanDetailsSection() {
       {
         label: "Vencimiento",
         key: "dueDate",
-        render: (item: TInstallment) => format(item.dueDate, "dd/MM/yyyy"),
+        render: (item: TInstallment) => format(parseISO(item.dueDate), "dd/MM/yyyy"),
       },
       {
         label: "Pago",

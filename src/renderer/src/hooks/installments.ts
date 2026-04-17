@@ -17,11 +17,33 @@ export const installmentSchema = z.object({
   number_of_installments: z.number(),
   clientName: z.string(),
   sellerName: z.string(),
+  loanID: z.number(),
   cashbox: z.object({
     id: z.number(),
     name: z.string(),
   }),
 });
+
+export const installmentWithTotalSchema = z.object({
+  total: z.number(),
+  installments: installmentSchema.array(),
+});
+
+export async function getInstallmentsPagination(
+  from?: Date,
+  to?: Date,
+  // page?: number,
+  // limit?: DataPerPage,
+) {
+  const params = {
+    from,
+    to,
+    // page,
+    // limit,
+  };
+  const { data } = await AxiosFetch("/api/v1/all_installments", { params });
+  return installmentSchema.array().parse(data.data);
+}
 
 export async function getInstallments(from?: Date, to?: Date) {
   const params = {

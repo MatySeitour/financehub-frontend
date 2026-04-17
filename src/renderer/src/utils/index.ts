@@ -9,6 +9,7 @@ import {
   BanknoteArrowUpIcon,
   Building2,
   Building2Icon,
+  CircleDollarSignIcon,
   CircleUserRoundIcon,
   CogIcon,
   CoinsIcon,
@@ -246,6 +247,12 @@ export const navItems: NavItem[] = [
     name: "Prestamos",
     linkTo: "/loans",
     icon: LandmarkIcon,
+    disabled: false,
+  },
+  {
+    name: "Lista de cobranzas",
+    linkTo: "/collectionPay",
+    icon: CircleDollarSignIcon,
     disabled: false,
   },
   {

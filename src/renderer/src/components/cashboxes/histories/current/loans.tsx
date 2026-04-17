@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { getCashboxCurrentHistoryLoans } from "@renderer/hooks/cashboxes";
 import { TableWork } from "@renderer/components/Table";
-import { differenceInDays, format } from "date-fns";
+import { differenceInDays, format, parseISO } from "date-fns";
 import { Loan, paymentFrequencies } from "@renderer/hooks/loans";
 
 export function CurrentLoansHistoryCashbox({
@@ -44,7 +44,7 @@ export function CurrentLoansHistoryCashbox({
       {
         label: "Fecha generada",
         key: "dateGenerated",
-        render: (item: Loan) => format(item.dateGenerated, "dd/MM/yyyy HH:mm"),
+        render: (item: Loan) => format(parseISO(item.dateGenerated), "dd/MM/yyyy HH:mm"),
       },
       {
         label: "Monto",
@@ -159,7 +159,7 @@ export function CurrentLoansHistoryCashbox({
                   )}
                 />
               </Tooltip>
-              {format(item.firstDueDate, "dd/MM/yyyy")}
+              {format(parseISO(item.firstDueDate), "dd/MM/yyyy")}
             </div>
           );
         },

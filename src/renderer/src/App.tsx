@@ -20,6 +20,7 @@ import { OnboardingPage } from "./components/pages/onboarding";
 import { CommissionsSection } from "./components/pages/Commissions";
 import { CheckingAccountsSection } from "./components/pages/checking-accounts";
 import { CheckingAccountClientSection } from "./components/pages/checking-accounts/[id]";
+import { CollectionPaySection } from "./components/pages/CollectionPay";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -73,6 +74,9 @@ function App() {
 
             {/* Loans */}
             <Route path="/loans" element={<LoansSection />} />
+
+            {/* Collection pays */}
+            <Route path="/collectionPay" element={<CollectionPaySection />} />
 
             {/* Loans Details */}
             <Route path="/loans/:id/details" element={<LoanDetailsSection />} />

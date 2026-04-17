@@ -6,6 +6,7 @@ import {
   CalendarOffIcon,
   CircleCheckIcon,
   CircleOffIcon,
+  DollarSignIcon,
   LandmarkIcon,
   PaperclipIcon,
   PlusIcon,
@@ -233,7 +234,7 @@ export function LoansSection() {
                   )}
                 />
               </Tooltip>
-              {format(item.firstDueDate, "dd/MM/yyyy")}
+              {format(parseISO(item.firstDueDate), "dd/MM/yyyy")}
             </div>
           );
         },
@@ -319,8 +320,10 @@ export function LoansSection() {
             "flex w-full gap-16",
           )}
         >
+
+              <div className="flex items-center gap-4">
           <div
-            className="flex h-9 min-h-8 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+            className="flex h-9 min-h-8 min-w-96 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
           >
             <SearchIcon className="size-4 min-w-4 text-slate-400" />
             <input
@@ -341,6 +344,17 @@ export function LoansSection() {
               </div>
             </div>
           </div>
+
+           {loansQuery.isFetching ?
+           <div className="flex items-center w-96 gap-1 h-8 bg-slate-200 animate-pulse rounded-sm" />
+           : 
+            <div className="flex items-center gap-1">
+                <DollarSignIcon className="size-5 min-w-5 text-primary" />
+                <span className=" text-slate-400 flex items-center gap-2 text-nowrap">Total prestado: <b>${loansQuery.data?.totalLoans?.toFixed(2)}</b></span>
+            </div>
+        }
+              </div>
+
           {/* DATE CONTAINER */}
           <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
