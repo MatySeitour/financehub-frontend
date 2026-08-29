@@ -3,7 +3,9 @@ import { Button } from "../../Button";
 import { Progress, Tooltip, useDisclosure } from "@heroui/react";
 import { DataPerPage, TableWork } from "../../Table";
 import {
+  BanknoteArrowUpIcon,
   CalendarOffIcon,
+  CircleAlert,
   CircleCheckIcon,
   CircleOffIcon,
   DollarSignIcon,
@@ -27,7 +29,7 @@ import { useMemo, useRef, useState } from "react";
 import { differenceInDays, format, parseISO } from "date-fns";
 import { getClients } from "@renderer/hooks/clients";
 import { getSellers } from "@renderer/hooks/sellers";
-import { getCashboxes } from "@renderer/hooks/cashboxes";
+import { Cashbox, getCashboxes } from "@renderer/hooks/cashboxes";
 import { CreateLoanModal, DeleteLoanModal } from "../../modals/loans";
 import { useNavigate } from "react-router";
 import { ErrorMessage } from "@renderer/components/ErrorMessage";
@@ -101,6 +103,15 @@ export function LoansSection() {
     queryFn: getCashboxes,
   });
 
+  const allCashboxes = useMemo(() => {
+    const cashboxes: Record<number, Cashbox> = {};
+
+    cashboxesQuery.data?.forEach((cashbox) => {
+      return (cashboxes[cashbox.id] = cashbox);
+    });
+    return cashboxes;
+  }, [cashboxesQuery.data]);
+
   /* DISCLOSURES */
   //
   const { isOpen: isCreateLoanOpenModal, onOpenChange: onOpenCreateLoanModal } =
@@ -127,13 +138,19 @@ export function LoansSection() {
         render: (item: Loan) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-medium text-slate-500">
-              ${item.principal}
+              {allCashboxes[item.cashboxID].currency.nomenclature} $
+              {item.principal}
             </span>
             <span className="text-[0.7rem] font-medium text-slate-400/70">
               Ganancia: ${item.expected_profit}
             </span>
           </div>
         ),
+      },
+      {
+        label: "Divisa",
+        key: "cashboxID",
+        render: (item: Loan) => `${allCashboxes[item.cashboxID].name}`,
       },
       {
         label: "Cliente",
@@ -179,11 +196,22 @@ export function LoansSection() {
         render: (item: Loan) => {
           const currentInstallment =
             Math.floor(item.totalPaid / item.installmentValue) + 1;
-
+          const remainingDate = differenceInDays(item.firstDueDate, new Date());
           const textColorStatus = getInstallmentStatusSyles(
             currentInstallment,
             item.numberOfInstallments,
           );
+
+          if (
+            currentInstallment === item.numberOfInstallments &&
+            remainingDate < 0
+          )
+            return (
+              <div className="flex items-center gap-1 text-red-500">
+                <CircleAlert className="size-4 min-w-4" />
+                <span>Moroso</span>
+              </div>
+            );
 
           if (currentInstallment === item.numberOfInstallments)
             return (
@@ -320,40 +348,30 @@ export function LoansSection() {
             "flex w-full gap-16",
           )}
         >
-
-              <div className="flex items-center gap-4">
-          <div
-            className="flex h-9 min-h-8 min-w-96 w-full max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
-          >
-            <SearchIcon className="size-4 min-w-4 text-slate-400" />
-            <input
-              ref={searchRef}
-              disabled={loansQuery.isFetching}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-full w-full text-sm text-slate-500 outline-none"
-              type="text"
-              placeholder="Buscar cliente o vendedor..."
-            />
-            <div className="flex items-center gap-1">
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                Ctrl
-              </div>
-              <p className="text-xs text-slate-500">+</p>
-              <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
-                F
+          <div className="flex items-center gap-4">
+            <div
+              className="flex h-9 min-h-8 w-full min-w-96 max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
+            >
+              <SearchIcon className="size-4 min-w-4 text-slate-400" />
+              <input
+                ref={searchRef}
+                disabled={loansQuery.isFetching}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-full w-full text-sm text-slate-500 outline-none"
+                type="text"
+                placeholder="Buscar cliente o vendedor..."
+              />
+              <div className="flex items-center gap-1">
+                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                  Ctrl
+                </div>
+                <p className="text-xs text-slate-500">+</p>
+                <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
+                  F
+                </div>
               </div>
             </div>
           </div>
-
-           {loansQuery.isFetching ?
-           <div className="flex items-center w-96 gap-1 h-8 bg-slate-200 animate-pulse rounded-sm" />
-           : 
-            <div className="flex items-center gap-1">
-                <DollarSignIcon className="size-5 min-w-5 text-primary" />
-                <span className=" text-slate-400 flex items-center gap-2 text-nowrap">Total prestado: <b>${loansQuery.data?.totalLoans?.toFixed(2)}</b></span>
-            </div>
-        }
-              </div>
 
           {/* DATE CONTAINER */}
           <div className="flex w-full items-center justify-end gap-2">
@@ -408,6 +426,35 @@ export function LoansSection() {
                 className="w-full"
               />
             </label>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col items-start gap-2">
+          <span className="flex items-center gap-2 text-nowrap text-lg font-medium text-slate-500">
+            <BanknoteArrowUpIcon className="size-4 min-w-4 text-primary" />
+            Total prestado
+          </span>
+
+          <div className="scroll_horizontal flex w-full items-center gap-2 overflow-x-auto pb-1">
+            {loansQuery.isFetching ? (
+              <div className="flex h-8 w-96 animate-pulse items-center gap-1 rounded-sm bg-slate-200" />
+            ) : (
+              loansQuery.data?.totalLoans.map((loan) => (
+                <div
+                  key={loan.id}
+                  className="flex items-center gap-1 rounded-lg border border-slate-300/40 bg-[#FAFAFA] p-2 !capitalize"
+                >
+                  <DollarSignIcon className="size-5 min-w-5 text-primary" />
+                  <span className="flex items-center gap-2 text-nowrap text-slate-400">
+                    {loan.name}:{" "}
+                    <b className="font-medium text-primary">
+                      {" "}
+                      ${loan.value.toLocaleString("es")}
+                    </b>
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

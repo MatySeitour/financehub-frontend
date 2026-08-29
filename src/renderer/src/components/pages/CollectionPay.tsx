@@ -6,30 +6,35 @@ import {
   CalendarX2Icon,
   ChevronRightIcon,
   CircleDollarSignIcon,
+  DollarSignIcon,
+  HandCoinsIcon,
   PaperclipIcon,
   SearchIcon,
 } from "lucide-react";
-import { getLoans} from "@renderer/hooks/loans";
+import { getLoan, getLoans } from "@renderer/hooks/loans";
 import { useQuery } from "react-query";
 import { MenuOption, ServerError } from "@renderer/utils/types";
-import {
-  cn,
-  strNormalize,
-  withCbk,
-} from "@renderer/utils";
+import { cn, strNormalize, withCbk } from "@renderer/utils";
 import { useMemo, useRef, useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { ErrorMessage } from "@renderer/components/ErrorMessage";
-import {getInstallmentsPagination, TInstallment } from "@renderer/hooks/installments";
+import {
+  getInstallmentsPagination,
+  TInstallment,
+} from "@renderer/hooks/installments";
 import { format } from "date-fns-tz";
 import { DataPerPage, TableWork } from "../Table";
-import { useNavigate } from "react-router";
+import { useDisclosure } from "@heroui/react";
+import { AddPayModal } from "../modals/loans";
+
+type TemporalData = {
+  id: number;
+  name: string;
+  value: number;
+};
 
 //Component starts here
 export function CollectionPaySection() {
-  const navigate = useNavigate();
-
-
   /* REFs */
   const searchRef = useRef<HTMLInputElement>(null);
   const fromRef = useRef<HTMLInputElement>(null);
@@ -46,91 +51,116 @@ export function CollectionPaySection() {
   const [to, setTo] = useState<Date>();
   //
   const [limit, setLimit] = useState<DataPerPage>(10);
-  //
+  const [selectedRowID, setSelectedRowID] = useState<number>();
+  const [loansValue, setLoansValue] = useState<Map<number, TemporalData>>(
+    new Map(),
+  );
 
-  
+  const { isOpen: isAddPaymentOpenModal, onOpenChange: onOpenAddPaymentModal } =
+    useDisclosure();
 
-  /* QUERIES */
-  //
   const loansQuery = useQuery<
     Awaited<ReturnType<typeof getLoans>>,
     ServerError
   >({
-    queryKey: ["loans", "all", { page, limit, from, to }],
-    queryFn: withCbk({
-      queryFn: () => getLoans(from, to, page, limit),
-      onSuccess: (data) => {
-        if (page !== 1 && data.loans.length === 0) {
-          setPage((prev) => --prev);
-        }
-      },
-    }),
+    queryKey: ["loans", "all"],
+    queryFn: () => getLoans(),
     keepPreviousData: true,
   });
 
-
-    const installmentsQuery = useQuery<
-      Awaited<ReturnType<typeof getInstallmentsPagination>>,
-      ServerError
-    >({
-       queryKey: ["installments-total", "all", { page, limit, from, to }],
+  const installmentsQuery = useQuery<
+    Awaited<ReturnType<typeof getInstallmentsPagination>>,
+    ServerError
+  >({
+    queryKey: ["installments-total", "all", { page, limit, from, to }],
     queryFn: withCbk({
-      queryFn: () => getInstallmentsPagination(from, to),
+      queryFn: () => getInstallmentsPagination(page, limit, from, to),
       onSuccess: (data) => {
-        if (page !== 1 && data.length === 0) {
+        if (page !== 1 && data.total === 0) {
           setPage((prev) => --prev);
         }
+
+        const map: Map<number, TemporalData> = new Map();
+
+        data.installments.forEach((installment) => {
+          const currencyID = installment.currency.id;
+          const exists = map.get(currencyID);
+
+          if (exists) {
+            map.set(currencyID, {
+              id: currencyID,
+              name: installment.currency.name,
+              value: exists.value + (installment.value ?? 0),
+            });
+          } else {
+            map.set(currencyID, {
+              id: currencyID,
+              name: installment.currency.name,
+              value: installment.value ?? 0,
+            });
+          }
+        });
+
+        setLoansValue(map);
       },
     }),
-    });
+  });
 
   const COLUMNS = useMemo(() => {
     return [
-         {
+      {
         label: "Cliente",
         key: "clientName",
         render: (item: TInstallment) => item.clientName,
       },
-        {
-         label: "Fecha de cuota",
-         key: "dueDate",
-         render: (item: TInstallment) => format(parseISO(item.dueDate), "dd/MM/yyyy") ,
-       },
-      
       {
         label: "Monto acumulado",
         key: "amount",
-        render: (item: TInstallment) =>  {
- const remainingDate = differenceInDays(
+        render: (item: TInstallment) => {
+          const remainingDate = differenceInDays(
             item.dueDate,
             item.paymentDate ?? new Date(),
           );
-
           return (
-          <div
-            className={cn(
-              item.paymentAmount === item.value
-                ? "text-primary"
-                :  remainingDate < 0 ? "text-red-500" :"text-slate-400",
-              "flex items-center gap-2",
-            )}
-          >
-            <span>${item.paymentAmount}</span>
-            <ChevronRightIcon className={cn(
-              remainingDate < 0 ? "text-red-500" :"text-slate-400",
-              "size-4 min-w-4")} />
-            <span>${item.value}</span>
-          </div>
-        )
-        } 
+            <div
+              className={cn(
+                item.paymentAmount === item.value
+                  ? "text-primary"
+                  : remainingDate < 0
+                    ? "text-red-500"
+                    : "text-slate-400",
+                "flex items-center gap-2",
+              )}
+            >
+              <span>
+                {item.currency.nomenclature} ${item.paymentAmount}
+              </span>
+              <ChevronRightIcon
+                className={cn(
+                  remainingDate < 0 ? "text-red-500" : "text-slate-400",
+                  "size-4 min-w-4",
+                )}
+              />
+              <span>
+                {item.currency.nomenclature} ${item.value}
+              </span>
+            </div>
+          );
+        },
       },
-       {
-              label: "Vendedor",
-              key: "sellerName",
-              render: (item: TInstallment) => item.sellerName,
-            },
+      {
+        label: "Fecha de cuota",
+        key: "dueDate",
+        render: (item: TInstallment) =>
+          format(parseISO(item.dueDate), "dd/MM/yyyy"),
+      },
+      {
+        label: "Vendedor",
+        key: "sellerName",
+        render: (item: TInstallment) => item.sellerName,
+      },
 
-         {
+      {
         label: "Tiempo de pago",
         key: "payment_date",
         render: (item: TInstallment) => {
@@ -170,28 +200,79 @@ export function CollectionPaySection() {
     ];
   }, []);
 
+  const filteredInstallments = useMemo(() => {
+    if (!installmentsQuery?.data) return [];
 
-    const filteredInstallments = useMemo(() => {
-      if (!installmentsQuery?.data) return [];
-  
-      const normalizedFilter = strNormalize(search).toLowerCase();
-  
-      return installmentsQuery?.data?.filter((installment) => {
+    const normalizedFilter = strNormalize(search).toLowerCase();
+
+    const prevFilterInstallment = installmentsQuery?.data?.installments.filter(
+      (installment) => {
         let searched = `${installment.amount}${installment.currency}${installment.clientName}${installment.sellerName}${installment.number}`;
-  
+
         return strNormalize(searched).toLowerCase().includes(normalizedFilter);
-      });
-    }, [installmentsQuery.data, search]);
+      },
+    );
 
-      const actionOptions: MenuOption<TInstallment>[] = [
-        {
-          name: "Pagar cuota",
-          icon: PaperclipIcon,
-          onAction: (installment) => navigate(`/loans/${installment?.loanID}/details`),
-        },
-      ];
+    const map: Map<number, TemporalData> = new Map();
 
-    
+    prevFilterInstallment.forEach((installment) => {
+      const currencyID = installment.currency.id;
+      const exists = map.get(currencyID);
+      console.log(currencyID);
+
+      if (exists) {
+        map.set(currencyID, {
+          id: currencyID,
+          name: installment.currency.name,
+          value: exists.value + (installment.value ?? 0),
+        });
+      } else {
+        map.set(currencyID, {
+          id: currencyID,
+          name: installment.currency.name,
+          value: installment.value ?? 0,
+        });
+      }
+    });
+
+    setLoansValue(map);
+
+    return prevFilterInstallment;
+  }, [installmentsQuery.data, search]);
+
+  const installmentSelected = useMemo(() => {
+    return installmentsQuery.data?.installments.find(
+      (installment) => installment.id === selectedRowID,
+    );
+  }, [selectedRowID]);
+
+  const loanSelected = useMemo(() => {
+    if (installmentSelected)
+      return loansQuery.data?.loans.find(
+        (loan) => loan.id === installmentSelected.loanID,
+      );
+
+    return;
+  }, [installmentSelected]);
+
+  const loanQuery = useQuery<Awaited<ReturnType<typeof getLoan>>, ServerError>({
+    queryFn: () => getLoan(loanSelected?.id ?? -1),
+    queryKey: ["loans", loanSelected?.id],
+    enabled: !!loanSelected?.id,
+  });
+
+  const installmentValue = loanSelected?.installmentValue;
+  const lastInstallmentPaid = loanQuery.data?.installments.find(
+    (installment) => installment.paymentDate === null,
+  );
+
+  const actionOptions: MenuOption<TInstallment>[] = [
+    {
+      name: "Pagar cuota",
+      icon: PaperclipIcon,
+      onAction: () => onOpenAddPaymentModal(),
+    },
+  ];
 
   return (
     <section className="flex h-full w-full flex-col">
@@ -201,7 +282,9 @@ export function CollectionPaySection() {
           <div className="rounded-md border border-primary-50 bg-primary/5 p-1.5 text-primary">
             <CircleDollarSignIcon className="size-5 min-w-5" />
           </div>
-          <h1 className="text-xl font-semibold text-slate-500">Lista de cobranzas</h1>
+          <h1 className="text-xl font-semibold text-slate-500">
+            Lista de cobranzas
+          </h1>
         </div>
         {/* <Button
           onClick={onOpenCreateLoanModal}
@@ -222,7 +305,6 @@ export function CollectionPaySection() {
             "flex w-full gap-16",
           )}
         >
-        
           <div
             className="flex h-9 min-h-8 w-full min-w-96 max-w-96 items-center gap-2 rounded-md border border-slate-300/70 bg-white px-3 py-2 transition-all focus-within:border-primary" //{cn(cashboxesQuery.isFetching && "opacity-60",
           >
@@ -242,10 +324,10 @@ export function CollectionPaySection() {
               <p className="text-xs text-slate-500">+</p>
               <div className="flex h-5 items-center rounded-md border border-slate-300 bg-slate-50 px-1 py-0.5 text-xs font-medium text-slate-500">
                 F
+              </div>
             </div>
           </div>
 
-            </div>
           {/* DATE CONTAINER */}
           <div className="flex w-full items-center justify-end gap-2">
             {/* From date */}
@@ -302,7 +384,34 @@ export function CollectionPaySection() {
           </div>
         </div>
 
-          
+        <div className="flex w-full flex-col items-start gap-2">
+          <span className="flex items-center gap-2 text-nowrap text-lg font-medium text-slate-500">
+            <HandCoinsIcon className="size-4 min-w-4 text-primary" />
+            Total a cobrar
+          </span>
+
+          <div className="scroll_horizontal flex w-full items-center gap-2 overflow-x-auto pb-1">
+            {loansQuery.isFetching ? (
+              <div className="flex h-8 w-96 animate-pulse items-center gap-1 rounded-sm bg-slate-200" />
+            ) : (
+              Array.from(loansValue?.entries()).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-1 rounded-lg border border-slate-300/40 bg-[#FAFAFA] p-2"
+                >
+                  <DollarSignIcon className="size-5 min-w-5 text-primary" />
+                  <span className="flex items-center gap-2 text-nowrap text-slate-400">
+                    {value.name}:{" "}
+                    <b className="font-medium text-primary">
+                      {" "}
+                      ${value.value.toLocaleString("es")}
+                    </b>
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* TABLE'S CONTAINER */}
 
@@ -310,6 +419,7 @@ export function CollectionPaySection() {
           <ErrorMessage error={loansQuery.error} />
         ) : (from || to) &&
           filteredInstallments.length === 0 &&
+          !installmentsQuery.isFetching &&
           !loansQuery.isFetching ? (
           <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
             <CalendarOffIcon className="size-16 text-slate-400" />
@@ -329,15 +439,26 @@ export function CollectionPaySection() {
             pagination={{
               page: page,
               limit: limit,
-              total: installmentsQuery.data?.length ?? 0,
+              total: installmentsQuery.data?.total ?? 0,
               nextPage: setPage,
               prevPage: setPage,
               changeLimit: setLimit,
             }}
+            selectRowID={setSelectedRowID}
           />
-          
         )}
       </div>
+
+      {isAddPaymentOpenModal && installmentValue !== undefined && (
+        <AddPayModal
+          lastInstallmentPaid={lastInstallmentPaid}
+          installmentValue={installmentValue}
+          isOpen={isAddPaymentOpenModal}
+          onClose={onOpenAddPaymentModal}
+          loanId={loanSelected?.id ?? -1}
+          loading={loanQuery.isFetching}
+        />
+      )}
     </section>
   );
 }

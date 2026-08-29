@@ -44,7 +44,8 @@ export function CurrentLoansHistoryCashbox({
       {
         label: "Fecha generada",
         key: "dateGenerated",
-        render: (item: Loan) => format(parseISO(item.dateGenerated), "dd/MM/yyyy HH:mm"),
+        render: (item: Loan) =>
+          format(parseISO(item.dateGenerated), "dd/MM/yyyy HH:mm"),
       },
       {
         label: "Monto",
@@ -104,11 +105,22 @@ export function CurrentLoansHistoryCashbox({
         render: (item: Loan) => {
           const currentInstallment =
             Math.floor(item.totalPaid / item.installmentValue) + 1;
-
+          const remainingDate = differenceInDays(item.firstDueDate, new Date());
           const textColorStatus = getInstallmentStatusSyles(
             currentInstallment,
             item.numberOfInstallments,
           );
+
+          if (
+            currentInstallment === item.numberOfInstallments &&
+            remainingDate < 0
+          )
+            return (
+              <div className="flex items-center gap-1 text-red-500">
+                <CircleAlertIcon className="size-4 min-w-4" />
+                <span>Moroso</span>
+              </div>
+            );
 
           if (currentInstallment === item.numberOfInstallments)
             return (

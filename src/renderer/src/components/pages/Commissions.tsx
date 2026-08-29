@@ -18,7 +18,7 @@ import { Commission, getCommissions } from "@renderer/hooks/commissions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectItem } from "@heroui/select";
-import { getCashboxes } from "@renderer/hooks/cashboxes";
+import { Cashbox, getCashboxes } from "@renderer/hooks/cashboxes";
 import { PayCommissionModal } from "../modals/commission";
 
 const filters = [
@@ -56,10 +56,10 @@ export function CommissionsSection() {
   });
 
   const allCashboxes = useMemo(() => {
-    const cashboxes: Record<number, string> = {};
+    const cashboxes: Record<number, Cashbox> = {};
 
     cashboxesQuery.data?.forEach((cashbox) => {
-      return (cashboxes[cashbox.id] = cashbox.name);
+      return (cashboxes[cashbox.id] = cashbox);
     });
     return cashboxes;
   }, [cashboxesQuery.data]);
@@ -76,7 +76,8 @@ export function CommissionsSection() {
         key: "commission",
         render: (item: Commission) => (
           <span className="font-medium text-slate-500">
-            $ {item.commission.toLocaleString("es")}
+            {allCashboxes[item.cashboxID].currency.nomenclature} $
+            {item.commission.toLocaleString("es")}
           </span>
         ),
       },
@@ -108,7 +109,7 @@ export function CommissionsSection() {
         render: (item: Commission) =>
           item.state ? (
             <span className="font-semibold">
-              {allCashboxes[item.cashboxID]}
+              {allCashboxes[item.cashboxID].name}
             </span>
           ) : (
             "-"

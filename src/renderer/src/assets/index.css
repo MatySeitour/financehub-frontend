@@ -43,6 +43,19 @@ input {
   border-radius: 999px;
 }
 
+.scroll_horizontal::-webkit-scrollbar {
+  width: 8px;
+  margin-right: 4px;
+  padding-right: 40px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.scroll_horizontal::-webkit-scrollbar-thumb {
+  background-color: #aaa;
+  border-radius: 999px;
+}
+
 .css-1n9z7y8-Table::-webkit-scrollbar-thumb {
   background-color: #aaa;
   border-radius: 999px;

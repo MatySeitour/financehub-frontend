@@ -58,6 +58,7 @@ import {
   differenceInMinutes,
   format,
   parse,
+  parseISO,
   startOfDay,
   subDays,
 } from "date-fns";
@@ -190,7 +191,7 @@ export function Home() {
 
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const now = startOfDay(new Date());
+  const now = startOfDay(subDays(new Date(), 1));
   const tomorrow = startOfDay(addDays(new Date(), 1));
 
   const operationsCountQuery = useQuery<
@@ -277,7 +278,7 @@ export function Home() {
     return operationsCountQuery.data?.map((operation) => {
       return {
         count: operation.count,
-        date: format(operation.date, "dd/MM/yyyy"),
+        date: format(parseISO(operation.date), "dd/MM/yyyy"),
         profit: operation.profit,
       };
     });

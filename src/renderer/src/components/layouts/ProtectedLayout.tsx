@@ -37,6 +37,7 @@ export default function ProtectedLayout() {
   if (
     sessionQuery?.isLoading ||
     sessionQuery?.isFetching ||
+    loading ||
     errorAuth.includes(sessionQuery?.error?.message ?? "")
   ) {
     return (

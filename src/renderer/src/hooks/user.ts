@@ -68,7 +68,11 @@ export const usersByOrganizationSchema = z.object({
   id: z.number(),
   email: z.string(),
   name: z.string(),
-  role: z.enum(["admin", "empleado"]),
+  role: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  isOwner: z.boolean(),
 });
 
 export type UserCredentials = z.infer<typeof loginUserSchema>;

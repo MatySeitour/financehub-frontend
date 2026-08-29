@@ -81,7 +81,8 @@ export function LoanDetailsSection() {
       {
         label: "Vencimiento",
         key: "dueDate",
-        render: (item: TInstallment) => format(parseISO(item.dueDate), "dd/MM/yyyy"),
+        render: (item: TInstallment) =>
+          format(parseISO(item.dueDate), "dd/MM/yyyy"),
       },
       {
         label: "Pago",
@@ -96,7 +97,9 @@ export function LoanDetailsSection() {
         label: "Fecha de cobro",
         key: "paymentDate",
         render: (item: TInstallment) =>
-          item.paymentDate ? format(item.paymentDate, "dd/MM/yyyy") : "-",
+          item.paymentDate
+            ? format(parseISO(item.paymentDate), "dd/MM/yyyy")
+            : "-",
       },
     ];
   }, [loanQuery.data]);

@@ -1,4 +1,4 @@
-import { Checkbox, Input, Tooltip } from "@heroui/react";
+import { Checkbox, Chip, Input, Tooltip } from "@heroui/react";
 import { cn } from "@renderer/utils";
 import {
   ArrowLeftIcon,
@@ -616,21 +616,43 @@ export function StepThree({
                       key={user.id}
                       className="flex w-full items-center justify-between overflow-hidden rounded-md border-slate-300/70 bg-[#FCFCFC] bg-gradient-to-br from-transparent via-transparent to-slate-100 p-3 shadow"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 p-2">
-                          <span className="font-medium uppercase text-primary">
-                            {firstLetter}
-                            {secondLetter}
-                          </span>
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex w-full items-center gap-2.5">
+                          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 p-2">
+                            <span className="font-medium uppercase text-primary">
+                              {firstLetter}
+                              {secondLetter}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-slate-400">
+                              {user.name} {currentUser && "(Tú)"}
+                            </span>
+                            <span className="text-sm text-slate-300">
+                              {user.email}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-slate-400">
-                            {user.name} {currentUser && "(Tú)"}
-                          </span>
-                          <span className="text-sm text-slate-300">
-                            {user.email}
-                          </span>
-                        </div>
+
+                        {user.isOwner ? (
+                          <Chip
+                            variant="flat"
+                            radius="sm"
+                            className="bg-primary/10 text-xs text-primary"
+                            color="primary"
+                          >
+                            {user.role.name}
+                          </Chip>
+                        ) : (
+                          <Chip
+                            variant="flat"
+                            radius="sm"
+                            className="bg-blue-500/10 text-xs text-blue-500"
+                            color="secondary"
+                          >
+                            {user.role.name}
+                          </Chip>
+                        )}
                       </div>
 
                       {!currentUser && (
@@ -692,6 +714,7 @@ export function StepThree({
 
       {isCreateMemberModalOpen && (
         <CreateUserModal
+          isOnboarding
           isOpen={isCreateMemberModalOpen}
           onClose={() => setIsCreateMemberModalOpen(false)}
         />

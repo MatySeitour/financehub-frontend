@@ -21,6 +21,9 @@ import { CommissionsSection } from "./components/pages/Commissions";
 import { CheckingAccountsSection } from "./components/pages/checking-accounts";
 import { CheckingAccountClientSection } from "./components/pages/checking-accounts/[id]";
 import { CollectionPaySection } from "./components/pages/CollectionPay";
+import { PermissionsSection } from "./components/pages/settings/permissions";
+import { UsersSection } from "./components/pages/users";
+import { SummarySection } from "./components/pages/Summary";
 
 const ProtectedLayout = lazy(
   () => import("./components/layouts/ProtectedLayout"),
@@ -50,6 +53,9 @@ function App() {
           <Route element={<ProtectedLayout />}>
             {/* Home */}
             <Route path="/home" element={<Home />} />
+
+            {/* Resumen */}
+            <Route path="/summary" element={<SummarySection />} />
 
             {/* ------------ Clients ------------ */}
             {/* Clients */}
@@ -122,7 +128,12 @@ function App() {
 
             {/* Settings */}
             <Route element={<SettingsLayout />}>
-              <Route path="/settings" element={<Login />} />
+              <Route
+                path="/settings/permissions"
+                element={<PermissionsSection />}
+              />
+
+              <Route path="/settings/users" element={<UsersSection />} />
             </Route>
           </Route>
         </Routes>

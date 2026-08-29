@@ -20,6 +20,7 @@ import {
   KeyRoundIcon,
   LandmarkIcon,
   LucideIcon,
+  NotebookTabsIcon,
   ReceiptIcon,
   ShieldUserIcon,
   UsersIcon,
@@ -220,6 +221,12 @@ export const navItems: NavItem[] = [
     disabled: false,
   },
   {
+    name: "Resumen",
+    linkTo: "/summary",
+    icon: NotebookTabsIcon,
+    disabled: false,
+  },
+  {
     name: "Clientes",
     linkTo: "/clients",
     icon: UsersIcon,
@@ -269,9 +276,9 @@ export const navItems: NavItem[] = [
   },
   {
     name: "Configuraciones",
-    linkTo: "/settings",
+    linkTo: "/settings/permissions",
     icon: CogIcon,
-    disabled: true,
+    disabled: false,
   },
 ];
 
@@ -376,6 +383,11 @@ export const settingSectionsTabs: {
   {
     label: "Permisos",
     icon: KeyRoundIcon,
-    name: "rols",
+    name: "permissions",
+  },
+  {
+    label: "Usuarios",
+    icon: UsersIcon,
+    name: "users",
   },
 ] as const;

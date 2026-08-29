@@ -8,13 +8,14 @@ import {
   ModalHeader,
   Tooltip,
 } from "@heroui/react";
-import { cn } from "@renderer/utils";
+import { cn, withCbk } from "@renderer/utils";
 import {
   AlertCircleIcon,
   CheckIcon,
   CircleDashedIcon,
   EyeIcon,
   EyeOffIcon,
+  InfoIcon,
   TriangleAlertIcon,
   UserRoundPenIcon,
   UserRoundPlusIcon,
@@ -24,61 +25,80 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import { ModalProps, ServerError } from "@renderer/utils/types";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 import { z } from "zod";
 import { ErrorForm } from "../ErrorMessage";
 import { UsersByOrganization } from "@renderer/hooks/user";
+import { Select, SelectItem } from "@heroui/react";
+import { getRoles } from "@renderer/hooks/permissions";
+type Input = z.infer<ReturnType<typeof inputSchema>>;
+const inputSchema = (isOnboarding: boolean) => {
+  return z
+    .object({
+      name: z.string(),
+      email: z.string(),
+      password: z.string(),
+      repeatPassword: z.string(),
+      needsResetPassword: z.boolean(),
+      role_id: z.number().optional(),
+    })
+    .superRefine((val, ctx) => {
+      if (val.needsResetPassword && val.password !== val.repeatPassword) {
+        return ctx.addIssue({
+          message: "Las contraseñas no coinciden",
+          path: ["repeatPassword"],
+          code: "custom",
+        });
+      }
 
-const userDefaultValue: Input = {
-  email: "",
-  password: "",
-  repeatPassword: "",
-  name: "",
-  role_id: 2,
-  needsResetPassword: false,
+      if (!val.role_id && !isOnboarding) {
+        return ctx.addIssue({
+          message: "Este campo es requerido",
+          path: ["role_id"],
+          code: "custom",
+        });
+      }
+    });
 };
 
-type Input = z.infer<typeof inputSchema>;
-const inputSchema = z
-  .object({
-    name: z.string(),
-    email: z.string(),
-    password: z.string(),
-    repeatPassword: z.string(),
-    needsResetPassword: z.boolean(),
-    role_id: z.number(),
-  })
-  .superRefine((val, ctx) => {
-    if (val.needsResetPassword && val.password !== val.repeatPassword) {
-      return ctx.addIssue({
-        message: "Las contraseñas no coinciden",
-        path: ["repeatPassword"],
-        code: "custom",
-      });
-    }
-  });
-
-// .refine((val) => val.password === val.repeatPassword, {
-//   message: "Las contraseñas no coinciden",
-//   path: ["repeatPassword"],
-// });
-
-export function CreateUserModal({ isOpen, onClose }: ModalProps) {
+export function CreateUserModal({
+  isOpen,
+  onClose,
+  isOnboarding,
+}: ModalProps & { isOnboarding?: boolean }) {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const rolesQuery = useQuery<
+    Awaited<ReturnType<typeof getRoles>>,
+    ServerError
+  >({
+    queryFn: () => getRoles(),
+    queryKey: ["roles", "all"],
+    enabled: !isOnboarding,
+  });
+
   const {
     watch,
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<Input>({
-    resolver: zodResolver(inputSchema),
-    defaultValues: userDefaultValue,
+    resolver: zodResolver(inputSchema(!!isOnboarding)),
+    defaultValues: {
+      email: "",
+      name: "",
+      password: "",
+      needsResetPassword: true,
+      repeatPassword: "",
+    },
   });
+
+  console.log(errors);
 
   const mutation = useMutation<void, ServerError, Input>({
     mutationFn: async (user) => {
@@ -90,7 +110,7 @@ export function CreateUserModal({ isOpen, onClose }: ModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["users-organization", "all"],
+        queryKey: ["users-organization"],
       });
       onClose();
     },
@@ -162,6 +182,77 @@ export function CreateUserModal({ isOpen, onClose }: ModalProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Role */}
+                {!isOnboarding ? (
+                  <div className="flex w-full flex-col gap-1">
+                    <label htmlFor="Role" className="text-sm text-slate-500">
+                      Role
+                    </label>
+
+                    {rolesQuery.isFetching ? (
+                      <div className="h-10 w-full animate-pulse rounded-lg bg-slate-200" />
+                    ) : (
+                      <Controller
+                        name="role_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            selectedKeys={
+                              rolesQuery.data && field.value
+                                ? new Set([String(field.value)])
+                                : new Set()
+                            }
+                            placeholder="Selecciona un rol"
+                            aria-label="filters"
+                            classNames={{
+                              innerWrapper: "rounded-md ",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              value: "!text-slate-500",
+                            }}
+                            className={cn(
+                              errors.role_id?.message && "!border-red-500",
+
+                              "min-h-9 rounded-md border border-slate-300 outline-none",
+                            )}
+                            onSelectionChange={(key) => {
+                              if (key.currentKey)
+                                field.onChange(+key.currentKey);
+                            }}
+                          >
+                            {rolesQuery.data
+                              ? rolesQuery.data?.map((filter) => (
+                                  <SelectItem
+                                    textValue={`${filter.name}`}
+                                    classNames={{
+                                      base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                                    }}
+                                    className="flex items-center gap-1"
+                                    key={filter.id}
+                                  >
+                                    <span className="text-sm">
+                                      {filter.name}
+                                    </span>{" "}
+                                  </SelectItem>
+                                ))
+                              : []}
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-200/40 p-2 text-sm text-slate-400">
+                    <InfoIcon className="size-5 min-w-5" />
+                    <span>
+                      Este empleado va a tener el rol <b>Empleado</b>. Una vez
+                      creada la organización lo vas a poder modificar
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-2">
                   <label className="flex w-full flex-col gap-1 text-sm text-slate-500">
@@ -377,24 +468,44 @@ export function UpdateUserModal({
   isOpen,
   onClose,
   user,
-}: ModalProps & { user: UsersByOrganization }) {
+  isOnboarding,
+}: ModalProps & { user: UsersByOrganization; isOnboarding?: boolean }) {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  console.log(user);
+
+  const rolesQuery = useQuery<
+    Awaited<ReturnType<typeof getRoles>>,
+    ServerError
+  >({
+    queryFn: withCbk({
+      queryFn: () => getRoles(),
+      onSuccess: (data) => {
+        const roleID = data?.find((role) => role.id === user.role.id)?.id;
+
+        if (roleID) setValue("role_id", roleID);
+      },
+    }),
+    queryKey: ["roles", "all"],
+    enabled: !isOnboarding,
+  });
+
   const {
     watch,
     register,
     control,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm<Input>({
-    resolver: zodResolver(inputSchema),
+    resolver: zodResolver(inputSchema(!!isOnboarding)),
     defaultValues: {
       email: user.email,
       name: user.name,
-      role_id: 2,
+      role_id: user.role.id,
       password: "",
       repeatPassword: "",
       needsResetPassword: false,
@@ -403,12 +514,13 @@ export function UpdateUserModal({
 
   const mutation = useMutation<void, ServerError, Input>({
     mutationFn: async (body) => {
+      console.log(body);
       const { data } = await AxiosFetch.put(`/api/user/${user.id}`, body);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["users-organization", "all"],
+        queryKey: ["users-organization"],
       });
       onClose();
     },
@@ -480,6 +592,80 @@ export function UpdateUserModal({
                       </p>
                     )}
                   </div>
+                </div>
+
+                {/* Role */}
+                <div className="flex w-full flex-col gap-1">
+                  <label htmlFor="Role" className="text-sm text-slate-500">
+                    Role
+                  </label>
+
+                  {rolesQuery.isFetching ? (
+                    <div className="h-9 w-full animate-pulse rounded-lg bg-slate-200" />
+                  ) : user.isOwner ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="h-9 rounded-md border border-slate-300 bg-slate-200/50 p-2 text-sm text-slate-500 opacity-60">
+                        {user.role.name}
+                      </div>
+
+                      <span className="pl-1 text-xs text-slate-400">
+                        No se puede modificar el rol del dueño del sistema
+                      </span>
+                    </div>
+                  ) : (
+                    <Controller
+                      name="role_id"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          selectedKeys={
+                            field.value != null
+                              ? new Set([String(field.value)])
+                              : new Set()
+                          }
+                          placeholder="Selecciona un rol"
+                          aria-label="filters"
+                          classNames={{
+                            innerWrapper: "rounded-md ",
+                            mainWrapper: "rounded-md",
+                            popoverContent: "rounded-md font-normal",
+                            trigger:
+                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            value: "!text-slate-500",
+                          }}
+                          className={cn(
+                            errors.role_id?.message && "!border-red-500",
+
+                            "min-h-9 rounded-md border border-slate-300 outline-none",
+                          )}
+                          //  selectedKeys={new Set([selected.name])}
+                          onSelectionChange={(key) => {
+                            if (key.currentKey) field.onChange(+key.currentKey);
+                          }}
+                        >
+                          {rolesQuery.data
+                            ? rolesQuery.data?.map((filter) => (
+                                <SelectItem
+                                  key={String(filter.id)}
+                                  textValue={filter.name}
+                                  classNames={{
+                                    base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                                  }}
+                                  className="flex items-center gap-1"
+                                >
+                                  <span className="text-sm">{filter.name}</span>{" "}
+                                </SelectItem>
+                              ))
+                            : []}
+                        </Select>
+                      )}
+                    />
+                  )}
+                  {errors.role_id && (
+                    <p className="text-xs font-medium text-red-500">
+                      {errors.role_id.message}
+                    </p>
+                  )}
                 </div>
 
                 <div
@@ -715,7 +901,7 @@ export function DeleteMemberModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["users-organization", "all"],
+        queryKey: ["users-organization"],
       });
 
       onClose();

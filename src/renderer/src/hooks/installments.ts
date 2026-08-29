@@ -1,5 +1,6 @@
 import { z } from "zod";
 import axios from "./axios";
+import { DataPerPage } from "@renderer/components/Table";
 
 const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
@@ -13,7 +14,11 @@ export const installmentSchema = z.object({
   paymentAmount: z.coerce.number(),
   paymentDate: z.string().nullable(),
   dueDate: z.string(),
-  currency: z.string(),
+  currency: z.object({
+    id: z.number(),
+    name: z.string(),
+    nomenclature: z.string(),
+  }),
   number_of_installments: z.number(),
   clientName: z.string(),
   sellerName: z.string(),
@@ -30,19 +35,19 @@ export const installmentWithTotalSchema = z.object({
 });
 
 export async function getInstallmentsPagination(
+  page?: number,
+  limit?: DataPerPage,
   from?: Date,
   to?: Date,
-  // page?: number,
-  // limit?: DataPerPage,
 ) {
   const params = {
+    page,
+    limit,
     from,
     to,
-    // page,
-    // limit,
   };
   const { data } = await AxiosFetch("/api/v1/all_installments", { params });
-  return installmentSchema.array().parse(data.data);
+  return installmentWithTotalSchema.parse(data.data);
 }
 
 export async function getInstallments(from?: Date, to?: Date) {

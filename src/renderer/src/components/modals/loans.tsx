@@ -104,7 +104,7 @@ export function loanFormSchema(clients: Client[], sellers: Seller[]) {
 //
 export function addPayInstallmentSchema(
   installmentValue: number,
-  lastInstallmentValue: TInstallment,
+  lastInstallmentValue?: TInstallment,
 ) {
   return z
     .object({
@@ -119,7 +119,7 @@ export function addPayInstallmentSchema(
     .refine(
       (val) => {
         const totalPaid =
-          lastInstallmentValue.paymentAmount + val.payment_amount;
+          (lastInstallmentValue?.paymentAmount ?? 0) + val.payment_amount;
 
         if (totalPaid < installmentValue) return true;
 
@@ -297,6 +297,7 @@ export function CreateLoanModal({
                         </span>
                       )}
                     </label>
+
                     {/* Principal */}
                     <Controller
                       defaultValue={0}
@@ -656,12 +657,14 @@ export function AddPayModal({
   isOpen,
   onClose,
   loanId,
-  lastInstallmentPaid,
   installmentValue,
+  lastInstallmentPaid,
+  loading,
 }: ModalProps & {
   loanId: number;
-  lastInstallmentPaid: TInstallment;
   installmentValue: number;
+  lastInstallmentPaid?: TInstallment;
+  loading?: boolean;
 }) {
   /* UTILS */
   //
@@ -702,6 +705,7 @@ export function AddPayModal({
     onSuccess: () => {
       //Forces a refetch
       queryClient.invalidateQueries(["loans", loanId]);
+      queryClient.invalidateQueries(["installments-total"]);
 
       toast.success("Se ha actualizado el préstamo.", {
         className: "!border-primary/70",
@@ -747,257 +751,267 @@ export function AddPayModal({
       onOpenChange={onClose}
     >
       <ModalContent className="flex flex-col gap-2">
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex h-auto items-center gap-3">
-              <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500" />
-              <div className="flex w-fit flex-col justify-center">
-                <p className="text-lg text-slate-500">Agregar pago</p>
-              </div>
-            </ModalHeader>
-            <form
-              className="flex flex-col gap-4"
-              onSubmit={handleSubmit(onSubmit)}
-            >
-              <ModalBody className="py-0">
-                {/* Payment amount & payment date */}
-                <div className="flex w-full items-start gap-4">
-                  {/* Payment amount */}
-                  <Controller
-                    defaultValue={0}
-                    name="payment_amount"
-                    render={({ field }) => (
-                      <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                        <div className="flex items-center gap-0.5">
-                          Monto <Mandatory />
-                        </div>
-                        <div
-                          className={cn(
-                            errors.payment_amount
-                              ? "border-danger"
-                              : "border-slate-300",
-                            "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+        {loading ? (
+          <div className="flex h-full min-h-96 w-full items-center justify-center bg-white">
+            <span className="border-secondary-green relative inline-block size-12 animate-rotateFull rounded-[50%] border-4 border-b-primary after:absolute after:left-1/2 after:top-1/2 after:h-14 after:w-14 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-[50%] after:border-4 after:border-transparent"></span>
+          </div>
+        ) : (
+          (onClose) => (
+            <>
+              <ModalHeader className="flex h-auto items-center gap-3">
+                <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500" />
+                <div className="flex w-fit flex-col justify-center">
+                  <p className="text-lg text-slate-500">Agregar pago</p>
+                </div>
+              </ModalHeader>
+              <form
+                className="flex flex-col gap-4"
+                onSubmit={handleSubmit(onSubmit)}
+              >
+                <ModalBody className="py-0">
+                  {/* Payment amount & payment date */}
+                  <div className="flex w-full items-start gap-4">
+                    {/* Payment amount */}
+                    <Controller
+                      defaultValue={0}
+                      name="payment_amount"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Monto <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.payment_amount
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            $
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
+
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.payment_amount && (
+                            <span className="text-xs text-danger">
+                              {errors.payment_amount?.message}
+                            </span>
                           )}
-                        >
-                          $
+                        </label>
+                      )}
+                      control={control}
+                    />
+                    {/* Payment date */}
+                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-0.5">
+                        Fecha de pago <Mandatory />
+                      </div>
+                      <Controller
+                        control={control}
+                        name="payment_date"
+                        render={({ field }) => (
                           <input
-                            onChange={(e) => {
-                              const input = e.target.value;
-
-                              const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
-                              if (!isValid) return;
-
-                              if (
-                                `${field.value}` === "0" &&
-                                input.length === 2 &&
-                                !input.includes(".")
-                              ) {
-                                // if the field number is 0 and the input has 2 values, remove the 0
-                                field.onChange(+input[1]);
-                              } else {
-                                ////////////////////////////// if input has no values, set default 0
-                                field.onChange(
-                                  input[input.length - 1] === "."
-                                    ? input
-                                    : +input,
-                                );
-                              }
-                            }}
-                            value={field.value}
-                            type="text"
+                            onChange={(v) =>
+                              field.onChange(parseISO(v.target.value))
+                            }
+                            className={cn(
+                              errors.payment_date
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+                            )}
+                            type="date"
+                            value={
+                              field.value
+                                ? format(field.value, "yyyy-MM-dd")
+                                : ""
+                            }
                           />
-                        </div>
-                        {errors.payment_amount && (
-                          <span className="text-xs text-danger">
-                            {errors.payment_amount?.message}
-                          </span>
                         )}
+                      />
+
+                      {errors.payment_date && (
+                        <span className="text-xs text-danger">
+                          {errors.payment_date?.message}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="flex w-full items-start gap-4">
+                    {/* currency */}
+                    <div className="flex w-full flex-col gap-1">
+                      <label
+                        htmlFor="currency"
+                        className="text-sm text-slate-500"
+                      >
+                        Divisa
                       </label>
-                    )}
-                    control={control}
-                  />
-                  {/* Payment date */}
-                  <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                    <div className="flex items-center gap-0.5">
-                      Fecha de pago <Mandatory />
+
+                      <Controller
+                        name="currency_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            selectedKeys={field.value ? `${field.value}` : ""}
+                            placeholder="Selecciona una divisa"
+                            aria-label="filters"
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              errors.currency_id?.message && "!border-red-500",
+
+                              "min-h-9 rounded-md border border-slate-300 outline-none",
+                            )}
+                            //  selectedKeys={new Set([selected.name])}
+                            onSelectionChange={(key) => {
+                              if (key.currentKey)
+                                field.onChange(+key.currentKey);
+                            }}
+                          >
+                            {(currenciesQuery.data ?? []).map((filter) => (
+                              <SelectItem
+                                textValue={`${filter.name} (${filter.nomenclature})`}
+                                classNames={{
+                                  base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                                }}
+                                className="flex items-center gap-1"
+                                key={filter.id}
+                              >
+                                <span className="text-sm">{filter.name}</span>{" "}
+                                <span className="text-xs text-slate-400">
+                                  ({filter.nomenclature})
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors.currency_id && (
+                        <p className="text-xs font-medium text-red-500">
+                          {errors.currency_id.message}
+                        </p>
+                      )}
                     </div>
-                    <Controller
-                      control={control}
-                      name="payment_date"
-                      render={({ field }) => (
-                        <input
-                          onChange={(v) =>
-                            field.onChange(parseISO(v.target.value))
-                          }
-                          className={cn(
-                            errors.payment_date
-                              ? "border-danger"
-                              : "border-slate-300",
-                            "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                          )}
-                          type="date"
-                          value={
-                            field.value ? format(field.value, "yyyy-MM-dd") : ""
-                          }
-                        />
+
+                    {/* cashbox */}
+                    <div className="flex w-full flex-col gap-1">
+                      <label
+                        htmlFor="currency"
+                        className="text-sm text-slate-500"
+                      >
+                        Caja
+                      </label>
+
+                      <Controller
+                        name="cashbox_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            disabled={!watch("currency_id")}
+                            selectedKeys={field.value ? `${field.value}` : ""}
+                            placeholder="Selecciona una caja"
+                            aria-label="filters"
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              errors.cashbox_id?.message && "!border-red-500",
+                              !watch("currency_id") && "opacity-60",
+
+                              "min-h-9 rounded-md border border-slate-300 outline-none",
+                            )}
+                            //  selectedKeys={new Set([selected.name])}
+                            onSelectionChange={(key) => {
+                              if (key.currentKey)
+                                field.onChange(+key.currentKey);
+                            }}
+                          >
+                            {cashboxFiltered?.map((filter) => (
+                              <SelectItem
+                                textValue={`${filter.name}`}
+                                classNames={{
+                                  base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
+                                }}
+                                className="flex items-center gap-1"
+                                key={filter.id}
+                              >
+                                <span className="text-sm">{filter.name}</span>
+                                {"  "}
+                                {filter.state === 0 ? (
+                                  <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[0.63rem] text-danger">
+                                    Cerrada
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.63rem] text-primary">
+                                    Abierta
+                                  </span>
+                                )}
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors.cashbox_id && (
+                        <p className="text-xs font-medium text-red-500">
+                          {errors.cashbox_id.message}
+                        </p>
                       )}
-                    />
-
-                    {errors.payment_date && (
-                      <span className="text-xs text-danger">
-                        {errors.payment_date?.message}
-                      </span>
-                    )}
-                  </label>
-                </div>
-
-                <div className="flex w-full items-start gap-4">
-                  {/* currency */}
-                  <div className="flex w-full flex-col gap-1">
-                    <label
-                      htmlFor="currency"
-                      className="text-sm text-slate-500"
-                    >
-                      Divisa
-                    </label>
-
-                    <Controller
-                      name="currency_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          selectedKeys={field.value ? `${field.value}` : ""}
-                          placeholder="Selecciona una divisa"
-                          aria-label="filters"
-                          classNames={{
-                            innerWrapper: "rounded-md",
-                            mainWrapper: "rounded-md",
-                            popoverContent: "rounded-md font-normal",
-                            trigger:
-                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
-                          }}
-                          className={cn(
-                            errors.currency_id?.message && "!border-red-500",
-
-                            "min-h-9 rounded-md border border-slate-300 outline-none",
-                          )}
-                          //  selectedKeys={new Set([selected.name])}
-                          onSelectionChange={(key) => {
-                            if (key.currentKey) field.onChange(+key.currentKey);
-                          }}
-                        >
-                          {(currenciesQuery.data ?? []).map((filter) => (
-                            <SelectItem
-                              textValue={`${filter.name} (${filter.nomenclature})`}
-                              classNames={{
-                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
-                              }}
-                              className="flex items-center gap-1"
-                              key={filter.id}
-                            >
-                              <span className="text-sm">{filter.name}</span>{" "}
-                              <span className="text-xs text-slate-400">
-                                ({filter.nomenclature})
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </Select>
-                      )}
-                    />
-                    {errors.currency_id && (
-                      <p className="text-xs font-medium text-red-500">
-                        {errors.currency_id.message}
-                      </p>
-                    )}
+                    </div>
                   </div>
-
-                  {/* cashbox */}
-                  <div className="flex w-full flex-col gap-1">
-                    <label
-                      htmlFor="currency"
-                      className="text-sm text-slate-500"
-                    >
-                      Caja
-                    </label>
-
-                    <Controller
-                      name="cashbox_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          disabled={!watch("currency_id")}
-                          selectedKeys={field.value ? `${field.value}` : ""}
-                          placeholder="Selecciona una caja"
-                          aria-label="filters"
-                          classNames={{
-                            innerWrapper: "rounded-md",
-                            mainWrapper: "rounded-md",
-                            popoverContent: "rounded-md font-normal",
-                            trigger:
-                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
-                          }}
-                          className={cn(
-                            errors.cashbox_id?.message && "!border-red-500",
-                            !watch("currency_id") && "opacity-60",
-
-                            "min-h-9 rounded-md border border-slate-300 outline-none",
-                          )}
-                          //  selectedKeys={new Set([selected.name])}
-                          onSelectionChange={(key) => {
-                            if (key.currentKey) field.onChange(+key.currentKey);
-                          }}
-                        >
-                          {cashboxFiltered?.map((filter) => (
-                            <SelectItem
-                              textValue={`${filter.name}`}
-                              classNames={{
-                                base: "hover:!bg-black/5 rounded-md  data-[selectable=true]:focus:bg-black/5 data-[selectable=true]:focus:text-slate-500 !gap-2 ",
-                              }}
-                              className="flex items-center gap-1"
-                              key={filter.id}
-                            >
-                              <span className="text-sm">{filter.name}</span>
-                              {"  "}
-                              {filter.state === 0 ? (
-                                <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[0.63rem] text-danger">
-                                  Cerrada
-                                </span>
-                              ) : (
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.63rem] text-primary">
-                                  Abierta
-                                </span>
-                              )}
-                            </SelectItem>
-                          ))}
-                        </Select>
-                      )}
-                    />
-                    {errors.cashbox_id && (
-                      <p className="text-xs font-medium text-red-500">
-                        {errors.cashbox_id.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {mutation.isError && (
-                  <ErrorForm errorMessage={mutation.error} />
-                )}
-              </ModalBody>
-              <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
-                <Button
-                  type="submit"
-                  isLoading={mutation.isLoading}
-                  variant="success"
-                  className="w-full"
-                >
-                  Confirmar
-                </Button>
-                <Button variant="error" className="w-full" onClick={onClose}>
-                  Cancelar
-                </Button>
-              </ModalFooter>
-            </form>
-          </>
+                  {mutation.isError && (
+                    <ErrorForm errorMessage={mutation.error} />
+                  )}
+                </ModalBody>
+                <ModalFooter className="flex h-auto w-full gap-4 border-t border-slate-300/70">
+                  <Button
+                    type="submit"
+                    isLoading={mutation.isLoading}
+                    variant="success"
+                    className="w-full"
+                  >
+                    Confirmar
+                  </Button>
+                  <Button variant="error" className="w-full" onClick={onClose}>
+                    Cancelar
+                  </Button>
+                </ModalFooter>
+              </form>
+            </>
+          )
         )}
       </ModalContent>
     </Modal>
