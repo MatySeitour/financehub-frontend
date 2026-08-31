@@ -134,129 +134,143 @@ export function CheckingAccountsSection() {
           </div>
         </div>
 
-        <ul
-          className={cn(
-            "grid h-auto w-full grid-cols-2 gap-6",
-            // mqSection < 765 && "grid-cols-1",
-            // mqSection < 1205 && mqSection >= 765 && "grid-cols-2",
-            // mqSection >= 1205 && "grid-cols-3",
-          )}
-        >
-          {filteredCheckingAccountsClient.map(
-            (clientCheckingAccount, index) => (
-              <li
-                className="relative flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 transition-all hover:shadow-md"
-                key={clientCheckingAccount.client.id}
-              >
-                <div className="flex items-center justify-between p-4">
-                  <span className="text-lg font-medium text-slate-400">
-                    {clientCheckingAccount.client.name}
-                  </span>
+        {generalCheckingAccountsQuery.isFetching ? (
+          <div className="grid h-full w-full grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-full w-full animate-pulse rounded-md bg-slate-200/70"
+              />
+            ))}
+          </div>
+        ) : (
+          <ul
+            className={cn(
+              "grid h-auto w-full grid-cols-2 gap-6",
+              // mqSection < 765 && "grid-cols-1",
+              // mqSection < 1205 && mqSection >= 765 && "grid-cols-2",
+              // mqSection >= 1205 && "grid-cols-3",
+            )}
+          >
+            {filteredCheckingAccountsClient.map(
+              (clientCheckingAccount, index) => (
+                <li
+                  className="relative flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 transition-all hover:shadow-md"
+                  key={clientCheckingAccount.client.id}
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <span className="text-lg font-medium text-slate-400">
+                      {clientCheckingAccount.client.name}
+                    </span>
 
-                  {/* <div className="flex items-center gap-1.5 text-sm text-warning">
+                    {/* <div className="flex items-center gap-1.5 text-sm text-warning">
                   <CircleDotDashedIcon className="size-4 min-w-4" />
                   Pendiente
                 </div> */}
-                  <Button
-                    onClick={() =>
-                      navigate(
-                        `/clients/${clientCheckingAccount.client.id}/checking-accounts`,
-                      )
-                    }
-                    variant="blue"
-                    className="h-7"
-                  >
-                    Ver detalles
-                  </Button>
-                  {/* <div className="flex items-center gap-1 rounded-lg border border-primary/5 bg-green-400/5 px-2 py-1 text-xs font-medium text-primary/70">
+                    <Button
+                      onClick={() =>
+                        navigate(
+                          `/clients/${clientCheckingAccount.client.id}/checking-accounts`,
+                        )
+                      }
+                      variant="blue"
+                      className="h-7"
+                    >
+                      Ver detalles
+                    </Button>
+                    {/* <div className="flex items-center gap-1 rounded-lg border border-primary/5 bg-green-400/5 px-2 py-1 text-xs font-medium text-primary/70">
                     <span>%</span>{" "}
                     {clientCheckingAccount.percentage.toLocaleString("es")} de
                     interés
                   </div> */}
-                </div>
-
-                <div className="flex justify-between p-4">
-                  <div className="flex items-center gap-3 text-slate-300">
-                    <div className="rounded-full bg-slate-100/40 p-2">
-                      <WalletCardsIcon className="size-6 min-w-6 text-slate-400/70" />
-                    </div>
-                    <div className="flex flex-col items-start text-xs">
-                      <span className="text-lg font-semibold text-slate-400">
-                        {clientCheckingAccount.totalCount}
-                      </span>
-                      Cuentas corrientes
-                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-slate-300">
-                    <div className="rounded-full bg-slate-100/40 p-2">
-                      <PiggyBankIcon className="size-6 min-w-6 text-slate-400/70" />
-                    </div>
-                    <div className="flex flex-col items-end text-xs">
-                      <span className="text-lg font-semibold text-primary">
-                        +${clientCheckingAccount.totalAmountBorrowed}
-                      </span>
-                      Total prestado
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative z-50 flex h-full w-full flex-col gap-2.5 border-t border-slate-300/40 bg-slate-100/20 p-4 text-slate-400/70">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400">
-                      Ultima cuenta registrada
-                    </span>
-
-                    {index ? (
-                      <div className="flex items-center gap-1.5 text-sm text-primary">
-                        <CircleCheckBigIcon className="size-4 min-w-4" />
-                        Pagado
+                  <div className="flex justify-between p-4">
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="rounded-full bg-slate-100/40 p-2">
+                        <WalletCardsIcon className="size-6 min-w-6 text-slate-400/70" />
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-sm text-yellow-400">
-                        <CircleDotDashedIcon className="size-4 min-w-4" />
-                        Pendiente
+                      <div className="flex flex-col items-start text-xs">
+                        <span className="text-lg font-semibold text-slate-400">
+                          {clientCheckingAccount.totalCount}
+                        </span>
+                        Cuentas corrientes
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-sm">Monto prestado</span>
-                    <span className="font-semibold text-slate-500">
-                      $
-                      {clientCheckingAccount.latestCheckingAccount.amountBorrowed.toLocaleString(
-                        "es",
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <CalendarIcon className="size-4 min-w-4" />
-                      Fecha de movimiento
                     </div>
-                    <span className="font-semibold text-slate-500">
-                      {format(
-                        clientCheckingAccount.latestCheckingAccount.loanDate,
-                        "dd/MM/yyyy",
-                      )}
-                    </span>
+
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <div className="rounded-full bg-slate-100/40 p-2">
+                        <PiggyBankIcon className="size-6 min-w-6 text-slate-400/70" />
+                      </div>
+                      <div className="flex flex-col items-end text-xs">
+                        <span className="text-lg font-semibold text-primary">
+                          +${clientCheckingAccount.totalAmountBorrowed}
+                        </span>
+                        Total prestado
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <WalletCardsIcon className="size-4 min-w-4" />
-                      Caja
+                  <div className="relative z-50 flex h-full w-full flex-col gap-2.5 border-t border-slate-300/40 bg-slate-100/20 p-4 text-slate-400/70">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-400">
+                        Ultima cuenta registrada
+                      </span>
+
+                      {index ? (
+                        <div className="flex items-center gap-1.5 text-sm text-primary">
+                          <CircleCheckBigIcon className="size-4 min-w-4" />
+                          Pagado
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-sm text-yellow-400">
+                          <CircleDotDashedIcon className="size-4 min-w-4" />
+                          Pendiente
+                        </div>
+                      )}
                     </div>
-                    <span className="font-semibold text-slate-500">
-                      {clientCheckingAccount.latestCheckingAccount.cashboxName}
-                    </span>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-sm">Monto prestado</span>
+                      <span className="font-semibold text-slate-500">
+                        $
+                        {clientCheckingAccount.latestCheckingAccount.amountBorrowed.toLocaleString(
+                          "es",
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <CalendarIcon className="size-4 min-w-4" />
+                        Fecha de movimiento
+                      </div>
+                      <span className="font-semibold text-slate-500">
+                        {format(
+                          clientCheckingAccount.latestCheckingAccount.loanDate,
+                          "dd/MM/yyyy",
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <WalletCardsIcon className="size-4 min-w-4" />
+                        Caja
+                      </div>
+                      <span className="font-semibold text-slate-500">
+                        {
+                          clientCheckingAccount.latestCheckingAccount
+                            .cashboxName
+                        }
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ),
-          )}
-        </ul>
+                </li>
+              ),
+            )}
+          </ul>
+        )}
       </div>
 
       {isCreateCheckingAccount &&

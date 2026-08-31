@@ -138,7 +138,7 @@ export function LoansSection() {
         render: (item: Loan) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-medium text-slate-500">
-              {allCashboxes[item.cashboxID].currency.nomenclature} $
+              {allCashboxes[item.cashboxID]?.currency.nomenclature} $
               {item.principal}
             </span>
             <span className="text-[0.7rem] font-medium text-slate-400/70">
@@ -150,7 +150,7 @@ export function LoansSection() {
       {
         label: "Divisa",
         key: "cashboxID",
-        render: (item: Loan) => `${allCashboxes[item.cashboxID].name}`,
+        render: (item: Loan) => `${allCashboxes[item.cashboxID]?.name}`,
       },
       {
         label: "Cliente",
