@@ -19,7 +19,7 @@ import { SettingsLayout } from "./components/layouts/SettingsLayout";
 import { OnboardingPage } from "./components/pages/onboarding";
 import { CommissionsSection } from "./components/pages/Commissions";
 import { CheckingAccountsSection } from "./components/pages/checking-accounts";
-import { CheckingAccountClientSection } from "./components/pages/checking-accounts/[id]";
+import { CheckingAccountPercentagesSection } from "./components/pages/checking-accounts/[id]/[percentageID]";
 import { CollectionPaySection } from "./components/pages/CollectionPay";
 import { PermissionsSection } from "./components/pages/settings/permissions";
 import { UsersSection } from "./components/pages/users";
@@ -118,10 +118,15 @@ function App() {
             />
 
             {/* Client Checking accounts */}
+
             <Route
+              path="/checking-accounts/:id/:percentageID"
+              element={<CheckingAccountPercentagesSection />}
+            />
+            {/* <Route
               path="/clients/:id/checking-accounts"
               element={<CheckingAccountClientSection />}
-            />
+            /> */}
 
             {/* Commissions */}
             <Route path="/commissions" element={<CommissionsSection />} />

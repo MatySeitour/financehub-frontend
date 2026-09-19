@@ -3,6 +3,7 @@ import { ServerError } from "@renderer/utils/types";
 import {
   CircleArrowDownIcon,
   CircleArrowUpIcon,
+  DollarSignIcon,
   InfoIcon,
   NotebookTabsIcon,
   SearchIcon,
@@ -95,6 +96,8 @@ export function SummarySection() {
     }
   }, [summaryQuery.data, filterCashboxID, search]);
 
+  console.log(allCashboxes);
+
   return (
     <section className="flex h-full w-full flex-col">
       {/* TOP OPTION'S CONTAINER */}
@@ -109,7 +112,7 @@ export function SummarySection() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         <div className="flex min-h-0 w-full flex-col gap-4 overflow-hidden p-4">
           {/* SEARCH FILTER CONTAINER */}
           <div className="flex items-center gap-2">
@@ -237,27 +240,59 @@ export function SummarySection() {
           </div>
         </div>
 
-        {/* Details date and records */}
-        {summaryQuery.isFetching || cashboxesQuery.isFetching ? (
-          <div className="h-6 w-44 translate-x-4 animate-pulse rounded-md bg-slate-200/70" />
-        ) : (
-          !summaryQuery.isError &&
-          !summaryQuery.isError && (
-            <div className="flex flex-col gap-px pl-4">
-              <span className="text-lg font-semibold tracking-tighter text-slate-500">
-                {format(date ?? new Date(), "EEEE, d 'de' MMMM, yyyy", {
-                  locale: es,
-                })}
-              </span>
+        <div className="flex w-full items-center gap-10">
+          <div className="flex w-full max-w-fit flex-col gap-2">
+            {/* Details date and records */}
+            {summaryQuery.isFetching || cashboxesQuery.isFetching ? (
+              <div className="h-6 w-44 translate-x-4 animate-pulse rounded-md bg-slate-200/70" />
+            ) : (
+              !summaryQuery.isError && (
+                <div className="flex flex-col gap-px pl-4">
+                  <span className="text-lg font-semibold tracking-tighter text-slate-500">
+                    {format(date ?? new Date(), "EEEE, d 'de' MMMM, yyyy", {
+                      locale: es,
+                    })}
+                  </span>
 
-              <span className="text-sm tracking-tighter text-slate-400">
-                {summaryQuery.data?.length !== 0
-                  ? `${filteredSummary?.length} movimientos encontrados`
-                  : "No se encontraron movimientos"}
-              </span>
+                  <span className="text-sm tracking-tighter text-slate-400">
+                    {summaryQuery.data?.length !== 0
+                      ? `${filteredSummary?.length} movimientos encontrados`
+                      : "No se encontraron movimientos"}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
+
+          {filterCashboxID !== 0 && (
+            <div className="scroll_horizontal flex w-full items-center gap-2 overflow-x-auto pb-1">
+              <div className="flex items-center gap-1 rounded-lg border border-slate-300/40 bg-[#FAFAFA] p-2">
+                <DollarSignIcon className="size-5 min-w-5 text-primary" />
+                <span className="flex items-center gap-2 text-nowrap text-slate-400">
+                  Saldo inicial:{" "}
+                  <b className="font-medium text-primary">
+                    {" "}
+                    $
+                    {allCashboxes[filterCashboxID].openingValue.toLocaleString(
+                      "es",
+                    )}
+                  </b>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 rounded-lg border border-slate-300/40 bg-[#FAFAFA] p-2">
+                <DollarSignIcon className="size-5 min-w-5 text-primary" />
+                <span className="flex items-center gap-2 text-nowrap text-slate-400">
+                  Saldo actual:{" "}
+                  <b className="font-medium text-primary">
+                    {" "}
+                    ${allCashboxes[filterCashboxID].value.toLocaleString("es")}
+                  </b>
+                </span>
+              </div>
             </div>
-          )
-        )}
+          )}
+        </div>
       </div>
 
       {/* Moviments list */}

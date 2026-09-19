@@ -1,20 +1,25 @@
 import { Button } from "@renderer/components/Button";
-import { CreateCheckingAccountModal } from "@renderer/components/modals/checkingAccounts";
-import { getCashboxes } from "@renderer/hooks/cashboxes";
-import { getGeneralCheckingAccounts } from "@renderer/hooks/checkingAccounts";
+import {
+  CreateCheckingAccountClientModal,
+  UpdateCheckingAccountClientModal,
+} from "@renderer/components/modals/checkingAccountClient/checkingClient";
+import {
+  getCheckingAccountClients,
+  TCheckingAccountClient,
+} from "@renderer/hooks/checkingAccounts";
 import { getClients } from "@renderer/hooks/clients";
 import { cn, strNormalize } from "@renderer/utils";
 import { ServerError } from "@renderer/utils/types";
-import { format } from "date-fns";
 import {
-  CalendarIcon,
-  CircleCheckBigIcon,
-  CircleDotDashedIcon,
+  ArrowUpRightIcon,
+  CircleOffIcon,
+  ExternalLinkIcon,
   IdCardIcon,
-  PiggyBankIcon,
+  PenSquareIcon,
   PlusIcon,
   SearchIcon,
-  WalletCardsIcon,
+  Trash2Icon,
+  UserRoundIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
@@ -30,22 +35,17 @@ export function CheckingAccountsSection() {
   const [isCreateCheckingAccount, setIsCreateCheckingAccountOpen] =
     useState(false);
 
+  const [checkingAccountToUpdate, setCheckingAccountToUpdateOpen] =
+    useState<TCheckingAccountClient>();
+
   /* QUERIES */
   //
   const generalCheckingAccountsQuery = useQuery<
-    Awaited<ReturnType<typeof getGeneralCheckingAccounts>>,
+    Awaited<ReturnType<typeof getCheckingAccountClients>>,
     ServerError
   >({
-    queryFn: () => getGeneralCheckingAccounts(),
-    queryKey: ["checking-accounts", "all"],
-  });
-
-  const cashboxesQuery = useQuery<
-    Awaited<ReturnType<typeof getCashboxes>>,
-    ServerError
-  >({
-    queryKey: ["cashboxes", "all"],
-    queryFn: getCashboxes,
+    queryFn: () => getCheckingAccountClients(),
+    queryKey: ["checking-accounts-clients", "all"],
   });
 
   const clientsQuery = useQuery<
@@ -75,7 +75,7 @@ export function CheckingAccountsSection() {
     const normalizedFilter = strNormalize(search).toLowerCase();
 
     return generalCheckingAccountsQuery?.data?.filter((checkingAccount) => {
-      let searched = `${checkingAccount.client.name}${checkingAccount.percentage}${checkingAccount.totalAmountBorrowed}${checkingAccount.totalAmountBorrowed}`;
+      let searched = `${checkingAccount.client.name}`;
 
       return strNormalize(searched).toLowerCase().includes(normalizedFilter);
     });
@@ -146,129 +146,108 @@ export function CheckingAccountsSection() {
         ) : (
           <ul
             className={cn(
-              "grid h-auto w-full grid-cols-2 gap-6",
+              "grid h-auto w-full grid-cols-3 gap-6",
               // mqSection < 765 && "grid-cols-1",
               // mqSection < 1205 && mqSection >= 765 && "grid-cols-2",
               // mqSection >= 1205 && "grid-cols-3",
             )}
           >
-            {filteredCheckingAccountsClient.map(
-              (clientCheckingAccount, index) => (
-                <li
-                  className="relative flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 transition-all hover:shadow-md"
-                  key={clientCheckingAccount.client.id}
-                >
-                  <div className="flex items-center justify-between p-4">
-                    <span className="text-lg font-medium text-slate-400">
-                      {clientCheckingAccount.client.name}
+            {filteredCheckingAccountsClient.map((clientCheckingAccount) => (
+              <li
+                className="group relative flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200/70 bg-[#FCFCFC] transition-all hover:shadow-md"
+                key={clientCheckingAccount.id}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 p-4 text-slate-400">
+                    <div className="flex items-center justify-center rounded-md bg-slate-200/40 p-1.5">
+                      <UserRoundIcon className="size-4 min-w-4" />
+                    </div>
+                    {clientCheckingAccount.client.name}
+                  </div>
+
+                  <div className="flex translate-x-20 items-center gap-2 text-slate-300 transition-all group-hover:-translate-x-4">
+                    <PenSquareIcon
+                      onClick={() =>
+                        setCheckingAccountToUpdateOpen(clientCheckingAccount)
+                      }
+                      className="size-5 min-w-5 cursor-pointer hover:text-blue-500"
+                    />
+                    <Trash2Icon className="size-5 min-w-5 -translate-y-px opacity-40" />
+                  </div>
+                </div>
+
+                <div className="px-4">
+                  <div className="h-px w-full bg-slate-200" />
+                </div>
+
+                <div className="flex flex-col gap-2 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm tracking-tighter text-slate-400">
+                      Porcentajes disponibles
                     </span>
 
-                    {/* <div className="flex items-center gap-1.5 text-sm text-warning">
-                  <CircleDotDashedIcon className="size-4 min-w-4" />
-                  Pendiente
-                </div> */}
-                    <Button
+                    <div
                       onClick={() =>
                         navigate(
-                          `/clients/${clientCheckingAccount.client.id}/checking-accounts`,
+                          `/checking-accounts/${clientCheckingAccount?.id}/${clientCheckingAccount.percentages[0].id}`,
                         )
                       }
-                      variant="blue"
-                      className="h-7"
+                      className="flex items-center gap-0.5 text-xs text-primary hover:cursor-pointer hover:underline"
                     >
-                      Ver detalles
-                    </Button>
-                    {/* <div className="flex items-center gap-1 rounded-lg border border-primary/5 bg-green-400/5 px-2 py-1 text-xs font-medium text-primary/70">
-                    <span>%</span>{" "}
-                    {clientCheckingAccount.percentage.toLocaleString("es")} de
-                    interés
-                  </div> */}
-                  </div>
-
-                  <div className="flex justify-between p-4">
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="rounded-full bg-slate-100/40 p-2">
-                        <WalletCardsIcon className="size-6 min-w-6 text-slate-400/70" />
-                      </div>
-                      <div className="flex flex-col items-start text-xs">
-                        <span className="text-lg font-semibold text-slate-400">
-                          {clientCheckingAccount.totalCount}
-                        </span>
-                        Cuentas corrientes
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="rounded-full bg-slate-100/40 p-2">
-                        <PiggyBankIcon className="size-6 min-w-6 text-slate-400/70" />
-                      </div>
-                      <div className="flex flex-col items-end text-xs">
-                        <span className="text-lg font-semibold text-primary">
-                          +${clientCheckingAccount.totalAmountBorrowed}
-                        </span>
-                        Total prestado
-                      </div>
+                      Ver detalles{" "}
+                      <ArrowUpRightIcon className="size-4 min-w-4" />
                     </div>
                   </div>
 
-                  <div className="relative z-50 flex h-full w-full flex-col gap-2.5 border-t border-slate-300/40 bg-slate-100/20 p-4 text-slate-400/70">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-400">
-                        Ultima cuenta registrada
-                      </span>
-
-                      {index ? (
-                        <div className="flex items-center gap-1.5 text-sm text-primary">
-                          <CircleCheckBigIcon className="size-4 min-w-4" />
-                          Pagado
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-sm text-yellow-400">
-                          <CircleDotDashedIcon className="size-4 min-w-4" />
-                          Pendiente
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-sm">Monto prestado</span>
-                      <span className="font-semibold text-slate-500">
-                        $
-                        {clientCheckingAccount.latestCheckingAccount.amountBorrowed.toLocaleString(
-                          "es",
-                        )}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <CalendarIcon className="size-4 min-w-4" />
-                        Fecha de movimiento
+                  {clientCheckingAccount.percentages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 pt-4">
+                      <div className="flex items-center justify-center gap-1 text-sm text-slate-400">
+                        <CircleOffIcon className="size-3.5 min-w-3.5" />
+                        No hay porcentajes aún
                       </div>
-                      <span className="font-semibold text-slate-500">
-                        {format(
-                          clientCheckingAccount.latestCheckingAccount.loanDate,
-                          "dd/MM/yyyy",
-                        )}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <WalletCardsIcon className="size-4 min-w-4" />
-                        Caja
-                      </div>
-                      <span className="font-semibold text-slate-500">
-                        {
-                          clientCheckingAccount.latestCheckingAccount
-                            .cashboxName
+                      <Button
+                        onClick={() =>
+                          setCheckingAccountToUpdateOpen(clientCheckingAccount)
                         }
-                      </span>
+                        disabled={
+                          generalCheckingAccountsQuery.isLoading ||
+                          generalCheckingAccountsQuery.isError
+                        }
+                        variant="success"
+                        className="flex h-7 w-32 items-center gap-1 pr-5 text-xs"
+                      >
+                        <PlusIcon className="size-4 min-w-4" />
+                        Agregar
+                      </Button>
                     </div>
-                  </div>
-                </li>
-              ),
-            )}
+                  ) : (
+                    <ul className="flex w-full flex-wrap items-center gap-2">
+                      {clientCheckingAccount.percentages.map((percentage) => {
+                        return (
+                          <li
+                            onClick={() =>
+                              navigate(
+                                `/checking-accounts/${clientCheckingAccount?.id}/${percentage.id}`,
+                              )
+                            }
+                            key={percentage.id}
+                            className="flex h-8 min-w-20 max-w-20 cursor-pointer items-center justify-center gap-1 rounded-md border border-slate-200/70 bg-[#FCFCFC] px-2 py-1 text-xs tabular-nums text-slate-400 shadow-sm transition-all hover:bg-slate-500 hover:text-white"
+                          >
+                            %{Number(percentage.percentage).toFixed(2)}
+                            <ExternalLinkIcon className="size-3 min-w-3" />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="absolute -bottom-8 -right-10 z-10 size-24 rounded-full bg-slate-100/90" />
+
+                {/* Action buttons */}
+              </li>
+            ))}
           </ul>
         )}
       </div>
@@ -276,11 +255,21 @@ export function CheckingAccountsSection() {
       {isCreateCheckingAccount &&
         generalCheckingAccountsQuery.data &&
         clientsQuery.data && (
-          <CreateCheckingAccountModal
+          <CreateCheckingAccountClientModal
             isOpen={isCreateCheckingAccount}
             onClose={() => setIsCreateCheckingAccountOpen(false)}
-            cashboxes={cashboxesQuery.data ?? []}
             clients={clientsQuery.data}
+          />
+        )}
+
+      {checkingAccountToUpdate &&
+        generalCheckingAccountsQuery.data &&
+        clientsQuery.data && (
+          <UpdateCheckingAccountClientModal
+            isOpen={!!checkingAccountToUpdate}
+            onClose={() => setCheckingAccountToUpdateOpen(undefined)}
+            clients={clientsQuery.data}
+            checkingAccount={checkingAccountToUpdate}
           />
         )}
     </section>

@@ -746,15 +746,15 @@ export function DeleteCashboxModal({
 }
 
 type InputMoviment = z.infer<ReturnType<typeof getInputMovimentSchema>>;
-const getInputMovimentSchema = (maxCashboxValue: number) => {
+const getInputMovimentSchema = () => {
   return z.object({
     description: z.string().min(1, { message: "Campo requerido" }),
     amount: z
       .number({ message: "Campo requerido" })
-      .gt(0, { message: "Debe ser mayor a 0" })
-      .refine((val) => val <= maxCashboxValue, {
-        message: "El monto súpera el valor de la caja",
-      }),
+      .gt(0, { message: "Debe ser mayor a 0" }),
+    // .refine((val) => val <= maxCashboxValue, {
+    //   message: "El monto súpera el valor de la caja",
+    // }),
     date: z.date({ message: "Campo requerido" }),
     cashbox_id: z.number(),
     moviment_type: z.enum(movimentTypes, {
@@ -777,7 +777,7 @@ export function CreateCashboxMovimentModal({
     control,
     register,
   } = useForm<InputMoviment>({
-    resolver: zodResolver(getInputMovimentSchema(cashbox.value)),
+    resolver: zodResolver(getInputMovimentSchema()),
     defaultValues: {
       cashbox_id: cashbox.id,
       date: now("America/Argentina/Buenos_Aires").toDate(),
@@ -858,9 +858,7 @@ export function CreateCashboxMovimentModal({
                                 ////////////////////////////// if input has no values, set default 0
                                 field.onChange(+"0");
                               } else {
-                                +input > cashbox.value
-                                  ? field.onChange(cashbox.value)
-                                  : field.onChange(+input);
+                                field.onChange(+input);
                               }
                             }}
                             value={field.value ?? ""}
