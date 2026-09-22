@@ -66,7 +66,7 @@ export default function ProtectedLayout() {
           {sessionQuery?.data && <Navigation user={sessionQuery?.data} />}
 
           {/* Body */}
-          <div className="flex w-full flex-grow flex-col pl-12 xl:w-2/3 xl:pl-0">
+          <div className="flex w-full flex-grow flex-col pl-12 2xl:w-2/3 2xl:pl-0">
             <div className="flex flex-grow flex-col overflow-hidden bg-white">
               <Outlet context={sessionQuery?.data} />
             </div>
