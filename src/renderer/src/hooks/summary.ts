@@ -22,8 +22,8 @@ export const summarySchema = z.object({
   message: z.string().nullable().optional(),
 });
 
-export async function getSummary(date: Date) {
-  const params = { date };
+export async function getSummary(from: Date, to?: Date) {
+  const params = { from, to };
   const { data } = await AxiosFetch("/api/v1/current-day", { params: params });
   return summarySchema.array().parse(data.data);
 }

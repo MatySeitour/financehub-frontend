@@ -109,6 +109,10 @@ export function CashBoxHistorySection() {
       : now("America/Argentina/Buenos_Aires");
   }, [cashboxHistoryQuery.data]);
 
+  const params = new URLSearchParams({
+    openingDateTime: cashboxHistoryQuery.data?.current?.openingDateTime ?? "",
+  });
+
   return (
     <section ref={sectionRef} className="flex h-full w-full flex-col">
       {/* Header */}
@@ -251,7 +255,9 @@ export function CashBoxHistorySection() {
                   {/* Dates */}
                   <div
                     onClick={() =>
-                      navigate(`/boxes/${cashboxID}/history/current`)
+                      navigate(
+                        `/boxes/${cashboxID}/history/current?openingDateTime=${params.toString()}`,
+                      )
                     }
                     className="flex w-full items-center gap-4 rounded-t-md p-4"
                   >
@@ -382,144 +388,160 @@ export function CashBoxHistorySection() {
               )}
 
               {/* Current cashbox active */}
-              {filteredHistories.map((history) => (
-                <li
-                  className="flex h-auto w-full cursor-pointer flex-col gap-2 rounded-md border border-slate-300/70 bg-white transition-all hover:bg-slate-100/30"
-                  key={history.id}
-                >
-                  {/* Dates */}
-                  <div
-                    onClick={() =>
-                      navigate(`/boxes/${cashboxID}/history/${history.id}`)
-                    }
-                    className="flex w-full items-center justify-between rounded-t-md p-4"
+              {filteredHistories.map((history) => {
+                const openingDateTime = new URLSearchParams({
+                  openingDateTime: history.openingDateTime ?? "",
+                });
+
+                const closeDateTime = new URLSearchParams({
+                  closeDateTime: history.closeDateTime ?? "",
+                });
+
+                return (
+                  <li
+                    className="flex h-auto w-full cursor-pointer flex-col gap-2 rounded-md border border-slate-300/70 bg-white transition-all hover:bg-slate-100/30"
+                    key={history.id}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <CalendarArrowUpIcon className="size-4 min-w-4 text-slate-400" />
-                        <p className="text-xs text-slate-400">
-                          {format(
-                            history.openingDateTime ?? "",
-                            "dd 'de' MMM, HH:mm aaaa",
-                            { locale: es },
-                          )}
-                        </p>
-                      </div>
-                      <ArrowRightIcon className="size-4 min-w-4 text-slate-400" />
-                      <div className="flex items-center gap-1">
-                        <CalendarArrowDownIcon className="size-4 min-w-4 text-slate-400" />
-                        <p className="text-xs text-slate-400">
-                          {format(
-                            history.closeDateTime ?? "",
-                            "dd 'de' MMM, HH:mm aaaa",
-                            { locale: es },
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex h-auto items-center justify-between gap-5 px-4 pb-4">
-                    {/* Opening value */}
-                    <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
-                      <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
-                        <p className="text-xs font-medium">Valor de apertura</p>
-                      </div>
-
-                      <div className="flex w-full items-center justify-between">
-                        <p className="text-xl font-medium text-slate-500">
-                          ${history.openingValue.toLocaleString("es-AR")}
-                        </p>
-                        <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500/70" />
-                      </div>
-                    </div>
-
-                    <span className="h-20 w-px bg-slate-300/70" />
-
-                    {/* Closed value */}
-                    <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
-                      <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
-                        <p className="text-xs font-medium">Valor de cierre</p>
-                      </div>
-
-                      <div className="flex w-full items-center justify-between">
-                        <p className="text-xl font-medium text-slate-500">
-                          ${history.lastValue.toLocaleString("es-AR")}
-                        </p>
-                        <BanknoteArrowDownIcon className="size-8 min-w-8 text-slate-500/70" />
-                      </div>
-                    </div>
-
-                    <span className="h-16 w-px bg-slate-300/70" />
-
-                    {/* Moviments */}
-                    <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
-                      <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
-                        <p className="text-xs font-medium">Movimientos</p>
-                      </div>
-
-                      <div className="flex w-full items-center justify-between">
-                        <p className="text-xl font-medium text-slate-500">
-                          {history.movimentsCount}
-                        </p>
-                        <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
-                      </div>
-                    </div>
-
-                    <span className="h-16 w-px bg-slate-300/70" />
-
-                    {/* Profit */}
-                    <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
-                      <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
-                        <span className="text-xs font-medium">Rendimiento</span>
-
-                        <div
-                          className={cn(
-                            history.profit === 0
-                              ? "bg-slate-300/40 text-slate-400"
-                              : history.profit > 0
-                                ? "bg-primary/10 text-primary"
-                                : "bg-danger/10 text-danger",
-                            "flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-[0.6rem] font-medium",
-                          )}
-                        >
-                          {history.profit > 0 && (
-                            <span className="pb-0.5">+</span>
-                          )}
-                          {history.profit.toLocaleString("es-AR")}
-                          <span className="pb-0.5 text-[0.55rem]">%</span>
-                        </div>
-                      </div>
-
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <p
-                            className={cn(
-                              history.profit > 0
-                                ? "text-primary"
-                                : history.profit === 0
-                                  ? "text-slate-500"
-                                  : "text-danger",
-                              "text-xl font-medium",
+                    {/* Dates */}
+                    <div
+                      onClick={() =>
+                        navigate(
+                          `/boxes/${cashboxID}/history/${history.id}?openingDateTime=${openingDateTime.toString()}&closeDateTime=${closeDateTime.toString()}`,
+                        )
+                      }
+                      className="flex w-full items-center justify-between rounded-t-md p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <CalendarArrowUpIcon className="size-4 min-w-4 text-slate-400" />
+                          <p className="text-xs text-slate-400">
+                            {format(
+                              history.openingDateTime ?? "",
+                              "dd 'de' MMM, HH:mm aaaa",
+                              { locale: es },
                             )}
-                          >
-                            $
-                            {(
-                              (history.profit * history.openingValue) /
-                              100
-                            ).toLocaleString("es-AR")}
                           </p>
                         </div>
-                        {history.profit > 0 ? (
-                          <TrendingUpIcon className="size-8 min-w-8 text-slate-500/70" />
-                        ) : (
-                          <TrendingDownIcon className="size-8 min-w-8 text-slate-500/70" />
-                        )}
+                        <ArrowRightIcon className="size-4 min-w-4 text-slate-400" />
+                        <div className="flex items-center gap-1">
+                          <CalendarArrowDownIcon className="size-4 min-w-4 text-slate-400" />
+                          <p className="text-xs text-slate-400">
+                            {format(
+                              history.closeDateTime ?? "",
+                              "dd 'de' MMM, HH:mm aaaa",
+                              { locale: es },
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+
+                    <div className="flex h-auto items-center justify-between gap-5 px-4 pb-4">
+                      {/* Opening value */}
+                      <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                        <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                          <p className="text-xs font-medium">
+                            Valor de apertura
+                          </p>
+                        </div>
+
+                        <div className="flex w-full items-center justify-between">
+                          <p className="text-xl font-medium text-slate-500">
+                            ${history.openingValue.toLocaleString("es-AR")}
+                          </p>
+                          <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500/70" />
+                        </div>
+                      </div>
+
+                      <span className="h-20 w-px bg-slate-300/70" />
+
+                      {/* Closed value */}
+                      <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                        <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                          <p className="text-xs font-medium">Valor de cierre</p>
+                        </div>
+
+                        <div className="flex w-full items-center justify-between">
+                          <p className="text-xl font-medium text-slate-500">
+                            ${history.lastValue.toLocaleString("es-AR")}
+                          </p>
+                          <BanknoteArrowDownIcon className="size-8 min-w-8 text-slate-500/70" />
+                        </div>
+                      </div>
+
+                      <span className="h-16 w-px bg-slate-300/70" />
+
+                      {/* Moviments */}
+                      <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                        <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                          <p className="text-xs font-medium">Movimientos</p>
+                        </div>
+
+                        <div className="flex w-full items-center justify-between">
+                          <p className="text-xl font-medium text-slate-500">
+                            {history.movimentsCount}
+                          </p>
+                          <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
+                        </div>
+                      </div>
+
+                      <span className="h-16 w-px bg-slate-300/70" />
+
+                      {/* Profit */}
+                      <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                        <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                          <span className="text-xs font-medium">
+                            Rendimiento
+                          </span>
+
+                          <div
+                            className={cn(
+                              history.profit === 0
+                                ? "bg-slate-300/40 text-slate-400"
+                                : history.profit > 0
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-danger/10 text-danger",
+                              "flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-[0.6rem] font-medium",
+                            )}
+                          >
+                            {history.profit > 0 && (
+                              <span className="pb-0.5">+</span>
+                            )}
+                            {history.profit.toLocaleString("es-AR")}
+                            <span className="pb-0.5 text-[0.55rem]">%</span>
+                          </div>
+                        </div>
+
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <p
+                              className={cn(
+                                history.profit > 0
+                                  ? "text-primary"
+                                  : history.profit === 0
+                                    ? "text-slate-500"
+                                    : "text-danger",
+                                "text-xl font-medium",
+                              )}
+                            >
+                              $
+                              {(
+                                (history.profit * history.openingValue) /
+                                100
+                              ).toLocaleString("es-AR")}
+                            </p>
+                          </div>
+                          {history.profit > 0 ? (
+                            <TrendingUpIcon className="size-8 min-w-8 text-slate-500/70" />
+                          ) : (
+                            <TrendingDownIcon className="size-8 min-w-8 text-slate-500/70" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </>
           )}
         </ul>
