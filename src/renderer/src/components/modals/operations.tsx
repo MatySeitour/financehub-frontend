@@ -79,9 +79,8 @@ export function operationFormSchema(clients: Client[], sellers: Seller[]) {
       type: z.enum(["buys", "sale"]),
       increase_cashbox_id: z.number({ message: "Este campo es requerido." }),
       decrease_cashbox_id: z.number({ message: "Este campo es requerido." }),
-      currency: z
-        .string({ message: "Este campo es requerido" })
-        .min(1, { message: "Este campo es requerido" }),
+      currency: z.string().optional(),
+      // .min(1, { message: "Este campo es requerido" }),
     })
     .refine((val) => val.decrease_cashbox_id !== val.increase_cashbox_id, {
       message:
@@ -110,6 +109,8 @@ export function CreateOperationModal({
   /* UTILS */
   //get the query client instance to interact with the cache
   const queryClient = useQueryClient();
+
+  console.log(currencies);
 
   /* MUTATIONS */
   //mutation to create operations
@@ -159,23 +160,17 @@ export function CreateOperationModal({
   const onSubmit: SubmitHandler<OperationForm> = (data) =>
     mutation.mutate(data);
 
-  const increaseCashboxFiltered =
-    watch("currency") !== undefined
-      ? watch("type") === "buys"
-        ? cashboxes.filter(
-            (cashbox) => cashbox.currency.name === watch("currency"),
-          )
-        : cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
-      : undefined;
+  const increaseCashboxFiltered = cashboxes;
+  // const increaseCashboxFiltered =
+  //   watch("currency") !== undefined
+  //     ? watch("type") === "buys"
+  //       ? cashboxes.filter(
+  //           (cashbox) => cashbox.currency.name === watch("currency"),
+  //         )
+  //       : cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
+  //     : undefined;
 
-  const decreaseCashboxFiltered =
-    watch("currency") !== undefined
-      ? watch("type") === "buys"
-        ? cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
-        : cashboxes.filter(
-            (cashbox) => cashbox.currency.name === watch("currency"),
-          )
-      : undefined;
+  const decreaseCashboxFiltered = cashboxes;
 
   return (
     <>
@@ -219,7 +214,7 @@ export function CreateOperationModal({
                     </label>
 
                     {/* Currency */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                    {/* <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
                       <div className="flex items-center gap-0.5">
                         Divisa <Mandatory />
                       </div>
@@ -245,7 +240,7 @@ export function CreateOperationModal({
                           {errors.currency?.message}
                         </span>
                       )}
-                    </label>
+                    </label> */}
                   </div>
                   {/* Increase & decrease cashbox*/}
                   <div className="flex w-full items-start gap-4">
