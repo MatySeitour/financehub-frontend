@@ -14,6 +14,7 @@ import {
   CalendarArrowDownIcon,
   CalendarArrowUpIcon,
   CircleAlert,
+  ScaleIcon,
   TrendingDownIcon,
   TrendingUpIcon,
   Undo2Icon,
@@ -57,6 +58,7 @@ export function CashBoxHistorySection() {
     enabled: !!cashboxID,
   });
 
+  const cashboxCurrent = cashboxHistoryQuery.data?.current;
   /// Focus search with Ctrl + f
   useEffect(() => {
     const handleFocusSearch = (e: KeyboardEvent) => {
@@ -86,8 +88,7 @@ export function CashBoxHistorySection() {
   }, [cashboxHistoryQuery.data, to, from]);
 
   const emptyHistory =
-    cashboxHistoryQuery.data?.current === null &&
-    filteredHistories.length === 0;
+    cashboxCurrent === null && filteredHistories.length === 0;
 
   // min date for from default value
   const minDateHistory = useMemo(() => {
@@ -110,7 +111,7 @@ export function CashBoxHistorySection() {
   }, [cashboxHistoryQuery.data]);
 
   const params = new URLSearchParams({
-    openingDateTime: cashboxHistoryQuery.data?.current?.openingDateTime ?? "",
+    openingDateTime: cashboxCurrent?.openingDateTime ?? "",
   });
 
   return (
@@ -247,10 +248,10 @@ export function CashBoxHistorySection() {
           ) : (
             <>
               {/* Current cashbox active */}
-              {cashboxHistoryQuery.data?.current && (
+              {cashboxCurrent && (
                 <li
                   className="flex h-auto w-full cursor-pointer flex-col gap-2 rounded-md border border-primary/50 bg-white transition-all hover:bg-slate-100/30"
-                  key={cashboxHistoryQuery.data?.current.id}
+                  key={cashboxCurrent.id}
                 >
                   {/* Dates */}
                   <div
@@ -266,8 +267,7 @@ export function CashBoxHistorySection() {
                         <CalendarArrowUpIcon className="size-4 min-w-4 text-slate-400" />
                         <p className="text-xs text-slate-400">
                           {format(
-                            cashboxHistoryQuery.data?.current.openingDateTime ??
-                              "",
+                            cashboxCurrent.openingDateTime ?? "",
                             "dd 'de' MMM, HH:mm aaaa",
                             { locale: es },
                           )}
@@ -282,6 +282,28 @@ export function CashBoxHistorySection() {
                   </div>
 
                   <div className="flex h-auto items-center justify-between gap-5 px-4 pb-4">
+                    {/* Avg */}
+                    <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                      <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                        <p className="text-xs font-medium">
+                          Promedio de{" "}
+                          <b className="text-primary">
+                            {cashboxCurrent.isAverageSale ? "Venta" : "Compra"}
+                          </b>
+                        </p>
+                      </div>
+
+                      <div className="flex w-full items-center justify-between">
+                        <p className="text-xl font-medium text-slate-500">
+                          %
+                          {cashboxCurrent.isAverageSale
+                            ? cashboxCurrent.averageSale
+                            : cashboxCurrent.averageBuy}
+                        </p>
+                        <ScaleIcon className="size-6 min-w-6 text-slate-500/70" />
+                      </div>
+                    </div>
+
                     <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
                       <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
                         <p className="text-xs font-medium">Valor de apertura</p>
@@ -289,10 +311,7 @@ export function CashBoxHistorySection() {
 
                       <div className="flex w-full items-center justify-between">
                         <p className="text-xl font-medium text-primary">
-                          $
-                          {cashboxHistoryQuery.data?.current.openingValue.toLocaleString(
-                            "es-AR",
-                          )}
+                          ${cashboxCurrent.openingValue.toLocaleString("es-AR")}
                         </p>
                         <BanknoteArrowUpIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -306,10 +325,7 @@ export function CashBoxHistorySection() {
 
                       <div className="flex w-full items-center justify-between">
                         <p className="text-xl font-medium text-primary">
-                          $
-                          {cashboxHistoryQuery.data?.current.lastValue.toLocaleString(
-                            "es-AR",
-                          )}
+                          ${cashboxCurrent.lastValue.toLocaleString("es-AR")}
                         </p>
                         <BanknoteArrowDownIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -323,7 +339,7 @@ export function CashBoxHistorySection() {
 
                       <div className="flex w-full items-center justify-between">
                         <p className="text-xl font-medium text-slate-500">
-                          {cashboxHistoryQuery.data?.current.movimentsCount}
+                          {cashboxCurrent.movimentsCount}
                         </p>
                         <BanknoteIcon className="size-8 min-w-8 text-slate-500/70" />
                       </div>
@@ -337,20 +353,18 @@ export function CashBoxHistorySection() {
                         <span className="text-xs font-medium">Rendimiento</span>
                         <div
                           className={cn(
-                            cashboxHistoryQuery.data?.current.profit === 0
+                            cashboxCurrent.profit === 0
                               ? "bg-slate-300/40 text-slate-400"
-                              : cashboxHistoryQuery.data?.current.profit > 0
+                              : cashboxCurrent.profit > 0
                                 ? "bg-primary/10 text-primary"
                                 : "bg-danger/10 text-danger",
                             "flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-[0.6rem] font-medium",
                           )}
                         >
-                          {cashboxHistoryQuery.data?.current.profit > 0 && (
+                          {cashboxCurrent.profit > 0 && (
                             <span className="pb-0.5">+</span>
                           )}
-                          {cashboxHistoryQuery.data?.current.profit.toLocaleString(
-                            "es-AR",
-                          )}
+                          {cashboxCurrent.profit.toLocaleString("es-AR")}
                           <span className="pb-0.5 text-[0.55rem]">%</span>
                         </div>
                       </div>
@@ -359,9 +373,9 @@ export function CashBoxHistorySection() {
                         <div className="flex items-center gap-1.5">
                           <p
                             className={cn(
-                              cashboxHistoryQuery.data?.current.profit > 0
+                              cashboxCurrent.profit > 0
                                 ? "text-primary"
-                                : cashboxHistoryQuery.data?.current.profit === 0
+                                : cashboxCurrent.profit === 0
                                   ? "text-slate-500"
                                   : "text-danger",
                               "text-xl font-medium",
@@ -369,14 +383,13 @@ export function CashBoxHistorySection() {
                           >
                             $
                             {(
-                              (cashboxHistoryQuery.data?.current.profit *
-                                cashboxHistoryQuery.data?.current
-                                  .openingValue) /
+                              (cashboxCurrent.profit *
+                                cashboxCurrent.openingValue) /
                               100
                             ).toLocaleString("es-AR")}
                           </p>
                         </div>
-                        {cashboxHistoryQuery.data?.current.profit > 0 ? (
+                        {cashboxCurrent.profit > 0 ? (
                           <TrendingUpIcon className="size-8 min-w-8 text-slate-500/70" />
                         ) : (
                           <TrendingDownIcon className="size-8 min-w-8 text-slate-500/70" />
@@ -437,6 +450,28 @@ export function CashBoxHistorySection() {
                     </div>
 
                     <div className="flex h-auto items-center justify-between gap-5 px-4 pb-4">
+                      {/* Avg */}
+                      <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
+                        <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">
+                          <p className="text-xs font-medium">
+                            Promedio de{" "}
+                            <b className="text-primary">
+                              {history.isAverageSale ? "Venta" : "Compra"}
+                            </b>
+                          </p>
+                        </div>
+
+                        <div className="flex w-full items-center justify-between">
+                          <p className="text-xl font-medium text-slate-500">
+                            %
+                            {history.isAverageSale
+                              ? history.averageSale
+                              : history.averageBuy}
+                          </p>
+                          <ScaleIcon className="size-6 min-w-6 text-slate-500/70" />
+                        </div>
+                      </div>
+
                       {/* Opening value */}
                       <div className="flex h-auto w-full flex-col items-center gap-2 rounded-md border border-slate-300/70 bg-gradient-to-t from-slate-50 to-white p-3">
                         <div className="flex w-full items-center justify-start gap-1 text-slate-500/70">

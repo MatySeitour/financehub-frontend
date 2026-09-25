@@ -43,6 +43,9 @@ export const cashboxHistorySchema = z.object({
   closeDateTime: z.string().nullable(),
   profit: z.number(),
   movimentsCount: z.number(),
+  averageBuy: z.number(),
+  averageSale: z.number(),
+  isAverageSale: z.boolean(),
 });
 
 export type CashboxHistoryList = z.infer<typeof cashboxSchema>;
