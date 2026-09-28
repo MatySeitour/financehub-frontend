@@ -195,7 +195,7 @@ export function CreateClientModal({ isOpen, onClose }: ModalProps) {
                             mainWrapper: "rounded-md",
                             popoverContent: "rounded-md font-normal",
                             trigger:
-                              "hover:!bg-white hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
                           }}
                           className={cn(
                             errors.referred_to_id?.message && "!border-red-500",

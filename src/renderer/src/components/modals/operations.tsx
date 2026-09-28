@@ -32,6 +32,7 @@ import { ErrorForm } from "../ErrorMessage";
 import { toast } from "sonner";
 import { Operation, OperationWithNewState } from "@renderer/hooks/operations";
 import { Currency } from "@renderer/hooks/currencies";
+import { Select, SelectItem } from "@heroui/react";
 
 /* DATA TYPES */
 //create operation structure
@@ -200,52 +201,104 @@ export function CreateOperationModal({
                 onSubmit={handleSubmit(onSubmit)}
               >
                 <ModalBody className="py-0">
-                  {/* Client & seller */}
+                  {/* Type of operation & currency */}
                   <div className="flex w-full items-start gap-4">
                     {/* type of operation */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-sm text-slate-500">
                         Tipo de operación <Mandatory />
-                      </div>
-                      <select
-                        {...register("type")}
-                        className={cn(
-                          "flex h-9 w-full items-center gap-2 rounded-md border border-slate-300 px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value="buys">Compra</option>
-                        <option value="sale">Venta</option>
-                      </select>
-                    </label>
+                      </label>
 
+                      <Controller
+                        name="type"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            selectedKeys={field.value ? [field.value] : []}
+                            placeholder="Selecciona un tipo de operación"
+                            aria-label="Tipo de operación"
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className="min-h-9 rounded-md border border-slate-300 outline-none focus-within:border-primary"
+                            onSelectionChange={(keys) => {
+                              const key = keys.currentKey;
+                              field.onChange(key);
+                            }}
+                          >
+                            <SelectItem
+                              className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              key="buys"
+                              textValue="Compra"
+                            >
+                              Compra
+                            </SelectItem>
+                            <SelectItem
+                              className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              key="sale"
+                              textValue="Venta"
+                            >
+                              Venta
+                            </SelectItem>
+                          </Select>
+                        )}
+                      />
+                    </div>
                     {/* Currency */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-sm text-slate-500">
                         Divisa <Mandatory />
-                      </div>
-                      <select
-                        {...register("currency")}
-                        className={cn(
-                          errors.increase_cashbox_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value={undefined}>Selecciona una divisa</option>
+                      </label>
 
-                        {currencies.map((currency) => (
-                          <option value={currency.name}>
-                            {currency.name} ({currency.nomenclature})
-                          </option>
-                        ))}
-                      </select>
+                      <Controller
+                        name="currency"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            selectedKeys={field.value ? [field.value] : []}
+                            placeholder="Selecciona una divisa"
+                            aria-label="Divisa"
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                              errors.currency
+                                ? "border-danger"
+                                : "border-slate-300",
+                            )}
+                            onSelectionChange={(keys) => {
+                              const key = keys.currentKey;
+                              field.onChange(key);
+                            }}
+                          >
+                            {currencies.map((currency) => (
+                              <SelectItem
+                                key={currency.name}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                textValue={currency.name}
+                              >
+                                {currency.name} ({currency.nomenclature})
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+
                       {errors.currency && (
                         <span className="text-xs text-danger">
-                          {errors.currency?.message}
+                          {errors.currency.message}
                         </span>
                       )}
-                    </label>
+                    </div>
                   </div>
                   {/* Increase & decrease cashbox*/}
                   <div className="flex w-full items-start gap-4">
