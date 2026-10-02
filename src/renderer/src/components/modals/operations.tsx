@@ -371,54 +371,72 @@ export function CreateOperationModal({
                     </div>
 
                     {/* decrease cashbox */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-sm text-slate-500">
                         Caja que disminuye <Mandatory />
-                      </div>
-                      <select
-                        onChange={(v) =>
-                          setValue("decrease_cashbox_id", +v.target.value)
-                        }
-                        disabled={watch("currency") === "Selecciona una divisa"}
-                        className={cn(
-                          errors.decrease_cashbox_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          (watch("currency") === "Selecciona una divisa" ||
-                            decreaseCashboxFiltered?.length === 0) &&
-                            "pointer-events-none opacity-60",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value={undefined}>Selecciona una caja</option>
-                        {decreaseCashboxFiltered?.map((cashbox) => {
-                          if (cashbox.disabled)
-                            return (
-                              <option key={cashbox.id} value={cashbox.id}>
-                                {cashbox.currency.name} - {cashbox.name}{" "}
-                                (Deshabilitada)
-                              </option>
-                            );
+                      </label>
 
-                          return (
-                            <option key={cashbox.id} value={cashbox.id}>
-                              {cashbox.currency.name} - {cashbox.name}
-                            </option>
-                          );
-                        })}
-                      </select>
+                      <Controller
+                        name="decrease_cashbox_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            selectedKeys={field.value ? [`${field.value}`] : []}
+                            placeholder="Selecciona una caja"
+                            aria-label="Caja que disminuye"
+                            isDisabled={
+                              watch("currency") === "Selecciona una divisa" ||
+                              decreaseCashboxFiltered?.length === 0
+                            }
+                            listboxProps={{
+                              emptyContent:
+                                "No hay opciones disponibles con los criterios seleccionados",
+                            }}
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                              errors.decrease_cashbox_id
+                                ? "border-danger"
+                                : "border-slate-300",
+                            )}
+                            onSelectionChange={(keys) => {
+                              const key = keys.currentKey;
+                              field.onChange(key ? +key : undefined);
+                            }}
+                          >
+                            {(decreaseCashboxFiltered ?? []).map((cashbox) => (
+                              <SelectItem
+                                key={cashbox.id}
+                                textValue={`${cashbox.currency.name} - ${cashbox.name}`}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              >
+                                {cashbox.currency.name} - {cashbox.name}
+                                {cashbox.disabled ? " (Deshabilitada)" : ""}
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+
                       {errors.decrease_cashbox_id && (
                         <span className="text-xs text-danger">
-                          {errors.decrease_cashbox_id?.message}
+                          {errors.decrease_cashbox_id.message}
                         </span>
                       )}
+
                       {decreaseCashboxFiltered &&
-                        decreaseCashboxFiltered?.length === 0 && (
+                        decreaseCashboxFiltered.length === 0 && (
                           <span className="text-xs text-danger">
                             No hay cajas para esta divisa
                           </span>
                         )}
-                    </label>
+                    </div>
                   </div>
                   {/* Amount & type */}
                   <div className="flex w-full items-start gap-4">
