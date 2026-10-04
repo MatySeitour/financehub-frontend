@@ -438,45 +438,137 @@ export function CreateOperationModal({
                         )}
                     </div>
                   </div>
-                  {/* Amount & type */}
+                  {/* Client & Seller */}
                   <div className="flex w-full items-start gap-4">
                     {/* client name */}
-                    <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-sm text-slate-500">
                         Cliente <Mandatory />
-                      </div>
-                      <input
-                        {...register("client_id")}
-                        className={cn(
-                          errors.client_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                        type="text"
-                        autoComplete="off"
-                        list="clientsList"
+                      </label>
+
+                      <Controller
+                        name="client_id"
+                        control={control}
+                        render={({ field }) => {
+                          const selectedClient = clients.find(
+                            (client) => client.name === `${field.value}`,
+                          );
+
+                          return (
+                            <Select
+                              selectedKeys={
+                                selectedClient ? [`${selectedClient.id}`] : []
+                              }
+                              placeholder="Selecciona un cliente"
+                              aria-label="Cliente"
+                              listboxProps={{
+                                emptyContent:
+                                  "No hay opciones disponibles con los criterios seleccionados",
+                              }}
+                              classNames={{
+                                innerWrapper: "rounded-md",
+                                mainWrapper: "rounded-md",
+                                popoverContent: "rounded-md font-normal",
+                                trigger:
+                                  "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              }}
+                              className={cn(
+                                "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                                errors.client_id
+                                  ? "border-danger"
+                                  : "border-slate-300",
+                              )}
+                              onSelectionChange={(keys) => {
+                                const key = keys.currentKey;
+
+                                const selectedClient = clients.find(
+                                  (client) => `${client.id}` === key,
+                                );
+
+                                field.onChange(selectedClient?.name ?? "");
+                              }}
+                            >
+                              {clients.map((client) => (
+                                <SelectItem
+                                  key={client.id}
+                                  textValue={client.name}
+                                  className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                >
+                                  {client.name}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                          );
+                        }}
                       />
+
                       {errors.client_id && (
                         <span className="text-xs text-danger">
-                          {errors.client_id?.message}
+                          {errors.client_id.message}
                         </span>
                       )}
-                    </label>
+                    </div>
                     {/* seller name */}
                     <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
                       <div className="flex items-center gap-0.5">Vendedor</div>
-                      <input
-                        {...register("seller_id")}
-                        className={cn(
-                          errors.seller_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                        type="text"
-                        list="sellersList"
+
+                      <Controller
+                        name="seller_id"
+                        control={control}
+                        render={({ field }) => {
+                          const selectedSeller = sellers.find(
+                            (seller) => seller.name === String(field.value),
+                          );
+
+                          return (
+                            <Select
+                              items={sellers}
+                              selectedKeys={
+                                selectedSeller ? [`${selectedSeller.id}`] : []
+                              }
+                              placeholder="Selecciona un vendedor"
+                              aria-label="Vendedor"
+                              listboxProps={{
+                                emptyContent:
+                                  "No hay opciones disponibles con los criterios seleccionados",
+                              }}
+                              classNames={{
+                                innerWrapper: "rounded-md",
+                                mainWrapper: "rounded-md",
+                                popoverContent: "rounded-md font-normal",
+                                trigger:
+                                  "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              }}
+                              className={cn(
+                                "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                                errors.seller_id
+                                  ? "border-danger"
+                                  : "border-slate-300",
+                              )}
+                              onSelectionChange={(keys) => {
+                                const key = keys.currentKey;
+
+                                const selectedSeller = sellers.find(
+                                  (seller) => `${seller.id}` === key,
+                                );
+
+                                field.onChange(selectedSeller?.name ?? "");
+                              }}
+                            >
+                              {(seller) => (
+                                <SelectItem
+                                  key={seller.id}
+                                  textValue={seller.name}
+                                  className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                >
+                                  {seller.name}
+                                </SelectItem>
+                              )}
+                            </Select>
+                          );
+                        }}
                       />
+
                       {errors.seller_id && (
                         <span className="text-xs text-danger">
                           {errors.seller_id?.message}
@@ -670,17 +762,6 @@ export function CreateOperationModal({
           )}
         </ModalContent>
       </Modal>
-      {/* DATALIST FOR SEARCH SELLERS INPUT */}
-      <datalist id="clientsList">
-        {clients?.map((client) => (
-          <option key={client.id} value={client.name}></option>
-        ))}
-      </datalist>
-      <datalist id="sellersList">
-        {sellers?.map((seller) => (
-          <option key={seller.id} value={seller.name}></option>
-        ))}
-      </datalist>
     </>
   );
 }
