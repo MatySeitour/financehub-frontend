@@ -375,11 +375,11 @@ export const settingSectionsTabs: {
     icon: Building2,
     name: "organization",
   },
-  {
-    label: "Mi perfil",
-    icon: ShieldUserIcon,
-    name: "profile",
-  },
+  // {
+  //   label: "Mi perfil",
+  //   icon: ShieldUserIcon,
+  //   name: "profile",
+  // },
   {
     label: "Permisos",
     icon: KeyRoundIcon,

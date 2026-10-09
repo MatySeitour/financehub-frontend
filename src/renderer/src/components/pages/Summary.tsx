@@ -240,8 +240,6 @@ export function SummarySection() {
       </div>
 
       <div className="flex h-full w-full items-center border-t border-slate-200">
-        <div className="h-full w-44 bg-red-100"></div>
-
         <div className="flex h-full w-full flex-col items-center p-3">
           <div className="flex w-full items-center gap-10">
             <div className="flex w-full max-w-fit flex-col gap-2">
