@@ -1,6 +1,12 @@
 import clsx, { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { ContextMenuState, ErrorResponse, NavItem, ServerError } from "./types";
+import {
+  ContextMenuState,
+  ErrorResponse,
+  NavItem,
+  ServerError,
+  SessionError,
+} from "./types";
 import axios from "@renderer/hooks/axios";
 import { ZodError } from "zod";
 import { format } from "date-fns";
@@ -22,7 +28,6 @@ import {
   LucideIcon,
   NotebookTabsIcon,
   ReceiptIcon,
-  ShieldUserIcon,
   UsersIcon,
   WalletCardsIcon,
 } from "lucide-react";
@@ -43,20 +48,19 @@ export function strNormalize(s: string) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-export function getErrorMessage(error: ServerError | null) {
+export function getErrorMessage(error: ServerError | SessionError | null) {
   if (!error) return "";
 
-  console.error("[getErrorMessage]", error);
-
-  if (error.response?.data.message) return error.response?.data.message;
-  if (error.code === "ERR_NETWORK") return "Sin conexión";
+  if ("response" in error && error.response?.data.message) {
+    return error.response.data.message;
+  }
+  if ("code" in error && error.code === "ERR_NETWORK") return "Sin conexión";
+  if ("status" in error && error.status === 0) return "Sin conexión";
   return "Ocurrió un error inesperado";
 }
 
 export function errorsResponse(error: any) {
-  console.error(error);
   if (error instanceof ZodError) {
-    console.error(error?.errors);
     throw {
       code: "zod_validation",
       message: "Error: Solicitud mal formada",
@@ -90,20 +94,33 @@ export function errorsResponse(error: any) {
   }
 }
 
-export async function getSession(
-  cookie: string | undefined,
-): Promise<TSession> {
-  if (!cookie) {
-    throw { status: 401, message: "invalid_token" };
-  }
+export async function getSession(): Promise<TSession> {
   try {
     const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
     const { data } = await AxiosFetch.get("/api/user");
     return sessionSchema.parse(data.data);
-  } catch (e: any) {
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      const sessionError = new Error(
+        "invalid_session_response",
+      ) as SessionError;
+      sessionError.status = 500;
+      throw sessionError;
+    }
+
+    const response = (
+      error as {
+        response?: {
+          status?: number;
+          data?: { error?: string; message?: string };
+        };
+      }
+    ).response;
     const errorMessage =
-      e?.response?.data?.error ?? e?.response?.data?.message ?? "unknown_error";
-    throw { status: e?.response?.status || 500, message: errorMessage };
+      response?.data?.error ?? response?.data?.message ?? "unknown_error";
+    const sessionError = new Error(errorMessage) as SessionError;
+    sessionError.status = response?.status ?? 0;
+    throw sessionError;
   }
 }
 

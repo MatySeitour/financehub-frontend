@@ -96,8 +96,6 @@ export function SummarySection() {
     }
   }, [summaryQuery.data, filterCashboxID, search]);
 
-  console.log(allCashboxes);
-
   return (
     <section className="flex h-full w-full flex-col">
       {/* TOP OPTION'S CONTAINER */}

@@ -17,6 +17,10 @@ export type ServerError = AxiosError<{
   message: string;
 }>;
 
+export type SessionError = Error & {
+  status: number;
+};
+
 export type ServerSucces<T> = {
   success: boolean;
   message: string;

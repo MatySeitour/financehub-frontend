@@ -218,7 +218,6 @@ export function CollectionPaySection() {
     prevFilterInstallment.forEach((installment) => {
       const currencyID = installment.currency.id;
       const exists = map.get(currencyID);
-      console.log(currencyID);
 
       if (exists) {
         map.set(currencyID, {
@@ -434,7 +433,7 @@ export function CollectionPaySection() {
             error={installmentsQuery.isError}
             searchInput={""}
             data={filteredInstallments}
-            openModal={() => console.log()}
+            openModal={() => undefined}
             optionsMenu={actionOptions}
             pagination={{
               page: page,

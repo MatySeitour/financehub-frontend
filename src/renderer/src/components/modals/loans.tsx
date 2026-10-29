@@ -42,6 +42,7 @@ const paymentFrequency = ["daily", "weekly", "biweekly", "monthly"] as const;
 /* DATA TYPES */
 //create loan structure
 export type LoanForm = z.infer<ReturnType<typeof loanFormSchema>>;
+type LoanFormInput = z.input<ReturnType<typeof loanFormSchema>>;
 //
 export type addPayInstallment = z.infer<
   ReturnType<typeof addPayInstallmentSchema>
@@ -190,7 +191,7 @@ export function CreateLoanModal({
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoanForm>({
+  } = useForm<LoanFormInput, undefined, LoanForm>({
     resolver: zodResolver(loanFormSchema(clients, sellers)),
     defaultValues: {},
   });

@@ -31,11 +31,11 @@ import { Mandatory } from "../Mandatory";
 import { ErrorForm } from "../ErrorMessage";
 import { toast } from "sonner";
 import { Operation, OperationWithNewState } from "@renderer/hooks/operations";
-import { Currency } from "@renderer/hooks/currencies";
 
 /* DATA TYPES */
 //create operation structure
 export type OperationForm = z.infer<ReturnType<typeof operationFormSchema>>;
+type OperationFormInput = z.input<ReturnType<typeof operationFormSchema>>;
 
 /* UTILS */
 //axios
@@ -43,7 +43,17 @@ const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
 
 /* SCHEMAS */
 //create and edit operation data validation
-export function operationFormSchema(clients: Client[], sellers: Seller[]) {
+export function operationFormSchema(
+  clients: Client[],
+  sellers: Seller[],
+  cashboxes: Cashbox[],
+) {
+  const availableCashboxIds = new Set(
+    cashboxes
+      .filter((cashbox) => cashbox.disabled === 0 && cashbox.state === 1)
+      .map((cashbox) => cashbox.id),
+  );
+
   return z
     .object({
       seller_id: z
@@ -77,15 +87,36 @@ export function operationFormSchema(clients: Client[], sellers: Seller[]) {
         .number({ message: "Este campo es requerido." })
         .gt(0, "La cantidad debe ser mayor a 0."),
       type: z.enum(["buys", "sale"]),
-      increase_cashbox_id: z.number({ message: "Este campo es requerido." }),
-      decrease_cashbox_id: z.number({ message: "Este campo es requerido." }),
-      currency: z.string().optional(),
-      // .min(1, { message: "Este campo es requerido" }),
+      increase_cashbox_id: z
+        .number({ message: "Este campo es requerido." })
+        .int()
+        .positive(),
+      decrease_cashbox_id: z
+        .number({ message: "Este campo es requerido." })
+        .int()
+        .positive(),
     })
     .refine((val) => val.decrease_cashbox_id !== val.increase_cashbox_id, {
       message:
         "La caja de entrada y la caja de salida no pueden ser las mismas.",
       path: ["decrease_cashbox_id"],
+    })
+    .superRefine((values, context) => {
+      if (!availableCashboxIds.has(values.increase_cashbox_id)) {
+        context.addIssue({
+          code: "custom",
+          message: "La caja de entrada debe estar abierta y habilitada.",
+          path: ["increase_cashbox_id"],
+        });
+      }
+
+      if (!availableCashboxIds.has(values.decrease_cashbox_id)) {
+        context.addIssue({
+          code: "custom",
+          message: "La caja de salida debe estar abierta y habilitada.",
+          path: ["decrease_cashbox_id"],
+        });
+      }
     });
 }
 
@@ -97,20 +128,16 @@ export function CreateOperationModal({
   clients,
   sellers,
   cashboxes,
-  currencies,
 }: ModalProps & {
   clients: Client[];
   sellers: Seller[];
   cashboxes: Cashbox[];
-  currencies: Currency[];
 }) {
   /* STATES */
 
   /* UTILS */
   //get the query client instance to interact with the cache
   const queryClient = useQueryClient();
-
-  console.log(currencies);
 
   /* MUTATIONS */
   //mutation to create operations
@@ -146,11 +173,10 @@ export function CreateOperationModal({
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<OperationForm>({
-    resolver: zodResolver(operationFormSchema(clients, sellers)),
+  } = useForm<OperationFormInput, undefined, OperationForm>({
+    resolver: zodResolver(operationFormSchema(clients, sellers, cashboxes)),
     defaultValues: {
       seller_id: undefined,
-      currency: undefined,
     },
   });
 
@@ -160,17 +186,13 @@ export function CreateOperationModal({
   const onSubmit: SubmitHandler<OperationForm> = (data) =>
     mutation.mutate(data);
 
-  const increaseCashboxFiltered = cashboxes;
-  // const increaseCashboxFiltered =
-  //   watch("currency") !== undefined
-  //     ? watch("type") === "buys"
-  //       ? cashboxes.filter(
-  //           (cashbox) => cashbox.currency.name === watch("currency"),
-  //         )
-  //       : cashboxes.filter((cashbox) => cashbox.currency.nomenclature === "ARS")
-  //     : undefined;
-
-  const decreaseCashboxFiltered = cashboxes;
+  const availableCashboxes = cashboxes.filter(
+    (cashbox) => cashbox.disabled === 0 && cashbox.state === 1,
+  );
+  const increaseCashboxFiltered = availableCashboxes;
+  const decreaseCashboxFiltered = availableCashboxes.filter(
+    (cashbox) => cashbox.id !== watch("increase_cashbox_id"),
+  );
 
   return (
     <>
@@ -213,34 +235,60 @@ export function CreateOperationModal({
                       </select>
                     </label>
 
-                    {/* Currency */}
-                    {/* <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-0.5">
-                        Divisa <Mandatory />
-                      </div>
-                      <select
-                        {...register("currency")}
-                        className={cn(
-                          errors.increase_cashbox_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                      >
-                        <option value={undefined}>Selecciona una divisa</option>
+                    {/* amount */}
+                    <Controller
+                      name="amount"
+                      render={({ field }) => (
+                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
+                          <div className="flex items-center gap-0.5">
+                            Cantidad <Mandatory />
+                          </div>
+                          <div
+                            className={cn(
+                              errors.amount
+                                ? "border-danger"
+                                : "border-slate-300",
+                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
+                            )}
+                          >
+                            $
+                            <input
+                              onChange={(e) => {
+                                const input = e.target.value;
 
-                        {currencies.map((currency) => (
-                          <option value={currency.name}>
-                            {currency.name} ({currency.nomenclature})
-                          </option>
-                        ))}
-                      </select>
-                      {errors.currency && (
-                        <span className="text-xs text-danger">
-                          {errors.currency?.message}
-                        </span>
+                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
+                                if (!isValid) return;
+
+                                if (
+                                  `${field.value}` === "0" &&
+                                  input.length === 2 &&
+                                  !input.includes(".")
+                                ) {
+                                  // if the field number is 0 and the input has 2 values, remove the 0
+                                  field.onChange(+input[1]);
+                                } else {
+                                  ////////////////////////////// if input has no values, set default 0
+                                  field.onChange(
+                                    input[input.length - 1] === "."
+                                      ? input
+                                      : +input,
+                                  );
+                                }
+                              }}
+                              value={field.value}
+                              type="text"
+                            />
+                          </div>
+                          {errors.amount && (
+                            <span className="text-xs text-danger">
+                              {errors.amount?.message}
+                            </span>
+                          )}
+                        </label>
                       )}
-                    </label> */}
+                      control={control}
+                    />
+
                   </div>
                   {/* Increase & decrease cashbox*/}
                   <div className="flex w-full items-start gap-4">
@@ -255,41 +303,29 @@ export function CreateOperationModal({
                       </div>
                       <select
                         onChange={(v) =>
-                          setValue("increase_cashbox_id", +v.target.value)
+                          setValue("increase_cashbox_id", +v.target.value, {
+                            shouldValidate: true,
+                          })
                         }
-                        disabled={watch("currency") === "Selecciona una divisa"}
+                        disabled={increaseCashboxFiltered.length === 0}
                         className={cn(
                           errors.increase_cashbox_id
                             ? "border-danger"
                             : "border-slate-300",
-                          (watch("currency") === "Selecciona una divisa" ||
-                            increaseCashboxFiltered?.length === 0) &&
+                          increaseCashboxFiltered.length === 0 &&
                             "pointer-events-none opacity-60",
                           "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
                         )}
                       >
-                        <option value={undefined}>Selecciona una caja</option>
-                        {increaseCashboxFiltered?.map((cashbox) => {
-                          if (cashbox.disabled)
-                            return (
-                              <option
-                                key={`${cashbox.id}-incoming`}
-                                value={cashbox.id}
-                              >
-                                {cashbox.currency.name} - {cashbox.name}{" "}
-                                (Deshabilitada)
-                              </option>
-                            );
-
-                          return (
+                        <option value="">Selecciona una caja</option>
+                        {increaseCashboxFiltered.map((cashbox) => (
                             <option
                               key={`${cashbox.id}-incoming`}
                               value={cashbox.id}
                             >
                               {cashbox.currency.name} - {cashbox.name}
                             </option>
-                          );
-                        })}
+                        ))}
                       </select>
                       {increaseCashboxFiltered &&
                         increaseCashboxFiltered?.length === 0 && (
@@ -305,35 +341,26 @@ export function CreateOperationModal({
                       </div>
                       <select
                         onChange={(v) =>
-                          setValue("decrease_cashbox_id", +v.target.value)
+                          setValue("decrease_cashbox_id", +v.target.value, {
+                            shouldValidate: true,
+                          })
                         }
-                        disabled={watch("currency") === "Selecciona una divisa"}
+                        disabled={decreaseCashboxFiltered.length === 0}
                         className={cn(
                           errors.decrease_cashbox_id
                             ? "border-danger"
                             : "border-slate-300",
-                          (watch("currency") === "Selecciona una divisa" ||
-                            decreaseCashboxFiltered?.length === 0) &&
+                          decreaseCashboxFiltered.length === 0 &&
                             "pointer-events-none opacity-60",
                           "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
                         )}
                       >
-                        <option value={undefined}>Selecciona una caja</option>
-                        {decreaseCashboxFiltered?.map((cashbox) => {
-                          if (cashbox.disabled)
-                            return (
-                              <option key={cashbox.id} value={cashbox.id}>
-                                {cashbox.currency.name} - {cashbox.name}{" "}
-                                (Deshabilitada)
-                              </option>
-                            );
-
-                          return (
+                        <option value="">Selecciona una caja</option>
+                        {decreaseCashboxFiltered.map((cashbox) => (
                             <option key={cashbox.id} value={cashbox.id}>
                               {cashbox.currency.name} - {cashbox.name}
                             </option>
-                          );
-                        })}
+                        ))}
                       </select>
                       {errors.decrease_cashbox_id && (
                         <span className="text-xs text-danger">
@@ -396,60 +423,6 @@ export function CreateOperationModal({
                   </div>
                   {/* Price & market price */}
                   <div className="flex w-full items-start gap-4">
-                    {/* amount */}
-                    <Controller
-                      name="amount"
-                      render={({ field }) => (
-                        <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
-                          <div className="flex items-center gap-0.5">
-                            Cantidad <Mandatory />
-                          </div>
-                          <div
-                            className={cn(
-                              errors.amount
-                                ? "border-danger"
-                                : "border-slate-300",
-                              "flex h-9 w-full items-center gap-1 rounded-md border px-2 text-sm outline-none focus-within:border-primary",
-                            )}
-                          >
-                            $
-                            <input
-                              onChange={(e) => {
-                                const input = e.target.value;
-
-                                const isValid = /^[0-9]*\.?[0-9]*$/.test(input);
-                                if (!isValid) return;
-
-                                if (
-                                  `${field.value}` === "0" &&
-                                  input.length === 2 &&
-                                  !input.includes(".")
-                                ) {
-                                  // if the field number is 0 and the input has 2 values, remove the 0
-                                  field.onChange(+input[1]);
-                                } else {
-                                  ////////////////////////////// if input has no values, set default 0
-                                  field.onChange(
-                                    input[input.length - 1] === "."
-                                      ? input
-                                      : +input,
-                                  );
-                                }
-                              }}
-                              value={field.value}
-                              type="text"
-                            />
-                          </div>
-                          {errors.amount && (
-                            <span className="text-xs text-danger">
-                              {errors.amount?.message}
-                            </span>
-                          )}
-                        </label>
-                      )}
-                      control={control}
-                    />
-
                     <Controller
                       name="price"
                       render={({ field }) => (

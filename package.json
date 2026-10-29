@@ -1,13 +1,14 @@
 {
   "name": "financehub-frontend",
   "version": "1.0.26",
-  "description": "An Electron application with React and TypeScript",
+  "description": "FinanceHub desktop application",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "FinanceHub",
+  "homepage": "https://github.com/MatySeitour/financehub-frontend",
   "scripts": {
     "format": "prettier --write .",
-    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "lint": "eslint src electron.vite.config.ts --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "lint:fix": "npm run lint -- --fix",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -17,13 +18,16 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
     "release": "npm run build && electron-builder --publish always"
   },
   "build": {
     "appId": "com.financehub.app",
     "productName": "FinanceHub",
+    "asar": true,
+    "forceCodeSigning": true,
     "directories": {
       "output": "release",
       "buildResources": "resources"
@@ -50,48 +54,64 @@
       }
     ],
     "win": {
+      "executableName": "FinanceHub",
       "target": [
         "nsis"
       ]
     },
+    "nsis": {
+      "artifactName": "${productName}-${version}-setup.${ext}",
+      "shortcutName": "FinanceHub",
+      "uninstallDisplayName": "FinanceHub",
+      "createDesktopShortcut": "always"
+    },
     "mac": {
+      "hardenedRuntime": true,
+      "notarize": true,
       "target": [
         "dmg"
       ]
     },
+    "dmg": {
+      "artifactName": "${productName}-${version}.${ext}"
+    },
     "linux": {
+      "category": "Office",
+      "maintainer": "FinanceHub",
       "target": [
         "AppImage"
       ]
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}.${ext}"
     }
   },
   "dependencies": {
-    "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@emotion/react": "^11.13.5",
     "@heroui/react": "^2.8.2",
     "@heroui/select": "2.4.10",
     "@heroui/system": "^2.4.20",
     "@heroui/theme": "2.4.6",
-    "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers": "^5.2.2",
     "@internationalized/date": "^3.8.2",
     "@table-library/react-table-library": "^4.1.7",
-    "axios": "^1.7.7",
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "electron-log": "^5.4.3",
-    "electron-updater": "^6.6.2",
+    "electron-updater": "^6.8.11",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.532.0",
     "motion": "^12.0.6",
     "react-apexcharts": "^1.6.0",
     "react-cookie": "^7.2.2",
-    "react-hook-form": "^7.54.2",
+    "react-hook-form": "^7.91.0",
     "react-query": "^3.39.3",
-    "react-router": "^7.0.1",
+    "react-router": "^7.18.4",
     "sonner": "^2.0.6",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
@@ -100,15 +120,16 @@
     "@types/node": "^20.17.8",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
-    "electron": "^31.0.2",
-    "electron-builder": "^24.13.3",
-    "electron-vite": "^2.3.0",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^3.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",
-    "postcss": "^8.4.49",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "postcss": "^8.5.31",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "react": "^18.3.1",
@@ -116,6 +137,6 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.5.2",
-    "vite": "^5.3.1"
+    "vite": "^6.4.4"
   }
 }

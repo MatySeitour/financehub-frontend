@@ -281,7 +281,7 @@ export function OperationsHistoryCashbox({
           error={historyOperationsQuery.error}
           searchInput={search}
           data={filteredOperations}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </>

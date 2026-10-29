@@ -250,7 +250,7 @@ export function CommissionsSection() {
           error={commissionsQuery.error}
           searchInput={search}
           data={filteredCommissions}
-          openModal={() => console.log()}
+          openModal={() => undefined}
           optionsMenu={options}
         />
 

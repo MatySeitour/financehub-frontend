@@ -646,8 +646,6 @@ export function UpdateCheckingAccountMovimentModal({
     },
   });
 
-  console.log(watch("loan_date"));
-
   const onSubmit: SubmitHandler<Input> = (data) => mutation.mutate(data);
   return (
     <Modal
@@ -689,7 +687,6 @@ export function UpdateCheckingAccountMovimentModal({
                       render={({ field }) => (
                         <input
                           onChange={(v) => {
-                            console.log("este es v", v);
                             field.onChange(parseISO(v.target.value));
                           }}
                           className={cn(
@@ -1325,19 +1322,19 @@ export function CreatePercentageCheckingAccountModal({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<{ percentage: string }>({
+  } = useForm<{ percentage: number }>({
     resolver: zodResolver(
       z.object({
         percentage: z.number().min(1, { message: "Campo requerido" }),
       }),
     ),
     defaultValues: {
-      percentage: "",
+      percentage: 0,
     },
   });
 
-  const mutation = useMutation<void, ServerError, { percentage: string }>({
-    mutationFn: async (body: { percentage: string }) => {
+  const mutation = useMutation<void, ServerError, { percentage: number }>({
+    mutationFn: async (body) => {
       const { data } = await AxiosFetch.post(
         `/api/v1/checking-accounts/${checkingClientID}/percentages`,
         body,
@@ -1355,7 +1352,7 @@ export function CreatePercentageCheckingAccountModal({
     },
   });
 
-  const onSubmit: SubmitHandler<{ percentage: string }> = (data) =>
+  const onSubmit: SubmitHandler<{ percentage: number }> = (data) =>
     mutation.mutate(data);
 
   return (
@@ -1493,19 +1490,19 @@ export function UpdatePercentageCheckingAccountModal({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<{ percentage: string }>({
+  } = useForm<{ percentage: number }>({
     resolver: zodResolver(
       z.object({
         percentage: z.number().min(1, { message: "Campo requerido" }),
       }),
     ),
     defaultValues: {
-      percentage: percentage.percentage,
+      percentage: Number(percentage.percentage),
     },
   });
 
-  const mutation = useMutation<void, ServerError, { percentage: string }>({
-    mutationFn: async (body: { percentage: string }) => {
+  const mutation = useMutation<void, ServerError, { percentage: number }>({
+    mutationFn: async (body) => {
       const { data } = await AxiosFetch.put(
         `/api/v1/checking-accounts/${checkingClientID}/percentages/${percentage.id}`,
         body,
@@ -1526,7 +1523,7 @@ export function UpdatePercentageCheckingAccountModal({
     },
   });
 
-  const onSubmit: SubmitHandler<{ percentage: string }> = (data) =>
+  const onSubmit: SubmitHandler<{ percentage: number }> = (data) =>
     mutation.mutate(data);
 
   return (

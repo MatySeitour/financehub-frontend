@@ -355,7 +355,7 @@ export function SellerDetailsOperation({ sellerID }: { sellerID: number }) {
           error={operationsSellerQuery.error}
           searchInput={search}
           data={filteredOperations}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </div>
@@ -684,7 +684,7 @@ export function SellerDetailsLoan({ sellerID }: { sellerID: number }) {
           error={loansSellerQuery.error}
           searchInput={search}
           data={filteredLoans}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </div>

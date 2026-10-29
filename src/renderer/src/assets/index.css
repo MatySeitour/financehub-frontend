@@ -12,8 +12,14 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-* {
+:where(a, button, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid #17c964 !important;
+  outline-offset: 2px !important;
+}
+
+:where(input, select, textarea):focus-visible {
   outline: none !important;
+  box-shadow: 0 0 0 3px rgb(23 201 100 / 10%);
 }
 
 input {

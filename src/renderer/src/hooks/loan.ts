@@ -40,8 +40,6 @@ export async function getLoans() {
     const { data } = await AxiosFetch(`/api/v1/loans`);
     return loanSchema.array().parse(data?.data);
   } catch (error) {
-    console.error(error);
-
     return errorsResponse(error);
   }
 }

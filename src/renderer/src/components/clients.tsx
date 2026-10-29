@@ -335,7 +335,7 @@ export function ClientDetailsOperation({ clientID }: { clientID: number }) {
           error={operationsClientQuery.error}
           searchInput={search}
           data={filteredOperations}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </div>
@@ -691,7 +691,7 @@ export function ClientDetailsLoan({ clientID }: { clientID: number }) {
           error={loansClientQuery.error}
           searchInput={search}
           data={filteredLoans}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </div>

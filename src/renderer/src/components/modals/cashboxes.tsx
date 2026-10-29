@@ -33,6 +33,9 @@ import { I18nProvider } from "@react-aria/i18n";
 import { movimentTypes } from "@renderer/hooks/moviments";
 
 type ChangeStateCashbox = z.infer<ReturnType<typeof checkIsCashboxOpenSchema>>;
+type ChangeStateCashboxInput = z.input<
+  ReturnType<typeof checkIsCashboxOpenSchema>
+>;
 const checkIsCashboxOpenSchema = (isCashboxOpen: boolean) =>
   z
     .object({
@@ -67,7 +70,7 @@ export function ChangeStateCashboxModal({
     formState: { errors },
     control,
     handleSubmit,
-  } = useForm<ChangeStateCashbox>({
+  } = useForm<ChangeStateCashboxInput, undefined, ChangeStateCashbox>({
     resolver: zodResolver(checkIsCashboxOpenSchema(cashbox.state === 1)),
   });
 
@@ -80,7 +83,6 @@ export function ChangeStateCashboxModal({
         );
         return data;
       } catch (error) {
-        console.error(error);
         errorsResponse(error);
       }
     },
@@ -169,7 +171,12 @@ export function ChangeStateCashboxModal({
                                 field.onChange(input);
                               }
                             }}
-                            value={field.value ?? ""}
+                            value={
+                              typeof field.value === "string" ||
+                              typeof field.value === "number"
+                                ? field.value
+                                : ""
+                            }
                           />
                         )}
                       />
@@ -251,7 +258,6 @@ export function CreateCashboxModal({
         const { data } = await AxiosFetch.post(`/api/v1/cashboxes`, body);
         return data;
       } catch (error) {
-        console.error(error);
         errorsResponse(error);
       }
     },
@@ -408,6 +414,7 @@ export function CreateCashboxModal({
 }
 
 type InputUpdate = z.infer<ReturnType<typeof inputUpdateSchema>>;
+type InputUpdateForm = z.input<ReturnType<typeof inputUpdateSchema>>;
 const inputUpdateSchema = (isCashboxOpen: boolean) =>
   z
     .object({
@@ -441,7 +448,7 @@ export function UpdateCashboxModal({
     handleSubmit,
     control,
     register,
-  } = useForm<InputUpdate>({
+  } = useForm<InputUpdateForm, undefined, InputUpdate>({
     resolver: zodResolver(inputUpdateSchema(cashbox.state === 1)),
     defaultValues: {
       name: cashbox.name,
@@ -450,7 +457,7 @@ export function UpdateCashboxModal({
     },
   });
 
-  const mutation = useMutation<Cashbox, ServerError, Input>({
+  const mutation = useMutation<Cashbox, ServerError, InputUpdate>({
     mutationFn: async (body) => {
       const { data } = await AxiosFetch.put(
         `/api/v1/cashboxes/${cashbox.id}`,
@@ -467,7 +474,7 @@ export function UpdateCashboxModal({
     },
   });
 
-  const onSubmit: SubmitHandler<Input> = (data) => mutation.mutate(data);
+  const onSubmit: SubmitHandler<InputUpdate> = (data) => mutation.mutate(data);
 
   return (
     <Modal
@@ -608,7 +615,12 @@ export function UpdateCashboxModal({
                                   field.onChange(input);
                                 }
                               }}
-                              value={field.value ?? ""}
+                              value={
+                                typeof field.value === "string" ||
+                                typeof field.value === "number"
+                                  ? field.value
+                                  : ""
+                              }
                             />
                           )}
                         />
@@ -674,7 +686,6 @@ export function DeleteCashboxModal({
         );
         return data;
       } catch (error) {
-        console.error(error);
         errorsResponse(error);
       }
     },
@@ -786,7 +797,6 @@ export function CreateCashboxMovimentModal({
 
   const mutation = useMutation<Cashbox, ServerError, InputMoviment>({
     mutationFn: async (body) => {
-      console.log(body);
       const { data } = await AxiosFetch.post(`/api/v1/moviments`, body);
       return data;
     },
@@ -943,7 +953,6 @@ export function CreateCashboxMovimentModal({
                             "h-[2rem] min-h-[2rem] rounded-md border border-slate-300/70 outline-none",
                           )}
                           onSelectionChange={(key) => {
-                            console.log(key.currentKey);
                             if (key.currentKey) field.onChange(key.currentKey);
                           }}
                         >

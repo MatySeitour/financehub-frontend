@@ -31,9 +31,10 @@ export function Navigation({ user }: { user: TSession }) {
       const { data } = await AxiosFetch.post(`/api/logout`);
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/login");
+    onSuccess: async () => {
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      navigate("/login", { replace: true });
     },
   });
 
@@ -58,11 +59,11 @@ export function Navigation({ user }: { user: TSession }) {
         onMouseLeave={() => !isAccountSettingsOpen && setIsAsideOpen(false)}
         className={cn(
           isAsideOpen ? "max-w-60" : "max-w-12",
-          "absolute z-50 flex h-full w-full flex-col gap-4 border-r bg-white shadow transition-all 2xl:static 2xl:min-w-72 2xl:max-w-max 2xl:shadow-none",
+          "absolute z-50 flex h-full w-full flex-col border-r bg-white shadow transition-all 2xl:static 2xl:min-w-72 2xl:max-w-max 2xl:shadow-none",
         )}
       >
         {/* Logo */}
-        <div className="flex h-20 items-center justify-between overflow-hidden border-b border-slate-200 py-1.5 pb-0 pl-3 2xl:h-16 2xl:min-h-16 2xl:p-5">
+        <div className="flex h-16 min-h-16 shrink-0 items-center justify-between overflow-hidden border-b border-slate-200 pl-3 2xl:p-5">
           <div className="flex items-center gap-3">
             <PanelLeftOpenIcon className="size-5 min-w-5 text-slate-400 2xl:hidden" />
             <div
@@ -83,17 +84,17 @@ export function Navigation({ user }: { user: TSession }) {
         </div>
 
         {/* Navigation items */}
-        <div className="relative flex h-full w-full flex-col justify-between overflow-hidden pb-2 pl-3.5 2xl:pl-4">
-          <ul className="flex flex-col gap-2">
+        <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden py-2 pl-3.5 2xl:pl-4">
+          <ul className="flex flex-col gap-1">
             {navItems.map((navItem) => (
-              <li key={navItem.name} className="h-auto w-full">
+              <li key={navItem.name} className="h-10 w-full shrink-0">
                 {navItem.disabled ? (
-                  <div className="flex h-full min-h-10 w-full items-center border-transparent font-medium text-slate-400 opacity-60 2xl:pl-3">
+                  <div className="flex h-10 w-full items-center overflow-hidden border-transparent font-medium text-slate-400 opacity-60 2xl:pl-3">
                     <navItem.icon className="size-5 min-w-5" />
                     <p
                       className={cn(
                         isAsideOpen ? "opacity-100" : "opacity-0",
-                        "rounded-lg p-2 text-sm transition-all 2xl:opacity-100",
+                        "shrink-0 whitespace-nowrap rounded-lg p-2 text-sm transition-opacity 2xl:opacity-100",
                       )}
                     >
                       {navItem.name}
@@ -106,7 +107,7 @@ export function Navigation({ user }: { user: TSession }) {
                         isActive
                           ? "relative rounded-md font-medium text-primary after:bg-primary/60"
                           : "border-transparent text-slate-400 after:bg-transparent hover:text-slate-500/80",
-                        "relative flex h-full min-h-10 w-full items-center font-medium transition-all after:absolute after:-left-3.5 after:h-5 after:w-1 after:rounded-r-md 2xl:pl-3 2xl:after:left-0 2xl:after:top-1.5 2xl:after:h-7 2xl:after:w-[0.2rem] 2xl:after:rounded-sm",
+                        "relative flex h-10 w-full items-center overflow-hidden font-medium transition-all after:absolute after:-left-3.5 after:top-1/2 after:h-5 after:w-1 after:-translate-y-1/2 after:rounded-r-md 2xl:pl-3 2xl:after:left-0 2xl:after:h-7 2xl:after:w-[0.2rem] 2xl:after:rounded-sm",
                       )
                     }
                     to={navItem.linkTo}
@@ -115,7 +116,7 @@ export function Navigation({ user }: { user: TSession }) {
                     <p
                       className={cn(
                         isAsideOpen ? "opacity-100" : "opacity-0",
-                        "rounded-lg p-2 text-sm transition-all 2xl:opacity-100",
+                        "shrink-0 whitespace-nowrap rounded-lg p-2 text-sm transition-opacity 2xl:opacity-100",
                       )}
                     >
                       {navItem.name}
@@ -128,7 +129,7 @@ export function Navigation({ user }: { user: TSession }) {
         </div>
 
         {/* User */}
-        <div className="flex h-16 w-full items-center gap-2 overflow-hidden rounded-md border-t border-slate-200 bg-white px-1.5 py-4 2xl:p-4">
+        <div className="flex h-16 w-full shrink-0 items-center gap-2 overflow-hidden rounded-md border-t border-slate-200 bg-white px-1.5 py-4 2xl:p-4">
           <div className="flex items-center justify-center rounded-full bg-primary/10 p-1.5">
             <span className="text-sm font-medium uppercase text-primary">
               {firstLetter}

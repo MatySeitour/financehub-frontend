@@ -567,8 +567,8 @@ export function CashBoxSection() {
                                   cashboxID: cashbox.id,
                                 })
                               }
-                              // isLoading={mutationEnableCashbox.isLoading}
-                              // disabled={mutationEnableCashbox.isLoading}
+                              isLoading={mutationEnableCashbox.isLoading}
+                              disabled={mutationEnableCashbox.isLoading}
                               variant="success"
                               className="h-8 max-w-32 gap-1"
                             >

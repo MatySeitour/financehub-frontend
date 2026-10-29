@@ -62,7 +62,6 @@ export function CreateRoleModal({ isOpen, onClose }: ModalProps) {
 
   const mutation = useMutation<Input, ServerError, Input>({
     mutationFn: async (body) => {
-      console.log(body);
       const permissionsBody = [...body.permissions];
       const { data } = await AxiosFetch.post(`/api/v1/roles`, {
         name: body.name,
@@ -218,7 +217,6 @@ export function UpdateRoleModal({
 
   const mutation = useMutation<Input, ServerError, Input>({
     mutationFn: async (body) => {
-      console.log(body);
       const permissionsBody = [...body.permissions];
       const { data } = await AxiosFetch.put(`/api/v1/roles/${role.id}`, {
         name: body.name,

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import axios from "./axios";
 
+export const SESSION_QUERY_KEY = ["session"] as const;
+
 export type User = z.infer<typeof userSchema>;
 
 export const userSchema = z.object({

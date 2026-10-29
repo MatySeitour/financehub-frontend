@@ -3,41 +3,32 @@ import { errorAuth, getErrorMessage, getSession } from "@renderer/utils";
 import { useQuery } from "react-query";
 import { CircleAlertIcon } from "lucide-react";
 import { Button } from "../Button";
-import { ServerError } from "@renderer/utils/types";
+import { SessionError } from "@renderer/utils/types";
 import { Navigation } from "../navigation";
-import { useAuthToken } from "@renderer/hooks/useAuth";
+import { SESSION_QUERY_KEY } from "@renderer/hooks/user";
 
 export default function ProtectedLayout() {
-  const { token, loading } = useAuthToken();
   let navigate = useNavigate();
 
   const sessionQuery = useQuery<
     Awaited<ReturnType<typeof getSession>>,
-    ServerError
+    SessionError
   >({
-    queryKey: ["session"],
-    queryFn: () => getSession(token),
-    onError: (error: any) => {
-      console.log("error: ", error);
+    queryKey: SESSION_QUERY_KEY,
+    queryFn: getSession,
+    onError: (error) => {
       if (errorAuth.includes(error?.message ?? "")) {
         navigate("/create-organization");
-      } else if (
-        error.status === 401 ||
-        error.status === 403 ||
-        error.status === 404
-      ) {
+      } else if (error.status === 401 || error.status === 403) {
         navigate("/login");
       }
     },
-    retry: false,
-    refetchOnWindowFocus: false,
-    enabled: !loading,
+    retry: (failureCount, error) => error.status >= 500 && failureCount < 1,
+    refetchOnWindowFocus: true,
   });
 
   if (
     sessionQuery?.isLoading ||
-    sessionQuery?.isFetching ||
-    loading ||
     errorAuth.includes(sessionQuery?.error?.message ?? "")
   ) {
     return (
@@ -49,7 +40,7 @@ export default function ProtectedLayout() {
 
   return (
     <div className="flex h-dvh w-screen bg-white">
-      {sessionQuery.isError ? (
+      {sessionQuery.isError && !sessionQuery.data ? (
         <div className="flex h-full w-full items-center justify-center">
           <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
             <CircleAlertIcon className="size-20 min-w-20 text-red-500" />

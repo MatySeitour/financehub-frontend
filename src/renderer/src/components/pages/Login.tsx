@@ -1,11 +1,14 @@
-import { loginUserSchema, UserCredentials } from "@renderer/hooks/user";
+import {
+  loginUserSchema,
+  SESSION_QUERY_KEY,
+  UserCredentials,
+} from "@renderer/hooks/user";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "react-query";
 import axios from "@renderer/hooks/axios";
 import { useState } from "react";
 import { cn, errorsResponse } from "@renderer/utils";
-import { useNavigate } from "react-router";
 import { Input } from "@heroui/react";
 import { Tooltip } from "@heroui/react";
 import { CircleAlertIcon, EyeIcon, EyeOffIcon } from "lucide-react";
@@ -15,8 +18,6 @@ import logo from "../../assets/sintelia.png";
 export function Login() {
   const queryClient = useQueryClient();
   const { AxiosFetch } = axios(import.meta.env.VITE_API_BACKEND_URL);
-
-  const navigate = useNavigate();
 
   const {
     register,
@@ -37,9 +38,8 @@ export function Login() {
         errorsResponse(error);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/home");
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(SESSION_QUERY_KEY);
     },
   });
 
@@ -91,7 +91,7 @@ export function Login() {
                       Correo eléctronico
                     </label>
                   }
-                  type="string"
+                  type="email"
                 />
 
                 {errors?.email?.message && (
@@ -118,26 +118,24 @@ export function Login() {
                           : "Mostrar contraseña"
                       }
                     >
-                      <div className="flex">
-                        <EyeIcon
-                          onClick={() =>
-                            setIsPasswordVisible(!isPasswordVisible)
-                          }
-                          className={cn(
-                            "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
-                            !isPasswordVisible && "hidden",
-                          )}
-                        />
-                        <EyeOffIcon
-                          onClick={() =>
-                            setIsPasswordVisible(!isPasswordVisible)
-                          }
-                          className={cn(
-                            "size-5 min-w-5 cursor-pointer text-slate-400 transition-colors hover:text-green-600",
-                            isPasswordVisible && "hidden",
-                          )}
-                        />
-                      </div>
+                      <button
+                        type="button"
+                        aria-label={
+                          isPasswordVisible
+                            ? "Ocultar contraseÃ±a"
+                            : "Mostrar contraseÃ±a"
+                        }
+                        onClick={() =>
+                          setIsPasswordVisible(!isPasswordVisible)
+                        }
+                        className="flex rounded-sm text-slate-400 transition-colors hover:text-green-600"
+                      >
+                        {isPasswordVisible ? (
+                          <EyeOffIcon className="size-5 min-w-5" />
+                        ) : (
+                          <EyeIcon className="size-5 min-w-5" />
+                        )}
+                      </button>
                     </Tooltip>
                   }
                   labelPlacement="outside-top"
@@ -224,9 +222,10 @@ export function Login() {
       <a
         href="https://www.linkedin.com/company/sintelia/"
         target="_blank"
+        rel="noopener noreferrer"
         className="absolute bottom-4 left-10 flex flex-col items-center justify-center gap-1.5 text-nowrap font-medium text-slate-400"
       >
-        <img src={logo} className="h-10 w-24 object-contain" />
+        <img src={logo} alt="Sintelia" className="h-10 w-24 object-contain" />
         <span className="text-xs">
           © {getYear(new Date())} <b className="text-slate-400">Sintelia</b>
         </span>

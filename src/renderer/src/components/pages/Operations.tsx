@@ -34,7 +34,6 @@ import { getClients } from "@renderer/hooks/clients";
 import { getSellers } from "@renderer/hooks/sellers";
 import { getCashboxes } from "@renderer/hooks/cashboxes";
 import { ExportExcelOperations } from "../operations";
-import { getCurrencies } from "@renderer/hooks/currencies";
 
 //Component starts here
 export function OperationsSection() {
@@ -88,14 +87,6 @@ export function OperationsSection() {
   >({
     queryKey: ["cashboxes", "all"],
     queryFn: getCashboxes,
-  });
-
-  const currenciesQuery = useQuery<
-    Awaited<ReturnType<typeof getCurrencies>>,
-    ServerError
-  >({
-    queryKey: ["currencies", "all"],
-    queryFn: getCurrencies,
   });
 
   /* UTILS */
@@ -459,15 +450,13 @@ export function OperationsSection() {
         operationsQuery.data &&
         clientsQuery.data &&
         sellersQuery.data &&
-        cashboxesQuery.data &&
-        currenciesQuery.data && (
+        cashboxesQuery.data && (
           <CreateOperationModal
             isOpen={isCreateOperationOpenModal}
             onClose={onOpenCreateOperationModal}
             clients={clientsQuery.data}
             sellers={sellersQuery.data}
             cashboxes={cashboxesQuery.data}
-            currencies={currenciesQuery.data}
           />
         )}
 

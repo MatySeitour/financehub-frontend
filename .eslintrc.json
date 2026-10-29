@@ -1,32 +1,34 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "./tsconfig.json"
+  "root": true,
+  "extends": ["@electron-toolkit/eslint-config-ts", "plugin:react/recommended"],
+  "plugins": ["react", "react-hooks"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
-  "plugins": ["@typescript-eslint"],
-  "extends": [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended"
-    // "plugin:@typescript-eslint/recommended-requiring-type-checking"
-  ],
   "rules": {
     "@typescript-eslint/consistent-type-imports": "warn",
-    "@typescript-eslint/no-floating-promises": "off",
-    "@typescript-eslint/no-misused-promises": "off",
-    "@typescript-eslint/require-await": "off",
-    "@typescript-eslint/no-duplicate-imports": "error",
-    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
     "default-case-last": "error",
-    "eqeqeq": ["error", "always"],
-    "no-else-return": "error",
+    "eqeqeq": ["warn", "always"],
+    "no-else-return": "warn",
+    "no-duplicate-imports": "warn",
     "no-lonely-if": "error",
-    "no-useless-return": "error",
+    "no-useless-return": "warn",
     "prefer-const": "warn",
-    "react/self-closing-comp": "warn",
     "react/no-unescaped-entities": "off",
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "error"
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/self-closing-comp": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error"
   }
 }

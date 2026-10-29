@@ -100,7 +100,7 @@ export function UsersSection() {
     {
       name: "Eliminar",
       icon: Trash2Icon,
-      onAction: () => console.log(),
+      onAction: () => undefined,
       // onAction: (user) => setUserToDelete(user),
     },
   ];

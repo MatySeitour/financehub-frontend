@@ -946,9 +946,9 @@ export function Home() {
     movimentsQuery.isFetching;
 
   return (
-    <section className="flex h-screen w-full flex-col bg-[#FEFEFE]">
+    <section className="flex h-screen w-full flex-col bg-slate-100/50">
       {/* Slider prices */}
-      <div className="relative h-16 w-full bg-[#FAFAFA]">
+      <div className="relative h-16 w-full bg-white">
         <div className="relative z-10 flex h-16 overflow-hidden border-b">
           {/* Loadings */}
           {cronistaCurrenciesQuery?.isLoading ? (
@@ -1136,7 +1136,7 @@ export function Home() {
         </div>
 
         {/* Active cashboxes */}
-        <div className="flex h-full w-full max-w-sm flex-col gap-4 rounded-md border border-slate-200 py-2 pl-4 2xl:max-w-full">
+        <div className="flex h-full w-full max-w-sm flex-col gap-4 rounded-md border border-slate-200 bg-white py-2 pl-4 2xl:max-w-full">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center rounded-md border border-slate-200 bg-gradient-to-b from-slate-200/60 to-white p-2 shadow">
               <DollarSignIcon className="size-4 min-w-4 text-slate-400/80" />
@@ -1352,7 +1352,7 @@ export function Home() {
               loading={operationsQuery.isFetching}
               searchInput={search}
               data={filteredOperations}
-              openModal={() => console.log()}
+              openModal={() => undefined}
             />
           ) : tabActive === "moviments" ? (
             <TableWork
@@ -1362,7 +1362,7 @@ export function Home() {
               loading={movimentsQuery.isFetching}
               searchInput={search}
               data={filteredMoviments}
-              openModal={() => console.log()}
+              openModal={() => undefined}
             />
           ) : tabActive === "loans" ? (
             <TableWork
@@ -1372,7 +1372,7 @@ export function Home() {
               loading={loansQuery.isFetching}
               searchInput={search}
               data={filteredLoans}
-              openModal={() => console.log()}
+              openModal={() => undefined}
             />
           ) : tabActive === "commissions" ? (
             <TableWork
@@ -1382,7 +1382,7 @@ export function Home() {
               loading={commissionsQuery.isFetching}
               searchInput={search}
               data={filteredCommissions}
-              openModal={() => console.log()}
+              openModal={() => undefined}
             />
           ) : (
             <TableWork
@@ -1392,7 +1392,7 @@ export function Home() {
               loading={installmentsQuery.isFetching}
               searchInput={search}
               data={filteredInstallments}
-              openModal={() => console.log()}
+              openModal={() => undefined}
             />
           )}
         </div>

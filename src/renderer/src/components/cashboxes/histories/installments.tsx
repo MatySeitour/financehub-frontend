@@ -245,7 +245,7 @@ export function InstallmentsHistoryCashbox({
           loading={historyInstallmentsQuery.isFetching}
           searchInput={search}
           data={filteredInstallments}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </>

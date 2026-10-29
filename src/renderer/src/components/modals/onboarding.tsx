@@ -98,8 +98,6 @@ export function CreateUserModal({
     },
   });
 
-  console.log(errors);
-
   const mutation = useMutation<void, ServerError, Input>({
     mutationFn: async (user) => {
       const { data } = await AxiosFetch.post(
@@ -475,8 +473,6 @@ export function UpdateUserModal({
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  console.log(user);
-
   const rolesQuery = useQuery<
     Awaited<ReturnType<typeof getRoles>>,
     ServerError
@@ -514,7 +510,6 @@ export function UpdateUserModal({
 
   const mutation = useMutation<void, ServerError, Input>({
     mutationFn: async (body) => {
-      console.log(body);
       const { data } = await AxiosFetch.put(`/api/user/${user.id}`, body);
       return data;
     },

@@ -166,7 +166,7 @@ export function CommissionsHistoryCashbox({
           loading={historyCommissionsQuery.isFetching}
           searchInput={search}
           data={filteredCommissions}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </>

@@ -287,7 +287,7 @@ export function LoansHistoryCashbox({
           error={historyLoansQuery.error}
           searchInput={search}
           data={filteredLoans}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </>

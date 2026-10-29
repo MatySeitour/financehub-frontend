@@ -1,4 +1,6 @@
 node_modules
 dist
 out
+release
 .gitignore
+electron.vite.config.*.mjs

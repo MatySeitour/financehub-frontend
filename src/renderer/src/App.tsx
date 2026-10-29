@@ -3,7 +3,7 @@ import { Login } from "./components/pages/Login";
 import { lazy, Suspense } from "react";
 
 import { AuthLayout } from "@components/layouts/AuthLayout";
-import { Home } from "@components/pages/Home";
+import { Home } from "@renderer/components/pages/Dashboard";
 import { CashBoxSection } from "./components/pages/cashboxes";
 import { LoansSection } from "./components/pages/loans";
 import { CashBoxHistorySection } from "./components/pages/cashboxes/history";

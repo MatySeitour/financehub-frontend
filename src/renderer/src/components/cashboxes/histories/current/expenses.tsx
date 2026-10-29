@@ -146,7 +146,7 @@ export function CurrentMovimentsHistoryCashbox({
           loading={historyMovimentsQuery.isFetching}
           searchInput={search}
           data={filteredMoviments}
-          openModal={() => console.log()}
+          openModal={() => undefined}
         />
       )}
     </>

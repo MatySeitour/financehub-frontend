@@ -412,8 +412,6 @@ export function TableLoading() {
 function TableError({ error }: { error: ServerError }) {
   const isZod = error.name === "ZodError";
 
-  console.log("error en table", error);
-
   if (error.code === "connection-error") {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-4">
@@ -553,42 +551,38 @@ function ContextMenu<T>({
         )}
       >
         <ul className="flex h-full w-full flex-col gap-0.5 p-1 text-slate-400">
-          {options.map((option: MenuOption<T>) => {
-            if (!option.isDisabled || option.isDisabled(selectedItem))
-              return (
-                <li
-                  onClick={() => {
-                    handleMenuClick(option);
-                  }}
-                  className={cn(
-                    "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs transition-all",
-                    option.name.toLowerCase() === "eliminar" &&
-                      "hover:bg-danger/10",
-                  )}
-                  key={option.name}
-                >
-                  {option.icon && (
-                    <option.icon
-                      className={cn(
-                        "size-4 min-w-4 text-slate-400",
-                        option.name.toLowerCase() === "eliminar" &&
-                          "text-danger",
-                      )}
-                    />
-                  )}
-                  <p
+          {options.map((option: MenuOption<T>) =>
+            !option.isDisabled || option.isDisabled(selectedItem) ? (
+              <li
+                onClick={() => {
+                  handleMenuClick(option);
+                }}
+                className={cn(
+                  "menu-option flex w-full cursor-pointer items-center justify-start gap-2 rounded-sm p-2 text-xs transition-all",
+                  option.name.toLowerCase() === "eliminar" &&
+                    "hover:bg-danger/10",
+                )}
+                key={option.name}
+              >
+                {option.icon && (
+                  <option.icon
                     className={cn(
-                      "tracking-wide",
+                      "size-4 min-w-4 text-slate-400",
                       option.name.toLowerCase() === "eliminar" && "text-danger",
                     )}
-                  >
-                    {option.name}
-                  </p>
-                </li>
-              );
-
-            return;
-          })}
+                  />
+                )}
+                <p
+                  className={cn(
+                    "tracking-wide",
+                    option.name.toLowerCase() === "eliminar" && "text-danger",
+                  )}
+                >
+                  {option.name}
+                </p>
+              </li>
+            ) : null,
+          )}
         </ul>
       </div>
     </>
