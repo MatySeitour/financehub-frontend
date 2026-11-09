@@ -230,38 +230,130 @@ export function CreateLoanModal({
                       <div className="flex items-center gap-0.5">
                         Cliente <Mandatory />
                       </div>
-                      <input
-                        {...register("client_id")}
-                        className={cn(
-                          errors.client_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                        type="text"
-                        autoComplete="off"
-                        list="clientsList"
+
+                      <Controller
+                        name="client_id"
+                        control={control}
+                        render={({ field }) => {
+                          const selectedClient = clients.find(
+                            (client) => client.name === String(field.value),
+                          );
+
+                          return (
+                            <Select
+                              items={clients}
+                              selectedKeys={
+                                selectedClient ? [`${selectedClient.id}`] : []
+                              }
+                              placeholder="Selecciona un cliente"
+                              aria-label="Cliente"
+                              listboxProps={{
+                                emptyContent: "No hay clientes disponibles",
+                              }}
+                              classNames={{
+                                innerWrapper: "rounded-md",
+                                mainWrapper: "rounded-md",
+                                popoverContent: "rounded-md font-normal",
+                                trigger:
+                                  "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              }}
+                              className={cn(
+                                "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                                errors.client_id
+                                  ? "border-danger"
+                                  : "border-slate-300",
+                              )}
+                              onSelectionChange={(keys) => {
+                                const key = keys.currentKey;
+
+                                const selectedClient = clients.find(
+                                  (client) => `${client.id}` === key,
+                                );
+
+                                field.onChange(selectedClient?.name ?? "");
+                              }}
+                            >
+                              {(client) => (
+                                <SelectItem
+                                  key={client.id}
+                                  textValue={client.name}
+                                  className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                >
+                                  {client.name}
+                                </SelectItem>
+                              )}
+                            </Select>
+                          );
+                        }}
                       />
+
                       {errors.client_id && (
                         <span className="text-xs text-danger">
                           {errors.client_id?.message}
                         </span>
                       )}
                     </label>
+
                     {/* seller name */}
                     <label className="flex w-full flex-col gap-0.5 text-sm text-slate-500">
                       <div className="flex items-center gap-0.5">Vendedor</div>
-                      <input
-                        {...register("seller_id")}
-                        className={cn(
-                          errors.seller_id
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
-                        )}
-                        type="text"
-                        list="sellersList"
+
+                      <Controller
+                        name="seller_id"
+                        control={control}
+                        render={({ field }) => {
+                          const selectedSeller = sellers.find(
+                            (seller) => seller.name === String(field.value),
+                          );
+
+                          return (
+                            <Select
+                              items={sellers}
+                              selectedKeys={
+                                selectedSeller ? [`${selectedSeller.id}`] : []
+                              }
+                              placeholder="Selecciona un vendedor"
+                              aria-label="Vendedor"
+                              listboxProps={{
+                                emptyContent: "No hay vendedores disponibles",
+                              }}
+                              classNames={{
+                                innerWrapper: "rounded-md",
+                                mainWrapper: "rounded-md",
+                                popoverContent: "rounded-md font-normal",
+                                trigger:
+                                  "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                              }}
+                              className={cn(
+                                "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                                errors.seller_id
+                                  ? "border-danger"
+                                  : "border-slate-300",
+                              )}
+                              onSelectionChange={(keys) => {
+                                const key = keys.currentKey;
+
+                                const selectedSeller = sellers.find(
+                                  (seller) => `${seller.id}` === key,
+                                );
+
+                                field.onChange(selectedSeller?.name ?? "");
+                              }}
+                            >
+                              {(seller) => (
+                                <SelectItem
+                                  key={seller.id}
+                                  textValue={seller.name}
+                                  className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                                >
+                                  {seller.name}
+                                </SelectItem>
+                              )}
+                            </Select>
+                          );
+                        }}
                       />
+
                       {errors.seller_id && (
                         <span className="text-xs text-danger">
                           {errors.seller_id?.message}
@@ -275,22 +367,50 @@ export function CreateLoanModal({
                       <div className="flex items-center gap-0.5">
                         Divisa <Mandatory />
                       </div>
-                      <select
-                        onChange={(v) => setValue("cashboxID", +v.target.value)}
-                        className={cn(
-                          errors.cashboxID
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+
+                      <Controller
+                        name="cashboxID"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            items={cashboxes ?? []}
+                            selectedKeys={field.value ? [`${field.value}`] : []}
+                            placeholder="Selecciona una divisa"
+                            aria-label="Divisa"
+                            listboxProps={{
+                              emptyContent: "No hay cajas disponibles",
+                            }}
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                              errors.cashboxID
+                                ? "border-danger"
+                                : "border-slate-300",
+                            )}
+                            onSelectionChange={(keys) => {
+                              const key = keys.currentKey;
+                              field.onChange(key ? +key : undefined);
+                            }}
+                          >
+                            {(cashbox) => (
+                              <SelectItem
+                                key={cashbox.id}
+                                textValue={`${cashbox.currency.name} - ${cashbox.name}`}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              >
+                                {cashbox.currency.name} - {cashbox.name}
+                              </SelectItem>
+                            )}
+                          </Select>
                         )}
-                      >
-                        <option value={undefined}>Selecciona una divisa</option>
-                        {cashboxes?.map((cashbox) => (
-                          <option key={cashbox.id} value={cashbox.id}>
-                            {cashbox.currency.name} - {cashbox.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
+
                       {errors.cashboxID && (
                         <span className="text-xs text-danger">
                           {errors.cashboxID?.message}
@@ -515,29 +635,54 @@ export function CreateLoanModal({
                       <div className="flex items-center gap-0.5">
                         Frecuencia de cobro <Mandatory />
                       </div>
-                      <select
-                        onChange={(v) =>
-                          setValue(
-                            "payment_frequency",
-                            v.target.value as PaymentFrequency,
-                          )
-                        }
-                        className={cn(
-                          errors.payment_frequency
-                            ? "border-danger"
-                            : "border-slate-300",
-                          "flex h-9 w-full items-center gap-2 rounded-md border px-2 text-sm outline-none focus:border-primary",
+
+                      <Controller
+                        name="payment_frequency"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            items={(paymentFrequency ?? []).map(
+                              (frequency) => ({
+                                value: frequency,
+                                label: paymentFrequencyLabels[frequency],
+                              }),
+                            )}
+                            selectedKeys={field.value ? [field.value] : []}
+                            aria-label="Frecuencia de cobro"
+                            classNames={{
+                              innerWrapper: "rounded-md",
+                              mainWrapper: "rounded-md",
+                              popoverContent: "rounded-md font-normal",
+                              trigger:
+                                "hover:!bg-slate-50 hover:!border-primary rounded-md bg-white !h-9 min-h-7",
+                            }}
+                            className={cn(
+                              "min-h-9 rounded-md border outline-none focus-within:border-primary",
+                              errors.payment_frequency
+                                ? "border-danger"
+                                : "border-slate-300",
+                            )}
+                            onSelectionChange={(keys) => {
+                              const key = keys.currentKey;
+                              if (key) field.onChange(key as PaymentFrequency);
+                            }}
+                          >
+                            {(frequency) => (
+                              <SelectItem
+                                key={frequency.value}
+                                textValue={frequency.label}
+                                className="text-slate-400 transition-colors data-[hover=true]:!bg-slate-100/70 data-[hover=true]:!text-slate-500"
+                              >
+                                {frequency.label}
+                              </SelectItem>
+                            )}
+                          </Select>
                         )}
-                      >
-                        {paymentFrequency?.map((frequency) => (
-                          <option key={frequency} value={frequency}>
-                            {paymentFrequencyLabels[frequency]}
-                          </option>
-                        ))}
-                      </select>
+                      />
+
                       {errors.payment_frequency && (
                         <span className="text-xs text-danger">
-                          {errors.payment_frequency?.message}
+                          {errors.payment_frequency.message}
                         </span>
                       )}
                     </label>
